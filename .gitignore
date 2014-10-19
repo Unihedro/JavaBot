@@ -1,0 +1,8 @@
+# Eclipse stuff
+.project
+.classpath
+.settings/*
+
+# IDE Junk
+/bin
+*.class
