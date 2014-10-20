@@ -17,12 +17,25 @@ public class JavaBot {
     public static void main(String[] args) {
         try {
             JavaBot javaBot = new JavaBot();
-            StackExchangeBrowser seBrowser = new StackExchangeBrowser();
-            seBrowser.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
-            seBrowser.joinChat(SESite.STACK_OVERFLOW, 139);
+            javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
+            javaBot.joinChat(SESite.STACK_OVERFLOW, 139);
         } catch(IllegalStateException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public StackExchangeBrowser seBrowser;
+    public JavaBot() {
+        seBrowser = new StackExchangeBrowser();
+    }
+
+    // Wrap StackExchangeBrowser methods for easier API access
+
+    public boolean login(SESite site, String username, String password) {
+        return seBrowser.login(site, username, password);
+    }
+    public boolean joinChat(SESite site, int chatId) {
+        return seBrowser.joinChat(site, chatId);
     }
 
 }
