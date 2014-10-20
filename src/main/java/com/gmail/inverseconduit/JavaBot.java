@@ -2,6 +2,9 @@
 // JavaBot.java by Unihedron
 package com.gmail.inverseconduit;
 
+import com.gmail.inverseconduit.chat.ChatMessage;
+import com.gmail.inverseconduit.chat.ChatMessageListener;
+
 /**
  * Procrastination: I'll fix this javadoc comment later.<br>
  * JavaBot @ com.gmail.inverseconduit
@@ -9,7 +12,7 @@ package com.gmail.inverseconduit;
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-public class JavaBot {
+public class JavaBot implements ChatMessageListener {
 
     /**
      * @param args
@@ -27,6 +30,7 @@ public class JavaBot {
     private StackExchangeBrowser seBrowser;
     public JavaBot() {
         seBrowser = new StackExchangeBrowser();
+        seBrowser.addMessageListener(this);
     }
 
     // Wrap StackExchangeBrowser methods for easier API access
@@ -38,4 +42,8 @@ public class JavaBot {
         return seBrowser.joinChat(site, chatId);
     }
 
+    @Override
+    public void onMessageReceived(ChatMessage message) {
+        System.out.println(message.toString());
+    }
 }

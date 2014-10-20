@@ -3,17 +3,17 @@ package com.gmail.inverseconduit;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.html.DomChangeEvent;
-import com.gargoylesoftware.htmlunit.html.DomChangeListener;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.*;
+import com.gmail.inverseconduit.chat.ChatMessageListener;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class StackExchangeBrowser {
     private static Logger logger = Logger.getLogger(StackExchangeBrowser.class.getName());
+    private ArrayList<ChatMessageListener> messageListeners = new ArrayList<>();
     private boolean loggedIn = true;
     private WebClient webClient;
 
@@ -63,14 +63,18 @@ public class StackExchangeBrowser {
             chatPage.addDomChangeListener(new DomChangeListener() {
                 @Override
                 public void nodeAdded(DomChangeEvent domChangeEvent) {
-                    System.out.println("Node added: " + domChangeEvent.getChangedNode().asText());
+                    DomNode changedNode = domChangeEvent.getChangedNode();
+                    org.w3c.dom.Node classAttribute = changedNode.getAttributes().getNamedItem("class");
+                    if(classAttribute != null && classAttribute.getTextContent().contains("user-container")) {
+
+                    }
+                    System.out.println(changedNode.getAttributes().getNamedItem("class").getTextContent());
                 }
 
                 @Override
-                public void nodeDeleted(DomChangeEvent domChangeEvent) {
-                    System.out.println("Node deleted: " + domChangeEvent.getChangedNode().asText());
-                }
+                public void nodeDeleted(DomChangeEvent domChangeEvent) {}
             });
+            logger.info("Joined room.");
             while(true) {
                 webClient.waitForBackgroundJavaScriptStartingBefore(10000);
             }
@@ -78,5 +82,17 @@ public class StackExchangeBrowser {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public ArrayList<ChatMessageListener> getMessageListeners() {
+        return messageListeners;
+    }
+
+    public void addMessageListener(ChatMessageListener listener) {
+        messageListeners.add(listener);
+    }
+
+    public boolean removeMessageListener(ChatMessageListener listener) {
+        return messageListeners.remove(listener);
     }
 }

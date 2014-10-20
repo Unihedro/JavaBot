@@ -9,7 +9,7 @@ package com.gmail.inverseconduit;
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-enum SESite {
+public enum SESite {
     STACK_OVERFLOW("stackoverflow"),
     STACK_EXCHANGE("stackexchange"),
     META_STACK_EXCHANGE("meta." + STACK_EXCHANGE.dir);
@@ -24,16 +24,16 @@ enum SESite {
         this.loginUrl = rootUrl + "users/login";
     }
 
-    String urlToRoom(int id) throws IllegalArgumentException {
+    public String urlToRoom(int id) throws IllegalArgumentException {
         if (id <= 0) throw new IllegalArgumentException("id must be a positive number.");
         return "http://chat." + dir + ".com/rooms/" + id;
     }
 
-    String getRootUrl() {
+    public String getRootUrl() {
         return rootUrl;
     }
 
-    String getLoginUrl() {
+    public String getLoginUrl() {
         return loginUrl;
     }
 }
