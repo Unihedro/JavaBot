@@ -4,7 +4,9 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.html.*;
+import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
+import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.net.URL;
@@ -58,16 +60,32 @@ public class StackExchangeBrowser {
             return false;
         }
         try {
-            HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
             webClient.waitForBackgroundJavaScriptStartingBefore(30000);
+            HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
+            final String roomName = "Java";
             chatPage.addDomChangeListener(new DomChangeListener() {
                 @Override
                 public void nodeAdded(DomChangeEvent domChangeEvent) {
                     DomNode changedNode = domChangeEvent.getChangedNode();
-                    org.w3c.dom.Node classAttribute = changedNode.getAttributes().getNamedItem("class");
+                    Node classAttribute = changedNode.getAttributes().getNamedItem("class");
+
+                    // This appears to be a chat message.
                     if(classAttribute != null && classAttribute.getTextContent().contains("user-container")) {
+                        String userId = changedNode.getFirstChild().getAttributes().
+                                getNamedItem("href").getTextContent().split("/")[1];
+
+                        String username = changedNode.getFirstChild().getChildNodes().get(2).getTextContent().trim();
+
+                        DomNodeList<DomNode> n = changedNode.getChildNodes().get(1).getChildNodes();
+                        String message = n.get(n.getLength() - 1).getTextContent();
+
+                        ChatMessage cMsg = new ChatMessage(site, chatId, roomName, username, userId, message);
+                        for(ChatMessageListener listener : messageListeners) {
+                            listener.onMessageReceived(cMsg);
+                        }
 
                     }
+
                     System.out.println(changedNode.getAttributes().getNamedItem("class").getTextContent());
                 }
 
