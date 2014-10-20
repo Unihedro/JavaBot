@@ -6,3 +6,5 @@
 # IDE Junk
 /bin
 *.class
+.idea
+*.iml

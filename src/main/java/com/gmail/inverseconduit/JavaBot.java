@@ -16,16 +16,13 @@ public class JavaBot {
      */
     public static void main(String[] args) {
         try {
-            new JavaBot().go();
+            JavaBot javaBot = new JavaBot();
+            StackExchangeBrowser seBrowser = new StackExchangeBrowser();
+            seBrowser.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
+            seBrowser.joinChat(SESite.STACK_OVERFLOW, 139);
         } catch(IllegalStateException ex) {
             ex.printStackTrace();
         }
-    }
-
-    ConnectionManager manager = new SimpleConnectionManager();
-
-    void go() throws IllegalStateException {
-        manager.establishConnection();
     }
 
 }
