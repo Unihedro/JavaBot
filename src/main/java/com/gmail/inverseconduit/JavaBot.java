@@ -24,7 +24,7 @@ public class JavaBot {
         }
     }
 
-    public StackExchangeBrowser seBrowser;
+    private StackExchangeBrowser seBrowser;
     public JavaBot() {
         seBrowser = new StackExchangeBrowser();
     }
