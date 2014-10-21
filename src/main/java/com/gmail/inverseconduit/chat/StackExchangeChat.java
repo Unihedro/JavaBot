@@ -16,12 +16,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StackExchangeChat {
-    private static Logger logger = Logger.getLogger(StackExchangeChat.class.getName());
-    private EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap = new EnumMap<>(SESite.class);
+    private final static Logger logger = Logger.getLogger(StackExchangeChat.class.getName());
+    private final EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap = new EnumMap<>(SESite.class);
     private boolean loggedIn = true;
-    private WebClient webClient;
-    private JSONChatConnection jsonChatConnection;
-    private JavaBot javaBot;
+    private final WebClient webClient;
+    private final JSONChatConnection jsonChatConnection;
+    private final JavaBot javaBot;
 
     public StackExchangeChat(JavaBot javaBot) {
         this.javaBot = javaBot;
@@ -45,14 +45,17 @@ public class StackExchangeChat {
             loginForm.getInputByName("email").setValueAttribute(email);
             loginForm.getInputByName("password").setValueAttribute(password);
             WebResponse response = loginForm.getInputByName("submit-button").click().getWebResponse();
-            if(response.getStatusCode() == 200) {
-                logger.info(String.format("Logged in to %s with email %s", site.getRootUrl(), email));
-                loggedIn = true;
+            loggedIn = (response.getStatusCode() == 200);
+            
+            String logMessage;
+            if(loggedIn) {
+                logMessage = String.format("Logged in to %s with email %s", site.getRootUrl(), email);
+            } else {
+                logMessage = String.format("Login failed. Got status code %d", response.getStatusCode());
             }
-            else {
-                logger.info(String.format("Login failed. Got status code %d", response.getStatusCode()));
-            }
-            return true;
+            logger.info(logMessage);
+            
+            return loggedIn;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -133,6 +136,7 @@ public class StackExchangeChat {
                 return false;
             }
             logger.info("POST " + r.toString());
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
