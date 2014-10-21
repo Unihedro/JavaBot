@@ -7,5 +7,6 @@ public class BotConfig {
     public static String ACCESS_TOKEN = "ACCESS_TOKEN";
     public static String LOGIN_EMAIL = "LOGIN_EMAIL";
     public static String PASSWORD = "PASSWORD";
+    public static String TRIGGER = "@Test";
     private BotConfig(){}
 }
