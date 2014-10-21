@@ -16,12 +16,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StackExchangeChat {
-    private static Logger logger = Logger.getLogger(StackExchangeChat.class.getName());
-    private EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap = new EnumMap<>(SESite.class);
+    private final static Logger logger = Logger.getLogger(StackExchangeChat.class.getName());
+    private final EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap = new EnumMap<>(SESite.class);
     private boolean loggedIn = true;
-    private WebClient webClient;
-    private JSONChatConnection jsonChatConnection;
-    private JavaBot javaBot;
+    private final WebClient webClient;
+    private final JSONChatConnection jsonChatConnection;
+    private final JavaBot javaBot;
 
     public StackExchangeChat(JavaBot javaBot) {
         this.javaBot = javaBot;

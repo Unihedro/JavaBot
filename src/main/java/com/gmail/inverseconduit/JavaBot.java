@@ -19,11 +19,11 @@ import java.util.ArrayList;
  *         >vincentyification@gmail.com</a>>
  */
 public class JavaBot {
-    private StackExchangeChat seChat;
-    private ArrayList<ChatMessageListener> listeners = new ArrayList<>();
-    private Binding scriptBinding = new Binding();
-    private GroovyShell groovyShell;
-    private CompilerConfiguration groovyConfig;
+    private final StackExchangeChat seChat;
+    private final ArrayList<ChatMessageListener> listeners = new ArrayList<>();
+    private final Binding scriptBinding = new Binding();
+    private final GroovyShell groovyShell;
+    private final CompilerConfiguration groovyConfig;
 
     public JavaBot() {
         seChat = new StackExchangeChat(this);
