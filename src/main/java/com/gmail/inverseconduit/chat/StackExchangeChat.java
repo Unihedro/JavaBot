@@ -136,6 +136,7 @@ public class StackExchangeChat {
                 return false;
             }
             logger.info("POST " + r.toString());
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
