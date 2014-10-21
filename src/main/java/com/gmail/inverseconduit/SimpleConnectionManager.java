@@ -20,7 +20,11 @@ class SimpleConnectionManager implements ConnectionManager {
     
     @Override
     public void establishConnection() {
-        login();
+        if (!login()){
+        	System.out.println("Invalid login credentials!");
+        	return;
+        }
+        
         try {
         	Request request = Request.Post(javaChatRoomUrl + "/java");
         	List<NameValuePair> body = Form.form().add("input", "~ Hello World").build();
@@ -45,6 +49,8 @@ class SimpleConnectionManager implements ConnectionManager {
         	
         	Response response = request.execute();
         	System.out.println(response.returnContent());
+        	
+        	return true;
         } catch(IOException | URISyntaxException e) {
             e.printStackTrace();
         }
