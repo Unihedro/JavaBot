@@ -14,9 +14,15 @@ import org.apache.http.client.fluent.Response;
 import org.apache.http.client.utils.URIBuilder;
 
 class SimpleConnectionManager implements ConnectionManager {
-
-    private static final String email = "10395287@opayq.com", password = "Polyhedron0";
-    private static final URI javaChatRoomUrl = SEChat.chatSO.urlToRoom(139);
+	private final String email, password, roomName;
+	private final URI chatRoomUrl;
+    
+    public SimpleConnectionManager(String email, String password, int roomNumber, String roomName){
+    	this.email = email;
+    	this.password = password;
+    	this.roomName = roomName;
+    	chatRoomUrl = SEChat.chatSO.urlToRoom(roomNumber);
+    }
     
     @Override
     public void establishConnection() {
@@ -26,7 +32,7 @@ class SimpleConnectionManager implements ConnectionManager {
         }
         
         try {
-        	Request request = Request.Post(javaChatRoomUrl + "/java");
+        	Request request = Request.Post(chatRoomUrl + "/" + roomName);
         	List<NameValuePair> body = Form.form().add("input", "~ Hello World").build();
         	request.bodyForm(body);
         	
@@ -41,7 +47,7 @@ class SimpleConnectionManager implements ConnectionManager {
     public boolean login() {
         try {
         	URIBuilder uri = new URIBuilder("http://stackoverflow.com/users/login");
-        	uri.addParameter("returnurl", javaChatRoomUrl.toString());
+        	uri.addParameter("returnurl", chatRoomUrl.toString());
         	Request request = Request.Post(uri.build());
         	
         	List<NameValuePair> body = Form.form().add("email", email).add("password", password).build();
