@@ -49,6 +49,8 @@ public class JavaBot {
 
     public void handleMessage(ChatMessage message) {
         System.out.println(message.toString());
-        //sendMessage(message.getSite(), message.getRoomId(), "Test");
+        for(ChatMessageListener listener : listeners) {
+            listener.onMessage(message);
+        }
     }
 }
