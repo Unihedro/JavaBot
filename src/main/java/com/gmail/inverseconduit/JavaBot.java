@@ -13,37 +13,29 @@ import com.gmail.inverseconduit.chat.ChatMessageListener;
  *         >vincentyification@gmail.com</a>>
  */
 public class JavaBot implements ChatMessageListener {
-
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-        try {
-            JavaBot javaBot = new JavaBot();
-            javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
-            javaBot.joinChat(SESite.STACK_OVERFLOW, 139);
-        } catch(IllegalStateException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     private StackExchangeBrowser seBrowser;
+
     public JavaBot() {
         seBrowser = new StackExchangeBrowser();
         seBrowser.addMessageListener(this);
     }
 
     // Wrap StackExchangeBrowser methods for easier API access
-
     public boolean login(SESite site, String username, String password) {
         return seBrowser.login(site, username, password);
     }
+
     public boolean joinChat(SESite site, int chatId) {
         return seBrowser.joinChat(site, chatId);
+    }
+
+    public boolean sendMessage(SESite site, int chatId, String message) {
+        return seBrowser.sendMessage(site, chatId, message);
     }
 
     @Override
     public void onMessageReceived(ChatMessage message) {
         System.out.println(message.toString());
+        //sendMessage(message.getSite(), message.getRoomId(), "Test");
     }
 }

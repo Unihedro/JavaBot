@@ -45,4 +45,8 @@ public enum SESite {
         }
         return null;
     }
+
+    public String getDir() {
+        return dir;
+    }
 }
