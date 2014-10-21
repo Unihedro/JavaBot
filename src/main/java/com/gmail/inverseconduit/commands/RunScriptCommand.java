@@ -2,6 +2,8 @@ package com.gmail.inverseconduit.commands;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -17,6 +19,8 @@ public class RunScriptCommand implements ChatMessageListener{
 		userIds.add(2272617);
 	}
 	
+	private final Pattern messageRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "eval:(.*)");
+	
     @Override
     public void onMessage(JavaBot bot, ChatMessage msg) {
         System.out.println("Entered onMessage for RunScriptCommand");
@@ -25,13 +29,14 @@ public class RunScriptCommand implements ChatMessageListener{
         	return;
         }
         
-        String m = msg.getMessage();
-        if (!msg.getMessage().startsWith(BotConfig.TRIGGER + "eval:")) {
+        String message = msg.getMessage();
+        Matcher matcher = messageRegex.matcher(message);
+        if (!matcher.find()) {
         	//not a bot command
         	return;
         }
 
-        String script = StringEscapeUtils.unescapeHtml4(m.substring(m.indexOf(":") + 1));
+        String script = StringEscapeUtils.unescapeHtml4(matcher.group(1));
         System.out.println("Evaluating script: " + script);
         Object result = bot.getGroovyShell().evaluate(script);
         System.out.println(result);
