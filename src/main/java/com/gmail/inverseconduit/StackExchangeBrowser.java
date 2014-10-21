@@ -3,14 +3,14 @@ package com.gmail.inverseconduit;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.html.*;
-import com.gmail.inverseconduit.chat.ChatMessage;
-import com.gmail.inverseconduit.chat.ChatMessageListener;
-import org.w3c.dom.Node;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gmail.inverseconduit.chat.*;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StackExchangeBrowser {
@@ -18,15 +18,18 @@ public class StackExchangeBrowser {
     private ArrayList<ChatMessageListener> messageListeners = new ArrayList<>();
     private boolean loggedIn = true;
     private WebClient webClient;
+    private JSONChatConnection jsonChatConnection;
 
     public StackExchangeBrowser() {
-        webClient = new WebClient(BrowserVersion.FIREFOX_24);
+        webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getCookieManager().setCookiesEnabled(true);
         webClient.getOptions().setRedirectEnabled(true);
         webClient.getOptions().setJavaScriptEnabled(true);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
-        webClient.getOptions().setCssEnabled(false);
-        //webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+        Logger.getLogger("com.gargoylesoftware.htmlunit.javascript.StrictErrorReporter").setLevel(Level.OFF);
+        Logger.getLogger("com.gargoylesoftware.htmlunit.DefaultCssErrorHandler").setLevel(Level.OFF);
+        jsonChatConnection = new JSONChatConnection(webClient, this);
+        webClient.setWebConnection(jsonChatConnection);
     }
 
     public boolean login(SESite site, String email, String password) {
@@ -62,44 +65,18 @@ public class StackExchangeBrowser {
         try {
             webClient.waitForBackgroundJavaScriptStartingBefore(30000);
             HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
-            final String roomName = "Java";
-            chatPage.addDomChangeListener(new DomChangeListener() {
-                @Override
-                public void nodeAdded(DomChangeEvent domChangeEvent) {
-                    DomNode changedNode = domChangeEvent.getChangedNode();
-                    Node classAttribute = changedNode.getAttributes().getNamedItem("class");
-
-                    // This appears to be a chat message.
-                    if(classAttribute != null && classAttribute.getTextContent().contains("user-container")) {
-                        String userId = changedNode.getFirstChild().getAttributes().
-                                getNamedItem("href").getTextContent().split("/")[1];
-
-                        String username = changedNode.getFirstChild().getChildNodes().get(2).getTextContent().trim();
-
-                        DomNodeList<DomNode> n = changedNode.getChildNodes().get(1).getChildNodes();
-                        String message = n.get(n.getLength() - 1).getTextContent();
-
-                        ChatMessage cMsg = new ChatMessage(site, chatId, roomName, username, userId, message);
-                        for(ChatMessageListener listener : messageListeners) {
-                            listener.onMessageReceived(cMsg);
-                        }
-
-                    }
-
-                    System.out.println(changedNode.getAttributes().getNamedItem("class").getTextContent());
-                }
-
-                @Override
-                public void nodeDeleted(DomChangeEvent domChangeEvent) {}
-            });
+            jsonChatConnection.setEnabled(true);
             logger.info("Joined room.");
             while(true) {
-                webClient.waitForBackgroundJavaScriptStartingBefore(10000);
+                Thread.sleep(1000);
             }
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        return true;
     }
 
     public ArrayList<ChatMessageListener> getMessageListeners() {
@@ -112,5 +89,20 @@ public class StackExchangeBrowser {
 
     public boolean removeMessageListener(ChatMessageListener listener) {
         return messageListeners.remove(listener);
+    }
+
+    public void handleChatEvents(JSONChatEvents events) {
+        for(JSONChatEvent event : events.getEvents()) {
+            switch(event.getEvent_type()) {
+                case ChatEventType.CHAT_MESSAGE:
+                    ChatMessage chatMessage = new ChatMessage(
+                            events.getSite(), event.getRoom_id(), event.getRoom_name(),
+                            event.getUser_name(), event.getUser_id(), event.getContent());
+                    for(ChatMessageListener listener : messageListeners) {
+                        listener.onMessageReceived(chatMessage);
+                    }
+                    break;
+            }
+        }
     }
 }

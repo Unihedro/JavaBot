@@ -4,14 +4,14 @@ import com.gmail.inverseconduit.SESite;
 
 public class ChatMessage {
     private final String displayName;
-    private final String userId;
+    private final int userId;
     private final String message;
     private final SESite site;
     private final int roomId;
     private final String roomName;
 
     public ChatMessage(SESite site, int roomId, String roomName,
-                       String displayName, String userId, String message) {
+                       String displayName, int userId, String message) {
         this.site = site;
         this.roomId = roomId;
         this.roomName = roomName;
@@ -30,7 +30,7 @@ public class ChatMessage {
         return displayName;
     }
 
-    public String getUserId() {
+    public int getUserId() {
         return userId;
     }
 

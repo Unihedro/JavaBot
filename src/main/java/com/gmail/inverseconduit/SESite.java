@@ -2,6 +2,8 @@
 // SEChat.java by Unihedron
 package com.gmail.inverseconduit;
 
+import java.net.URL;
+
 /**
  * Generates locations to the destinated address.<br>
  * SEChat @ com.gmail.inverseconduit
@@ -35,5 +37,12 @@ public enum SESite {
 
     public String getLoginUrl() {
         return loginUrl;
+    }
+
+    public static SESite fromUrl(URL url) {
+        for(SESite site : SESite.values()) {
+            if(url.toString().contains(site.dir)) return site;
+        }
+        return null;
     }
 }
