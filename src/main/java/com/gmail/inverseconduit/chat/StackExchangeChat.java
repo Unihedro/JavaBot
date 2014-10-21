@@ -1,10 +1,11 @@
-package com.gmail.inverseconduit;
+package com.gmail.inverseconduit.chat;
 
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
-import com.gmail.inverseconduit.chat.*;
+import com.gmail.inverseconduit.JavaBot;
+import com.gmail.inverseconduit.SESite;
 
 import java.io.IOException;
 import java.net.URL;
@@ -14,15 +15,16 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class StackExchangeBrowser {
-    private static Logger logger = Logger.getLogger(StackExchangeBrowser.class.getName());
-    private ArrayList<ChatMessageListener> messageListeners = new ArrayList<>();
+public class StackExchangeChat {
+    private static Logger logger = Logger.getLogger(StackExchangeChat.class.getName());
     private EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap = new EnumMap<>(SESite.class);
     private boolean loggedIn = true;
     private WebClient webClient;
     private JSONChatConnection jsonChatConnection;
+    private JavaBot javaBot;
 
-    public StackExchangeBrowser() {
+    public StackExchangeChat(JavaBot javaBot) {
+        this.javaBot = javaBot;
         webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getCookieManager().setCookiesEnabled(true);
         webClient.getOptions().setRedirectEnabled(true);
@@ -84,18 +86,6 @@ public class StackExchangeBrowser {
         return true;
     }
 
-    public ArrayList<ChatMessageListener> getMessageListeners() {
-        return messageListeners;
-    }
-
-    public void addMessageListener(ChatMessageListener listener) {
-        messageListeners.add(listener);
-    }
-
-    public boolean removeMessageListener(ChatMessageListener listener) {
-        return messageListeners.remove(listener);
-    }
-
     private void addChatPage(SESite site, int id, HtmlPage page) {
         HashMap<Integer, HtmlPage> siteMap = chatMap.get(site);
         if(siteMap == null) {
@@ -105,16 +95,14 @@ public class StackExchangeBrowser {
         chatMap.put(site, siteMap);
     }
 
-    public void handleChatEvents(JSONChatEvents events) {
+    protected void handleChatEvents(JSONChatEvents events) {
         for(JSONChatEvent event : events.getEvents()) {
             switch(event.getEvent_type()) {
                 case ChatEventType.CHAT_MESSAGE:
                     ChatMessage chatMessage = new ChatMessage(
                             events.getSite(), event.getRoom_id(), event.getRoom_name(),
                             event.getUser_name(), event.getUser_id(), event.getContent());
-                    for(ChatMessageListener listener : messageListeners) {
-                        listener.onMessageReceived(chatMessage);
-                    }
+                    javaBot.handleMessage(chatMessage);
                     break;
             }
         }

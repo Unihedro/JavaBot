@@ -1,5 +1,5 @@
 package com.gmail.inverseconduit.chat;
 
 public interface ChatMessageListener {
-    void onMessageReceived(ChatMessage message);
+    public void onMessage(ChatMessage message);
 }
