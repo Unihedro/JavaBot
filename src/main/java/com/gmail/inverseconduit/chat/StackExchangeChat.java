@@ -45,14 +45,17 @@ public class StackExchangeChat {
             loginForm.getInputByName("email").setValueAttribute(email);
             loginForm.getInputByName("password").setValueAttribute(password);
             WebResponse response = loginForm.getInputByName("submit-button").click().getWebResponse();
-            if(response.getStatusCode() == 200) {
-                logger.info(String.format("Logged in to %s with email %s", site.getRootUrl(), email));
-                loggedIn = true;
+            loggedIn = (response.getStatusCode() == 200);
+            
+            String logMessage;
+            if(loggedIn) {
+                logMessage = String.format("Logged in to %s with email %s", site.getRootUrl(), email);
+            } else {
+                logMessage = String.format("Login failed. Got status code %d", response.getStatusCode());
             }
-            else {
-                logger.info(String.format("Login failed. Got status code %d", response.getStatusCode()));
-            }
-            return true;
+            logger.info(logMessage);
+            
+            return loggedIn;
         } catch (IOException e) {
             e.printStackTrace();
         }

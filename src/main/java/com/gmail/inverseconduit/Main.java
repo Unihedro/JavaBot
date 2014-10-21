@@ -5,7 +5,12 @@ import com.gmail.inverseconduit.commands.RunScriptCommand;
 public class Main {
     public static void main(String[] args) {
     	JavaBot javaBot = new JavaBot();
-        javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
+        boolean loggedIn = javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
+        if (!loggedIn){
+        	System.out.println("Login failed!");
+        	return;
+        }
+        
         // Register command listeners
         javaBot.addListener(new RunScriptCommand());
 
