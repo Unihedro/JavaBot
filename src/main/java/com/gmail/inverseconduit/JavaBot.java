@@ -50,7 +50,7 @@ public class JavaBot {
     public void handleMessage(ChatMessage message) {
         System.out.println(message.toString());
         for(ChatMessageListener listener : listeners) {
-            listener.onMessage(message);
+            listener.onMessage(this, message);
         }
     }
 }
