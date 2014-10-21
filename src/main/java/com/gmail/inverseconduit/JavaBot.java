@@ -5,6 +5,8 @@ package com.gmail.inverseconduit;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
 
 import java.util.ArrayList;
 
@@ -18,9 +20,17 @@ import java.util.ArrayList;
 public class JavaBot {
     private StackExchangeChat seChat;
     private ArrayList<ChatMessageListener> listeners = new ArrayList<>();
+    private Binding scriptBinding = new Binding();
+    private GroovyShell groovyShell;
 
     public JavaBot() {
         seChat = new StackExchangeChat(this);
+        scriptBinding.setVariable("javaBot", this);
+        groovyShell = new GroovyShell(scriptBinding);
+    }
+
+    public GroovyShell getGroovyShell() {
+        return groovyShell;
     }
 
     public boolean addListener(ChatMessageListener listener) {
