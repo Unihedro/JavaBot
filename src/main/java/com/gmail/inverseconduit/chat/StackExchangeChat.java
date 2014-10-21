@@ -68,7 +68,12 @@ public class StackExchangeChat {
             logger.warning("Not logged in. Cannot join chat.");
             return false;
         }
+        if(chatMap.containsKey(site) && chatMap.get(site).containsKey(chatId)) {
+            logger.warning("Already in that room.");
+            return false;
+        }
         try {
+            // TODO new rooms require new windows
             webClient.waitForBackgroundJavaScriptStartingBefore(30000);
             HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
             jsonChatConnection.setEnabled(true);
@@ -121,12 +126,12 @@ public class StackExchangeChat {
             params.add(new NameValuePair("fkey", fkey));
             params.add(new NameValuePair("text", message));
             r.setRequestParameters(params);
-            /*WebResponse response = webClient.getPage(r);
+            WebResponse response = webClient.loadWebResponse(r);
             if(response.getStatusCode() != 200) {
                 logger.warning(String.format("Could not send message. Response(%d): %s",
                         response.getStatusCode(), response.getStatusMessage()));
                 return false;
-            }*/
+            }
             logger.info("POST " + r.toString());
         } catch (IOException e) {
             e.printStackTrace();
