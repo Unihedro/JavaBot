@@ -10,22 +10,19 @@ package com.gmail.inverseconduit;
  *         >vincentyification@gmail.com</a>>
  */
 public class JavaBot {
-
-    /**
-     * @param args
-     */
     public static void main(String[] args) {
-        try {
-            new JavaBot().go();
-        } catch(IllegalStateException ex) {
-            ex.printStackTrace();
-        }
+    	ConnectionManager manager = new SimpleConnectionManager("10395287@opayq.com", "Polyhedron0", 139, "java");
+    	JavaBot javaBot = new JavaBot(manager);
+    	javaBot.go();
+    }
+    
+    private final ConnectionManager manager;
+    
+    public JavaBot(ConnectionManager manager){
+    	this.manager = manager;
     }
 
-    ConnectionManager manager = new SimpleConnectionManager();
-
-    void go() throws IllegalStateException {
+    public void go() {
         manager.establishConnection();
     }
-
 }
