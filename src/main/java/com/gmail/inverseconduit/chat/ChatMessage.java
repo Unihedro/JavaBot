@@ -3,7 +3,7 @@ package com.gmail.inverseconduit.chat;
 import com.gmail.inverseconduit.SESite;
 
 public class ChatMessage {
-    private final String displayName;
+    private final String username;
     private final int userId;
     private final String message;
     private final SESite site;
@@ -11,11 +11,11 @@ public class ChatMessage {
     private final String roomName;
 
     public ChatMessage(SESite site, int roomId, String roomName,
-                       String displayName, int userId, String message) {
+                       String username, int userId, String message) {
         this.site = site;
         this.roomId = roomId;
         this.roomName = roomName;
-        this.displayName = displayName;
+        this.username = username;
         this.userId = userId;
         this.message = message;
     }
@@ -23,11 +23,11 @@ public class ChatMessage {
     @Override
     public String toString() {
         return String.format("%s:%s(%s) / %s(%s): %s", site.name(),
-                roomName, roomId, displayName, userId, message);
+                roomName, roomId, username, userId, message);
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getUsername() {
+        return username;
     }
 
     public int getUserId() {
