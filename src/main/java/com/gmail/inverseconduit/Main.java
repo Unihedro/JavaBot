@@ -8,11 +8,10 @@ public class Main {
         try {
             javaBot = new JavaBot();
             javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
-
             // Register command listeners
             javaBot.addListener(new RunScriptCommand());
 
-            javaBot.joinChat(SESite.STACK_OVERFLOW, 139);
+            javaBot.joinChat(SESite.STACK_OVERFLOW, 1);
         } catch(IllegalStateException ex) {
             ex.printStackTrace();
         }

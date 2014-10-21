@@ -8,5 +8,6 @@ public class BotConfig {
     public static String LOGIN_EMAIL = "LOGIN_EMAIL";
     public static String PASSWORD = "PASSWORD";
     public static String TRIGGER = "@Test";
+    public static String TRIGGER = "!!";
     private BotConfig(){}
 }
