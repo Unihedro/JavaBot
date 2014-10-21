@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RunScriptCommand implements ChatMessageListener{
-	private final Set<Integer> userIds = new HashSet<Integer>();
+	private final Set<Integer> userIds = new HashSet<>();
 	{
 		userIds.add(3622940);
 		userIds.add(2272617);

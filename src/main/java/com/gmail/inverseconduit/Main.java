@@ -5,6 +5,7 @@ import com.gmail.inverseconduit.commands.RunScriptCommand;
 public class Main {
     public static void main(String[] args) {
         try {
+            System.setSecurityManager(new ScriptSecurityManager());
             JavaBot javaBot = new JavaBot();
             boolean loggedIn = javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
             if (!loggedIn) {
