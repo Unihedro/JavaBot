@@ -1,16 +1,16 @@
 package com.gmail.inverseconduit.commands;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.JavaBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
+import groovy.lang.GroovyCodeSource;
+import org.apache.commons.lang3.StringEscapeUtils;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RunScriptCommand implements ChatMessageListener{
 	private final Set<Integer> userIds = new HashSet<Integer>();
@@ -38,7 +38,7 @@ public class RunScriptCommand implements ChatMessageListener{
 
         String script = StringEscapeUtils.unescapeHtml4(matcher.group(1));
         System.out.println("Evaluating script: " + script);
-        Object result = bot.getGroovyShell().evaluate(script);
+        Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(script, "EvalCommand", "/sandboxScript"));
         System.out.println(result);
         bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
     }
