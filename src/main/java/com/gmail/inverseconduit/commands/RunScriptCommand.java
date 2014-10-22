@@ -6,6 +6,7 @@ import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
 import groovy.lang.GroovyCodeSource;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jsoup.Jsoup;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,9 +38,7 @@ public class RunScriptCommand implements ChatMessageListener{
                 return;
             }
 
-            String script = StringEscapeUtils.unescapeHtml4(matcher.group(1));
-            System.out.println("Evaluating script: " + script);
-            Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(script, "UserScript", "/sandboxScript"));
+            Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(matcher.group(1), "UserScript", "/sandboxScript"));
             System.out.println(result);
             bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
         } catch(Exception ex) {

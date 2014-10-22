@@ -6,6 +6,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gmail.inverseconduit.JavaBot;
 import com.gmail.inverseconduit.SESite;
+import org.jsoup.Jsoup;
 
 import java.io.IOException;
 import java.net.URL;
@@ -107,9 +108,10 @@ public class StackExchangeChat {
         for(JSONChatEvent event : events.getEvents()) {
             switch(event.getEvent_type()) {
                 case ChatEventType.CHAT_MESSAGE:
+                    String message = Jsoup.parse(event.getContent()).text();
                     ChatMessage chatMessage = new ChatMessage(
                             events.getSite(), event.getRoom_id(), event.getRoom_name(),
-                            event.getUser_name(), event.getUser_id(), event.getContent());
+                            event.getUser_name(), event.getUser_id(), message);
                     javaBot.handleMessage(chatMessage);
                     break;
             }
