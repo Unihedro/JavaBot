@@ -8,3 +8,9 @@
 *.class
 .idea
 *.iml
+
+# Maven generated stuff!
+/target
+
+# Configurations!
+src/main/java/com/gmail/inverseconduit/BotConfig.java
