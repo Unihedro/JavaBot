@@ -6,6 +6,7 @@ import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import groovy.lang.Binding;
+import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
@@ -24,6 +25,7 @@ public class JavaBot {
     private final Binding scriptBinding = new Binding();
     private final GroovyShell groovyShell;
     private final CompilerConfiguration groovyConfig;
+    private final GroovyClassLoader groovyLoader;
 
     public JavaBot() {
         seChat = new StackExchangeChat(this);
@@ -32,11 +34,16 @@ public class JavaBot {
         groovyConfig = new CompilerConfiguration();
         groovyConfig.setScriptBaseClass(ScriptBase.class.getName());
         scriptBinding.setVariable("javaBot", this);
+        groovyLoader = new GroovyClassLoader(JavaBot.class.getClassLoader(), groovyConfig);
         groovyShell = new GroovyShell(this.getClass().getClassLoader(), scriptBinding, groovyConfig);
     }
 
     public GroovyShell getGroovyShell() {
         return groovyShell;
+    }
+
+    public GroovyClassLoader getGroovyLoader() {
+        return groovyLoader;
     }
 
     public boolean addListener(ChatMessageListener listener) {

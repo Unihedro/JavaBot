@@ -5,8 +5,6 @@ import com.gmail.inverseconduit.JavaBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
 import groovy.lang.GroovyCodeSource;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.jsoup.Jsoup;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,27 +18,40 @@ public class RunScriptCommand implements ChatMessageListener{
 		userIds.add(2272617);
 	}
 	
-	private final Pattern messageRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "eval:(.*)");
-	
+	private final Pattern compileRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "java:(.*)");
+    private final Pattern evalRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "eval:(.*)");
+    private final Pattern lRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "load:(.*)");
+
     @Override
     public void onMessage(JavaBot bot, ChatMessage msg) {
         try {
             System.out.println("Entered onMessage for RunScriptCommand");
-            if (!userIds.contains(msg.getUserId())) {
-                //ignore message
-                return;
-            }
+            if (!userIds.contains(msg.getUserId())) return;
 
             String message = msg.getMessage();
-            Matcher matcher = messageRegex.matcher(message);
-            if (!matcher.find()) {
-                //not a bot command
-                return;
+            Matcher cMatcher = compileRegex.matcher(message);
+            Matcher eMatcher = evalRegex.matcher(message);
+            Matcher lMatcher = lRegex.matcher(message);
+
+            // Compile class and call main method
+            if(cMatcher.find()) {
+                Object gClass = bot.getGroovyLoader().parseClass(new GroovyCodeSource(cMatcher.group(1), "UserScript", "/sandboxScript"), false);
+                String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, ((Object) new String[]{""})).toString();
+                bot.sendMessage(msg.getSite(), msg.getRoomId(), result);
             }
 
-            Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(matcher.group(1), "UserScript", "/sandboxScript"));
-            System.out.println(result);
-            bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+            // Compile class, cache for later use.
+            else if(lMatcher.find()) {
+                Object gClass = bot.getGroovyLoader().parseClass(new GroovyCodeSource(cMatcher.group(1), "UserScript", "/sandboxScript"), true);
+                //String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, ((Object) new String[]{""})).toString();
+                bot.sendMessage(msg.getSite(), msg.getRoomId(), "Thanks, I'll remember that.");
+            }
+
+            // Evaluate groovy in shell
+            else if(eMatcher.find()) {
+                Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(eMatcher.group(1), "UserScript", "/sandboxScript"));
+                bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+            }
         } catch(Exception ex) {
             bot.sendMessage(msg.getSite(), msg.getRoomId(), ex.getMessage());
         }
