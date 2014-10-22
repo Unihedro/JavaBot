@@ -21,7 +21,14 @@ public class Main {
             }
             // Register command listeners
             javaBot.addListener(new RunScriptCommand());
+
+            // Join chat
             javaBot.joinChat(SESite.STACK_OVERFLOW, 1);
+
+            // Begin processing
+            while(true) {
+                javaBot.processMessages();
+            }
         } catch(IllegalStateException ex) {
             ex.printStackTrace();
         }

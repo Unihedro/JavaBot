@@ -11,6 +11,9 @@ import groovy.lang.GroovyShell;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 
 /**
  * Procrastination: I'll fix this javadoc comment later.<br>
@@ -26,6 +29,8 @@ public class JavaBot {
     private final GroovyShell groovyShell;
     private final CompilerConfiguration groovyConfig;
     private final GroovyClassLoader groovyLoader;
+    private final ExecutorService threadPool = Executors.newCachedThreadPool();
+    private final SynchronousQueue<ChatMessage> messageQueue = new SynchronousQueue<>(true);
 
     public JavaBot() {
         seChat = new StackExchangeChat(this);
@@ -70,10 +75,20 @@ public class JavaBot {
         return seChat.sendMessage(site, chatId, message);
     }
 
-    public void handleMessage(ChatMessage message) {
-        System.out.println(message.toString());
-        for(ChatMessageListener listener : listeners) {
-            listener.onMessage(this, message);
+    protected synchronized void processMessages() {
+        try {
+            final ChatMessage message = messageQueue.take();
+            threadPool.execute(() -> {
+                for (ChatMessageListener listener : listeners) {
+                    listener.onMessage(this, message);
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+    }
+
+    public void queueMessage(ChatMessage message) {
+        messageQueue.add(message);
     }
 }

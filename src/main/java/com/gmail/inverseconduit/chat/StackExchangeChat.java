@@ -83,14 +83,9 @@ public class StackExchangeChat {
             jsonChatConnection.setEnabled(true);
             addChatPage(site, chatId, chatPage);
             logger.info("Joined room.");
-            while(true) {
-                Thread.sleep(1000);
-            }
         } catch (IOException e) {
             e.printStackTrace();
             return false;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
         return true;
     }
@@ -112,13 +107,13 @@ public class StackExchangeChat {
                     ChatMessage chatMessage = new ChatMessage(
                             events.getSite(), event.getRoom_id(), event.getRoom_name(),
                             event.getUser_name(), event.getUser_id(), message);
-                    javaBot.handleMessage(chatMessage);
+                    javaBot.queueMessage(chatMessage);
                     break;
             }
         }
     }
 
-    public boolean sendMessage(SESite site, int chatId, String message) {
+    public synchronized boolean sendMessage(SESite site, int chatId, String message) {
         try {
             HashMap<Integer, HtmlPage> map = chatMap.get(site);
             HtmlPage page = map.get(chatId);

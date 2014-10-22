@@ -23,7 +23,7 @@ public class RunScriptCommand implements ChatMessageListener{
     private final Pattern lRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "load:(.*)");
 
     @Override
-    public void onMessage(JavaBot bot, ChatMessage msg) {
+    public synchronized void onMessage(JavaBot bot, ChatMessage msg) {
         try {
             System.out.println("Entered onMessage for RunScriptCommand");
             if (!userIds.contains(msg.getUserId())) return;
