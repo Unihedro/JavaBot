@@ -21,7 +21,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.gmail.inverseconduit.JavaBot</mainClass>
+							<mainClass>com.gmail.inverseconduit.Main</mainClass>
 						</manifest>
 					</archive>
 				    <descriptorRefs>
