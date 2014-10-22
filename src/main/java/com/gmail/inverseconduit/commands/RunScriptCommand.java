@@ -2,6 +2,7 @@ package com.gmail.inverseconduit.commands;
 
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.JavaBot;
+import com.gmail.inverseconduit.PrintUtils;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
 import groovy.lang.GroovyCodeSource;
@@ -25,7 +26,7 @@ public class RunScriptCommand implements ChatMessageListener{
     @Override
     public synchronized void onMessage(JavaBot bot, ChatMessage msg) {
         try {
-            System.out.println("Entered onMessage for RunScriptCommand");
+            //System.out.println("Entered onMessage for RunScriptCommand");
             if (!userIds.contains(msg.getUserId())) return;
 
             String message = msg.getMessage();
@@ -36,8 +37,9 @@ public class RunScriptCommand implements ChatMessageListener{
             // Compile class and call main method
             if(cMatcher.find()) {
                 Object gClass = bot.getGroovyLoader().parseClass(new GroovyCodeSource(cMatcher.group(1), "UserScript", "/sandboxScript"), false);
-                String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, ((Object) new String[]{""})).toString();
-                bot.sendMessage(msg.getSite(), msg.getRoomId(), result);
+                Object result = ((Class) gClass).getMethod("run", Object[].class).invoke(null, ((Object) new String[]{""}));
+                if(result != null) bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+                else bot.sendMessage(msg.getSite(), msg.getRoomId(), "*Execution completed, null or no output*");
             }
 
             // Compile class, cache for later use.
@@ -50,10 +52,11 @@ public class RunScriptCommand implements ChatMessageListener{
             // Evaluate groovy in shell
             else if(eMatcher.find()) {
                 Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(eMatcher.group(1), "UserScript", "/sandboxScript"));
-                bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+                if(result != null) bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+                else bot.sendMessage(msg.getSite(), msg.getRoomId(), "*Execution completed, null or no output*");
             }
         } catch(Exception ex) {
-            bot.sendMessage(msg.getSite(), msg.getRoomId(), ex.getMessage());
+            bot.sendMessage(msg.getSite(), msg.getRoomId(), PrintUtils.FixedFont(ex.getMessage()));
         }
     }
 }

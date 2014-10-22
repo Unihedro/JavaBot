@@ -78,6 +78,7 @@ public class JavaBot {
     protected synchronized void processMessages() {
         try {
             final ChatMessage message = messageQueue.take();
+            System.out.println(message.toString());
             threadPool.execute(() -> {
                 for (ChatMessageListener listener : listeners) {
                     listener.onMessage(this, message);
