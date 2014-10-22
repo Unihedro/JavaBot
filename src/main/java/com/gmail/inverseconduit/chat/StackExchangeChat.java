@@ -78,7 +78,7 @@ public class StackExchangeChat {
         }
         try {
             // TODO new rooms require new windows
-            webClient.waitForBackgroundJavaScriptStartingBefore(30000);
+            webClient.waitForBackgroundJavaScriptStartingBefore(10000);
             HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
             jsonChatConnection.setEnabled(true);
             addChatPage(site, chatId, chatPage);
