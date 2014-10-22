@@ -1,12 +1,19 @@
 package com.gmail.inverseconduit;
 
 import com.gmail.inverseconduit.commands.RunScriptCommand;
+import com.gmail.inverseconduit.security.ScriptSecurityManager;
+import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
+
+import java.security.Policy;
 
 public class Main {
+    private static JavaBot javaBot;
     public static void main(String[] args) {
         try {
-            System.setSecurityManager(new ScriptSecurityManager());
-            JavaBot javaBot = new JavaBot();
+            Policy.setPolicy(ScriptSecurityPolicy.getInstance());
+            System.setSecurityManager(ScriptSecurityManager.getInstance());
+
+            javaBot = new JavaBot();
             boolean loggedIn = javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
             if (!loggedIn) {
                 System.out.println("Login failed!");

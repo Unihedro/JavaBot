@@ -23,23 +23,27 @@ public class RunScriptCommand implements ChatMessageListener{
 	
     @Override
     public void onMessage(JavaBot bot, ChatMessage msg) {
-        System.out.println("Entered onMessage for RunScriptCommand");
-        if (!userIds.contains(msg.getUserId())){
-        	//ignore message
-        	return;
-        }
-        
-        String message = msg.getMessage();
-        Matcher matcher = messageRegex.matcher(message);
-        if (!matcher.find()) {
-        	//not a bot command
-        	return;
-        }
+        try {
+            System.out.println("Entered onMessage for RunScriptCommand");
+            if (!userIds.contains(msg.getUserId())) {
+                //ignore message
+                return;
+            }
 
-        String script = StringEscapeUtils.unescapeHtml4(matcher.group(1));
-        System.out.println("Evaluating script: " + script);
-        Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(script, "EvalCommand", "/sandboxScript"));
-        System.out.println(result);
-        bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+            String message = msg.getMessage();
+            Matcher matcher = messageRegex.matcher(message);
+            if (!matcher.find()) {
+                //not a bot command
+                return;
+            }
+
+            String script = StringEscapeUtils.unescapeHtml4(matcher.group(1));
+            System.out.println("Evaluating script: " + script);
+            Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(script, "UserScript", "/sandboxScript"));
+            System.out.println(result);
+            bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+        } catch(Exception ex) {
+            bot.sendMessage(msg.getSite(), msg.getRoomId(), ex.getMessage());
+        }
     }
 }
