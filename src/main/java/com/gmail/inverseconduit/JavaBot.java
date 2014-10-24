@@ -2,12 +2,15 @@
 // JavaBot.java by Unihedron
 package com.gmail.inverseconduit;
 
+import com.gmail.inverseconduit.bot.AbstractBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
-import com.gmail.inverseconduit.chat.StackExchangeChat;
+import com.gmail.inverseconduit.chat.MessageRelay;
+
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
+
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.ArrayList;
@@ -22,8 +25,8 @@ import java.util.concurrent.SynchronousQueue;
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-public class JavaBot {
-    private final StackExchangeChat seChat;
+public class JavaBot extends AbstractBot {
+    private final MessageRelay seChat;
     private final ArrayList<ChatMessageListener> listeners = new ArrayList<>();
     private final Binding scriptBinding = new Binding();
     private final GroovyShell groovyShell;
@@ -33,7 +36,7 @@ public class JavaBot {
     private final SynchronousQueue<ChatMessage> messageQueue = new SynchronousQueue<>(true);
 
     public JavaBot() {
-        seChat = new StackExchangeChat(this);
+        seChat = new MessageRelay(this);
 
         // Groovy
         groovyConfig = new CompilerConfiguration();
@@ -64,7 +67,7 @@ public class JavaBot {
     }
 
     public boolean login(SESite site, String username, String password) {
-        return seChat.login(site, username, password);
+        return seChat.loginWithEmailAndPass(site, username, password);
     }
 
     public boolean joinChat(SESite site, int chatId) {
@@ -75,7 +78,7 @@ public class JavaBot {
         return seChat.sendMessage(site, chatId, message);
     }
 
-    protected synchronized void processMessages() {
+    public void processMessages() {
         try {
             final ChatMessage message = messageQueue.take();
             System.out.println(message.toString());

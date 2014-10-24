@@ -8,13 +8,13 @@ public class ChatMessage {
     private final String message;
     private final SESite site;
     private final int roomId;
-    private final String roomName;
+//    private final String roomName;
 
     public ChatMessage(SESite site, int roomId, String roomName,
                        String username, int userId, String message) {
         this.site = site;
         this.roomId = roomId;
-        this.roomName = roomName;
+//        this.roomName = roomName;
         this.username = username;
         this.userId = userId;
         this.message = message;
@@ -22,8 +22,8 @@ public class ChatMessage {
 
     @Override
     public String toString() {
-        return String.format("%s:%s(%s) / %s(%s): %s", site.name(),
-                roomName, roomId, username, userId, message);
+        return String.format("%s:(%s) / %s(%s): %s", site.name(),
+                /*roomName,*/ roomId, username, userId, message);
     }
 
     public String getUsername() {
@@ -46,7 +46,7 @@ public class ChatMessage {
         return roomId;
     }
 
-    public String getRoomName() {
-        return roomName;
-    }
+//    public String getRoomName() {
+//        return roomName;
+//    }
 }

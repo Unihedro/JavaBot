@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-enum SEChat {
+public enum SEChat {
     chatSO("stackoverflow"),
     chatSE("stackexchange"),
     chatMSE("meta." + chatSE.dir);

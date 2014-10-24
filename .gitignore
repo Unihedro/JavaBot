@@ -13,4 +13,4 @@
 /target
 
 # Configurations!
-src/main/java/com/gmail/inverseconduit/BotConfig.java
+*BotConfig.java

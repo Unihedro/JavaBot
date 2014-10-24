@@ -12,41 +12,51 @@ import java.net.URL;
  *         >vincentyification@gmail.com</a>>
  */
 public enum SESite {
-    STACK_OVERFLOW("stackoverflow"),
-    STACK_EXCHANGE("stackexchange"),
-    META_STACK_EXCHANGE("meta." + STACK_EXCHANGE.dir);
+	STACK_OVERFLOW("stackoverflow"), 
+	STACK_EXCHANGE("stackexchange"), 
+	META_STACK_EXCHANGE("meta." + STACK_EXCHANGE.domain), 
+	CODE_REVIEW("codereview", STACK_EXCHANGE.domain);
 
-    private final String dir;
-    private final String rootUrl;
-    private final String loginUrl;
+	private final String domain;
+	private final String rootUrl;
+	private final String loginUrl;
+	private final String subdomain;
 
-    SESite(String dir) {
-        this.dir = dir;
-        this.rootUrl = "https://" + dir + ".com/";
-        this.loginUrl = rootUrl + "users/login";
-    }
+	SESite(final String domain) {
+		this("", domain);
+	}
 
-    public String urlToRoom(int id) throws IllegalArgumentException {
-        if (id <= 0) throw new IllegalArgumentException("id must be a positive number.");
-        return "http://chat." + dir + ".com/rooms/" + id;
-    }
+	SESite(String subdomain, String dir) {
+		this.subdomain = subdomain;
+		this.domain = dir;
+		this.rootUrl = "https://" + dir + ".com/";
+		this.loginUrl = subdomain.isEmpty() ? rootUrl + "users/login"
+				: "https://" + subdomain + "." + domain + ".com/users/login";
+	}
 
-    public String getRootUrl() {
-        return rootUrl;
-    }
+	public String urlToRoom(int id) throws IllegalArgumentException {
+		if (id <= 0)
+			throw new IllegalArgumentException("id must be a positive number.");
+		return "http://chat." + domain + ".com/rooms/" + id;
+	}
 
-    public String getLoginUrl() {
-        return loginUrl;
-    }
+	public String getRootUrl() {
+		return rootUrl;
+	}
 
-    public static SESite fromUrl(URL url) {
-        for(SESite site : SESite.values()) {
-            if(url.toString().contains(site.dir)) return site;
-        }
-        return null;
-    }
+	public String getLoginUrl() {
+		return loginUrl;
+	}
 
-    public String getDir() {
-        return dir;
-    }
+	public static SESite fromUrl(URL url) {
+		for (SESite site : SESite.values()) {
+			if (url.toString().contains(site.domain))
+				return site;
+		}
+		return null;
+	}
+
+	public String getDomain() {
+		return domain;
+	}
 }
