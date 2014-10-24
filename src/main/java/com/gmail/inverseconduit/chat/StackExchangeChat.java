@@ -4,7 +4,7 @@ import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
-import com.gmail.inverseconduit.JavaBot;
+import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.SESite;
 import org.jsoup.Jsoup;
 

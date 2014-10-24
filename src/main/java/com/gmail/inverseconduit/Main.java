@@ -1,5 +1,6 @@
 package com.gmail.inverseconduit;
 
+import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.commands.RunScriptCommand;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;

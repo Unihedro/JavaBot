@@ -1,13 +1,16 @@
-// CLASS CREATED 2014/10/19 AT 4:41:58 P.M.
-// JavaBot.java by Unihedron
-package com.gmail.inverseconduit;
+package com.gmail.inverseconduit.bot;
 
+import com.gmail.inverseconduit.SESite;
+import com.gmail.inverseconduit.ScriptBase;
+import com.gmail.inverseconduit.bot.AbstractBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ChatMessageListener;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
+
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
+
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.ArrayList;
@@ -22,7 +25,7 @@ import java.util.concurrent.SynchronousQueue;
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-public class JavaBot {
+public final class JavaBot extends AbstractBot {
     private final StackExchangeChat seChat;
     private final ArrayList<ChatMessageListener> listeners = new ArrayList<>();
     private final Binding scriptBinding = new Binding();
@@ -75,7 +78,7 @@ public class JavaBot {
         return seChat.sendMessage(site, chatId, message);
     }
 
-    protected synchronized void processMessages() {
+    public void processMessages() {
         try {
             final ChatMessage message = messageQueue.take();
             System.out.println(message.toString());
