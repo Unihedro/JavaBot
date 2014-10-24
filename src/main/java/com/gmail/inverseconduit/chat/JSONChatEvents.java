@@ -1,14 +1,17 @@
 package com.gmail.inverseconduit.chat;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.gmail.inverseconduit.SESite;
 
-import java.util.ArrayList;
-
-public class JSONChatEvents {
-    private ArrayList<JSONChatEvent> e;
+public class JsonChatEvents {
+    private JsonChatEvent[] events;
     SESite site;
-    public ArrayList<JSONChatEvent> getEvents() {
-        return e;
+    
+    
+    public List<JsonChatEvent> getEvents() {
+        return Arrays.asList(events);
     }
     public SESite getSite() {
         return site;

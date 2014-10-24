@@ -1,6 +1,6 @@
 package com.gmail.inverseconduit.chat;
 
-public class JSONChatEvent {
+public class JsonChatEvent {
     private int event_type;
     private long time_stamp;
     private String content;

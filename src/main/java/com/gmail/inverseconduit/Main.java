@@ -1,5 +1,7 @@
 package com.gmail.inverseconduit;
 
+import com.gmail.inverseconduit.bot.BotConfig;
+import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.commands.RunScriptCommand;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
@@ -19,13 +21,9 @@ public class Main {
                 System.out.println("Login failed!");
                 return;
             }
-            // Register command listeners
             javaBot.addListener(new RunScriptCommand());
-
-            // Join chat
             javaBot.joinChat(SESite.STACK_OVERFLOW, 1);
 
-            // Begin processing
             while(true) {
                 javaBot.processMessages();
             }

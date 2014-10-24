@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
+import com.gmail.inverseconduit.SEChat;
 
 class SimpleConnectionManager implements ConnectionManager {
 

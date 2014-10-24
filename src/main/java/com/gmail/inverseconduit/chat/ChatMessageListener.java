@@ -1,7 +1,7 @@
 package com.gmail.inverseconduit.chat;
 
-import com.gmail.inverseconduit.JavaBot;
+import com.gmail.inverseconduit.bot.AbstractBot;;
 
 public interface ChatMessageListener {
-    public void onMessage(JavaBot bot, ChatMessage msg);
+    public void onMessage(AbstractBot bot, ChatMessage msg);
 }
