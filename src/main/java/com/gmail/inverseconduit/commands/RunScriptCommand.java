@@ -1,23 +1,40 @@
 package com.gmail.inverseconduit.commands;
 
-import com.gmail.inverseconduit.BotConfig;
-import com.gmail.inverseconduit.PrintUtils;
-import com.gmail.inverseconduit.bot.AbstractBot;
-import com.gmail.inverseconduit.bot.JavaBot;
-import com.gmail.inverseconduit.chat.ChatMessage;
-import com.gmail.inverseconduit.chat.ChatMessageListener;
-
 import groovy.lang.GroovyCodeSource;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.gmail.inverseconduit.BotConfig;
+import com.gmail.inverseconduit.JavadocDao;
+import com.gmail.inverseconduit.JavadocDao.ClassInfo;
+import com.gmail.inverseconduit.JavadocDao.MultipleClassesFoundException;
+import com.gmail.inverseconduit.PrintUtils;
+import com.gmail.inverseconduit.bot.AbstractBot;
+import com.gmail.inverseconduit.bot.JavaBot;
+import com.gmail.inverseconduit.chat.ChatMessage;
+import com.gmail.inverseconduit.chat.ChatMessageListener;
+
 public class RunScriptCommand implements ChatMessageListener {
-	private final Logger logger = Logger.getLogger(ChatMessageListener.class.getName());
+	private static final Logger logger = Logger.getLogger(RunScriptCommand.class.getName());
+	private static final JavadocDao javadocDao;
+	static {
+		if (Files.isDirectory(BotConfig.JAVADOCS_DIR)){
+			try {
+				javadocDao = new JavadocDao(BotConfig.JAVADOCS_DIR);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			javadocDao = null;
+		}
+	}
 	
 	private final Set<Integer> userIds = new HashSet<>();
 	{
@@ -61,6 +78,12 @@ public class RunScriptCommand implements ChatMessageListener {
             case "java":
             	compileAndExecuteMain(jBot, msg, commandText);
             	break;
+            case "javadoc":
+            	javadoc(jBot, msg, commandText);
+            	break;
+            default:
+            	jBot.sendMessage(msg.getSite(), msg.getRoomId(), "Sorry, I don't know that command. >.<");
+            	break;
             }
         } catch(Exception ex) {
             jBot.sendMessage(msg.getSite(), msg.getRoomId(), PrintUtils.FixedFont(ex.getMessage()));
@@ -85,5 +108,25 @@ public class RunScriptCommand implements ChatMessageListener {
 		Object gClass = bot.getGroovyLoader().parseClass(new GroovyCodeSource(commandText, "UserScript", "/sandboxScript"), false);
 		String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, ((Object) new String[]{""})).toString();
 		bot.sendMessage(msg.getSite(), msg.getRoomId(), result);
+	}
+	
+	private void javadoc(JavaBot bot, ChatMessage msg, String commandText) throws IOException{
+		String message;
+		try {
+			ClassInfo info = javadocDao.getClassInfo(commandText);
+			if (info == null){
+				message = "Sorry, I never heard of that class. :(";
+			} else {
+				message = PrintUtils.FixedFont(info.getDescription());
+			}
+		} catch (MultipleClassesFoundException e) {
+			StringBuilder sb = new StringBuilder("Which one do you mean?");
+			for (String name : e.getClasses()){
+				sb.append("\n    ").append(name);
+			}
+			message = toString();
+		}
+		
+		bot.sendMessage(msg.getSite(), msg.getRoomId(), message);
 	}
 }
