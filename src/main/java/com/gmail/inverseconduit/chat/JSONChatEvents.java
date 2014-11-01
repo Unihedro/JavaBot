@@ -5,14 +5,16 @@ import java.util.List;
 
 import com.gmail.inverseconduit.SESite;
 
-public class JsonChatEvents {
-    private JsonChatEvent[] events;
-    SESite site;
-    
-    
-    public List<JsonChatEvent> getEvents() {
+public class JSONChatEvents {
+
+    private JSONChatEvent[] events;
+
+    SESite                  site;
+
+    public List<JSONChatEvent> getEvents() {
         return Arrays.asList(events);
     }
+
     public SESite getSite() {
         return site;
     }

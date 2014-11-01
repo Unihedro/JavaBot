@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 /**
  * Generates locations to the destinated address.<br>
  * SEChat @ com.gmail.inverseconduit
- * 
+ *
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
@@ -25,11 +25,11 @@ public enum SEChat {
 
     URI urlToRoom(int id) throws IllegalArgumentException {
         if (id <= 0)
-            throw new IllegalArgumentException("id must be a positive number.");
+            throw new IllegalArgumentException("id must be a positive integer.");
         try {
             return new URI("http://chat." + dir + ".com/rooms/" + id);
         } catch(URISyntaxException e) {
-            throw new IllegalArgumentException(e.getClass().getName() + ":" + e.getMessage());
+            throw new IllegalArgumentException(e.getClass().getName() + ": " + e.getMessage());
         }
     }
 }
