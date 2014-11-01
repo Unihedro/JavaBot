@@ -1,35 +1,68 @@
 package com.gmail.inverseconduit.bot;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
+import org.jsoup.helper.Validate;
+
 import com.gmail.inverseconduit.chat.ChatMessage;
-import com.gmail.inverseconduit.chat.ChatMessageListener;
+import com.gmail.inverseconduit.chat.ListenerProperty;
+import com.gmail.inverseconduit.chat.MessageListener;
+import com.gmail.inverseconduit.chat.ListenerProperty.Priority;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 
 public abstract class AbstractBot {
 
-	protected final BlockingQueue<ChatMessage> messageQueue = new LinkedBlockingQueue<>();
-	protected final ArrayList<ChatMessageListener> listeners = new ArrayList<>();
+    protected final BlockingQueue<ChatMessage>          messageQueue = new LinkedBlockingQueue<>();
 
-	public abstract void processMessages();
+    protected final Multimap<Priority, MessageListener> listeners;
 
-	public List<ChatMessageListener> getListeners() {
-		return listeners;
-	}
+    protected AbstractBot() {
+        Supplier<ArrayList<MessageListener>> supplier = Suppliers.ofInstance(new ArrayList<>());
+        EnumMap<Priority, Collection<MessageListener>> map = new EnumMap<>(Priority.class);
+        listeners = Multimaps.newListMultimap(map, supplier);
+    }
 
-	public boolean addListener(ChatMessageListener listener) {
-		return listeners.add(listener);
-	}
+    public abstract void processMessages();
 
-	public boolean removeListener(ChatMessageListener listener) {
-		return listeners.remove(listener);
-	}
+    /**
+     * @return An immutable list containing all message handlers.
+     */
+    public List<MessageListener> getListeners() {
+        return ImmutableList.copyOf(listeners.values());
+    }
 
-	public boolean enqueueMessage(ChatMessage chatMessage)
-			throws InterruptedException {
-		return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
-	}
+    public boolean addListener(@Nonnull MessageListener listener) {
+        Validate.notNull(listener);
+
+        ListenerProperty property = listener.getClass().getAnnotation(ListenerProperty.class);
+        if (null == property)
+            return listeners.put(Priority.DEFAULT, listener);
+        Priority priority = property.priority();
+
+        //        int time = property.timer();
+        //        if (time > 0)
+        //            ; // listener = new TimedMessageListener(listener);
+
+        return listeners.put(priority, listener);
+    }
+
+    public boolean removeListener(MessageListener listener) {
+        return listeners.values().remove(listener);
+    }
+
+    public boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
+        return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
+    }
 }

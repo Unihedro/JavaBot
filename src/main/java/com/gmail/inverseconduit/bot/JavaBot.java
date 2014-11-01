@@ -4,7 +4,7 @@ import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.ScriptBase;
 import com.gmail.inverseconduit.bot.AbstractBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
-import com.gmail.inverseconduit.chat.ChatMessageListener;
+import com.gmail.inverseconduit.chat.MessageListener;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 
 import groovy.lang.Binding;
@@ -21,19 +21,27 @@ import java.util.concurrent.SynchronousQueue;
 /**
  * Procrastination: I'll fix this javadoc comment later.<br>
  * JavaBot @ com.gmail.inverseconduit
- * 
+ *
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
 public final class JavaBot extends AbstractBot {
-    private final StackExchangeChat seChat;
-    private final ArrayList<ChatMessageListener> listeners = new ArrayList<>();
-    private final Binding scriptBinding = new Binding();
-    private final GroovyShell groovyShell;
-    private final CompilerConfiguration groovyConfig;
-    private final GroovyClassLoader groovyLoader;
-    private final ExecutorService threadPool = Executors.newCachedThreadPool();
-    private final SynchronousQueue<ChatMessage> messageQueue = new SynchronousQueue<>(true);
+
+    private final StackExchangeChat             seChat;
+
+    private final ArrayList<MessageListener>    listeners     = new ArrayList<>();
+
+    private final Binding                       scriptBinding = new Binding();
+
+    private final GroovyShell                   groovyShell;
+
+    private final CompilerConfiguration         groovyConfig;
+
+    private final GroovyClassLoader             groovyLoader;
+
+    private final ExecutorService               threadPool    = Executors.newCachedThreadPool();
+
+    private final SynchronousQueue<ChatMessage> messageQueue  = new SynchronousQueue<>(true);
 
     public JavaBot() {
         seChat = new StackExchangeChat(this);
@@ -54,18 +62,6 @@ public final class JavaBot extends AbstractBot {
         return groovyLoader;
     }
 
-    public boolean addListener(ChatMessageListener listener) {
-        return listeners.add(listener);
-    }
-
-    public boolean removeListener(ChatMessageListener listener) {
-        return listeners.remove(listener);
-    }
-
-    public ArrayList<ChatMessageListener> getListeners() {
-        return listeners;
-    }
-
     public boolean login(SESite site, String username, String password) {
         return seChat.login(site, username, password);
     }
@@ -78,16 +74,16 @@ public final class JavaBot extends AbstractBot {
         return seChat.sendMessage(site, chatId, message);
     }
 
+    @Override
     public void processMessages() {
         try {
             final ChatMessage message = messageQueue.take();
             System.out.println(message.toString());
             threadPool.execute(() -> {
-                for (ChatMessageListener listener : listeners) {
+                for (MessageListener listener : getListeners())
                     listener.onMessage(this, message);
-                }
             });
-        } catch (InterruptedException e) {
+        } catch(InterruptedException e) {
             e.printStackTrace();
         }
     }

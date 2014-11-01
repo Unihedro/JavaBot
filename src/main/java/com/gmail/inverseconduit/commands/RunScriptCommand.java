@@ -15,13 +15,13 @@ import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.JavadocDao;
 import com.gmail.inverseconduit.JavadocDao.ClassInfo;
 import com.gmail.inverseconduit.JavadocDao.MultipleClassesFoundException;
-import com.gmail.inverseconduit.PrintUtils;
 import com.gmail.inverseconduit.bot.AbstractBot;
 import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
-import com.gmail.inverseconduit.chat.ChatMessageListener;
+import com.gmail.inverseconduit.chat.MessageListener;
+import com.gmail.inverseconduit.utils.PrintUtils;
 
-public class RunScriptCommand implements ChatMessageListener {
+public class RunScriptCommand implements MessageListener {
 	private static final Logger logger = Logger.getLogger(RunScriptCommand.class.getName());
 	private static final JavadocDao javadocDao;
 	static {
