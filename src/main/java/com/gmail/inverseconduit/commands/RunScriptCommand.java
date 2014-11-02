@@ -26,7 +26,7 @@ public class RunScriptCommand implements MessageListener {
 	private static final Logger logger = Logger.getLogger(RunScriptCommand.class.getName());
 	private static final JavadocDao javadocDao;
 	static {
-		if (Files.isDirectory(BotConfig.JAVADOCS_DIR)){
+		if (Files.isDirectory(BotConfig.JAVADOCS_DIR)) {
 			try {
 				javadocDao = new JavadocZipDao(BotConfig.JAVADOCS_DIR);
 			} catch (IOException e) {
@@ -36,7 +36,7 @@ public class RunScriptCommand implements MessageListener {
 			javadocDao = null;
 		}
 	}
-	
+
 	private final Set<Integer> userIds = new HashSet<>();
 	{
 		userIds.add(3622940);
@@ -45,8 +45,7 @@ public class RunScriptCommand implements MessageListener {
 	}
 	private final Set<Integer> blacklist = new HashSet<>();
 
-	private final Pattern messageRegex = Pattern.compile("^"
-			+ Pattern.quote(BotConfig.TRIGGER) + "(.*?):(.*)");
+	private final Pattern messageRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "(.*?):(.*)");
 
 	@Override
     public void onMessage(AbstractBot bot, ChatMessage msg) {
@@ -110,24 +109,33 @@ public class RunScriptCommand implements MessageListener {
 		String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, ((Object) new String[]{""})).toString();
 		bot.sendMessage(msg.getSite(), msg.getRoomId(), result);
 	}
-	
-	private void javadoc(JavaBot bot, ChatMessage msg, String commandText) throws IOException{
+
+	private void javadoc(JavaBot bot, ChatMessage msg, String commandText) throws IOException {
 		String message;
-		try {
-			ClassInfo info = javadocDao.getClassInfo(commandText);
-			if (info == null){
-				message = "Sorry, I never heard of that class. :(";
-			} else {
-				message = PrintUtils.FixedFont(info.getDescription());
+		if (javadocDao == null) {
+			message = "Sorry, I can't answer that.  My Javadocs folder isn't configured!";
+		} else {
+			try {
+				ClassInfo info = javadocDao.getClassInfo(commandText);
+				if (info == null) {
+					message = "Sorry, I never heard of that class. :(";
+				} else {
+					message = info.getDescription();
+					int pos = message.indexOf("\n\n");
+					if (pos >= 0) {
+						//just display the first paragraph
+						message = message.substring(0, pos);
+					}
+				}
+			} catch (MultipleClassesFoundException e) {
+				StringBuilder sb = new StringBuilder("Which one do you mean?");
+				for (String name : e.getClasses()) {
+					sb.append("\n    ").append(name);
+				}
+				message = toString();
 			}
-		} catch (MultipleClassesFoundException e) {
-			StringBuilder sb = new StringBuilder("Which one do you mean?");
-			for (String name : e.getClasses()){
-				sb.append("\n    ").append(name);
-			}
-			message = toString();
 		}
-		
+
 		bot.sendMessage(msg.getSite(), msg.getRoomId(), message);
 	}
 }
