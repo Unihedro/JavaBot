@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit;
+package com.gmail.inverseconduit.javadoc;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,19 +20,19 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 /**
- * Retrieves the Javadoc information of a class.
+ * Retrieves the Javadoc information from ZIP files.
  * @author Michael Angstadt
  */
-public class JavadocDao {
+public class JavadocZipDao implements JavadocDao{
 	private final List<Path> javadocFiles;
 	private final Map<String, Set<String>> simpleToFullClassNames;
 	
 	/**
-	 * Creates a new Javadoc DAO.
-	 * @param javadocDir the path to the directory where the Javadoc ZIP files are held.
+	 * Creates a new Javadoc ZIP DAO.
+	 * @param javadocDir the path to the directory where the ZIP files are.
 	 * @throws IOException if there's a problem reading a ZIP file
 	 */
-	public JavadocDao(Path javadocDir) throws IOException{
+	public JavadocZipDao(Path javadocDir) throws IOException{
 		//build a list of all the javadoc ZIP files
 		List<Path> javadocFiles = new ArrayList<>();
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(javadocDir)){
@@ -70,15 +69,7 @@ public class JavadocDao {
 		this.simpleToFullClassNames = Collections.unmodifiableMap(simpleToFullClassNames);
 	}
 	
-	/**
-	 * Gets the Javadoc info of a class.
-	 * @param className the simple class name (e.g. "String", case-insensitive)
-	 * or the fully-qualified class name (e.g. "java.lang.String")
-	 * @return the class info or null if not found
-	 * @throws MultipleClassesFoundException if a simple class name was passed
-	 * into the method, and multiple classes were found with that name
-	 * @throws IOException if there's a problem reading a ZIP file
-	 */
+	@Override
 	public ClassInfo getClassInfo(String className) throws IOException, MultipleClassesFoundException{
 		if (!className.contains(".")){
 			Set<String> names = simpleToFullClassNames.get(className.toLowerCase());
@@ -109,56 +100,6 @@ public class JavadocDao {
 		}
 		
 		return null;
-	}
-	
-	/**
-	 * Thrown if multiple classes were found.
-	 * @see JavadocDao#getClassInfo(String)
-	 */
-	public static class MultipleClassesFoundException extends RuntimeException{
-		private static final long serialVersionUID = -6218458106841347985L;
-		private final Collection<String> classes;
-		
-		public MultipleClassesFoundException(Collection<String> classes){
-			this.classes = classes;
-		}
-		
-		public Collection<String> getClasses(){
-			return classes;
-		}
-		
-		public String toString(){
-			return classes.toString();
-		}
-	}
-	
-	/**
-	 * Holds the Javadoc info of a class.
-	 */
-	public static class ClassInfo{
-		private final String fullName;
-		private final String description;
-		
-		public ClassInfo(String fullName, String description) {
-			this.fullName = fullName;
-			this.description = description;
-		}
-		
-		/**
-		 * Gets the class's fully-qualified name.
-		 * @return the fully-qualified name (e.g. "java.lang.String")
-		 */
-		public String getFullName() {
-			return fullName;
-		}
-		
-		/**
-		 * Gets the class's description.
-		 * @return the class description
-		 */
-		public String getDescription() {
-			return description;
-		}
 	}
 	
 	private static boolean isZipFile(Path path){

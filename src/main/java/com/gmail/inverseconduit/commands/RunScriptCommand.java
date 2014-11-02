@@ -12,13 +12,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.gmail.inverseconduit.BotConfig;
-import com.gmail.inverseconduit.JavadocDao;
-import com.gmail.inverseconduit.JavadocDao.ClassInfo;
-import com.gmail.inverseconduit.JavadocDao.MultipleClassesFoundException;
 import com.gmail.inverseconduit.bot.AbstractBot;
 import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.MessageListener;
+import com.gmail.inverseconduit.javadoc.ClassInfo;
+import com.gmail.inverseconduit.javadoc.JavadocDao;
+import com.gmail.inverseconduit.javadoc.JavadocZipDao;
+import com.gmail.inverseconduit.javadoc.MultipleClassesFoundException;
 import com.gmail.inverseconduit.utils.PrintUtils;
 
 public class RunScriptCommand implements MessageListener {
@@ -27,7 +28,7 @@ public class RunScriptCommand implements MessageListener {
 	static {
 		if (Files.isDirectory(BotConfig.JAVADOCS_DIR)){
 			try {
-				javadocDao = new JavadocDao(BotConfig.JAVADOCS_DIR);
+				javadocDao = new JavadocZipDao(BotConfig.JAVADOCS_DIR);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

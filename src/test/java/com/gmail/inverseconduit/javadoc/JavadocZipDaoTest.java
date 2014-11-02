@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit;
+package com.gmail.inverseconduit.javadoc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -12,18 +12,15 @@ import java.util.Collection;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.gmail.inverseconduit.JavadocDao.ClassInfo;
-import com.gmail.inverseconduit.JavadocDao.MultipleClassesFoundException;
-
 /**
  * @author Michael Angstadt
  */
-public class JavadocDaoTest {
-	private static JavadocDao dao;
+public class JavadocZipDaoTest {
+	private static JavadocZipDao dao;
 	
 	@BeforeClass
 	public static void beforeClass() throws Exception{
-		dao = new JavadocDao(Paths.get("src", "test", "resources"));
+		dao = new JavadocZipDao(Paths.get("src", "test", "resources"));
 	}
 	
 	@Test
