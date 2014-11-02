@@ -15,6 +15,7 @@ import org.jsoup.helper.Validate;
 import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ListenerProperty;
 import com.gmail.inverseconduit.chat.MessageListener;
+import com.gmail.inverseconduit.chat.TimedMessageListener;
 import com.gmail.inverseconduit.chat.ListenerProperty.Priority;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -51,9 +52,9 @@ public abstract class AbstractBot {
             return listeners.put(Priority.DEFAULT, listener);
         Priority priority = property.priority();
 
-        //        int time = property.timer();
-        //        if (time > 0)
-        //            ; // listener = new TimedMessageListener(listener);
+        int time = property.timer();
+        if (time > 0)
+            listener = new TimedMessageListener(listener, this, time);
 
         return listeners.put(priority, listener);
     }
