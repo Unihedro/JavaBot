@@ -35,6 +35,8 @@ public class MessageRelay {
 
     private static final FKeyMap chatToFkey         = new FKeyMap();
 
+    private final Set<Long>      handledTimestamps  = new HashSet<>();
+
     private static class FKeyMap extends EnumMap<SESite, HashMap<Integer, String>> {
 
         private FKeyMap() {
@@ -90,8 +92,8 @@ public class MessageRelay {
                 String host = httpRequest.getFirstHeader("Host").getValue();
                 String location = httpResponse.getFirstHeader("Location").getValue();
                 String protocol = httpRequest.getFirstHeader("Host").getValue().equals("openid.stackexchange.com")
-                        ? "https"
-                            : "http";
+                    ? "https"
+                    : "http";
                 if (location.startsWith("http://") || location.startsWith("https://")) {
                     LOGGER.info("Redirecting to " + location);
                     return new HttpGet(location);
@@ -182,14 +184,18 @@ public class MessageRelay {
 
     protected void handleChatEvents(JSONChatEvents events) {
         LOGGER.finest("Handling events from chat.");
-        events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE).map(e -> {
-            return new ChatMessage(events.getSite(), e.getRoom_id(), e.getRoom_name(), e.getUser_name(), e.getUser_id(), e.getContent());
+        events.getEvents().stream().filter(e -> {
+            return e.getEvent_type() == ChatEventType.CHAT_MESSAGE 
+                    && !handledTimestamps.contains(e.getTime_stamp());
+        }).map(e -> {
+            return ChatMessage.fromEvent(events.getSite(), e);
         }).forEach(m -> {
-            LOGGER.finest("Enqueueing message: " + m);
+            LOGGER.info("Enqueueing message with timestamp: " + m.getTimeStamp());
 
             listeningBots.forEach(x -> {
                 try {
                     x.enqueueMessage(m);
+                    handledTimestamps.add(m.getTimeStamp());
                 } catch(InterruptedException e1) {
                     LOGGER.severe("Interrupted");
                     e1.printStackTrace(System.err);
@@ -201,6 +207,7 @@ public class MessageRelay {
 
     public synchronized boolean sendMessage(final SESite site, final int chatId, final String message) {
         Objects.requireNonNull(message, "message");
+        LOGGER.info("Trying to send message: " + message);
 
         String fkey = chatToFkey.get(site).get(chatId);
 

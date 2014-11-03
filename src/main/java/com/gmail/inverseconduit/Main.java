@@ -20,7 +20,7 @@ public class Main {
         }
         
         javaBot.addListener(new RunScriptCommand());
-        javaBot.joinChat(SESite.STACK_OVERFLOW, 1);
+        javaBot.joinChat(SESite.CODE_REVIEW, 14370); //Blue Cheese Monster's home
 
         while(true) {
             javaBot.processMessages();

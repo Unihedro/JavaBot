@@ -41,6 +41,7 @@ public class RunScriptCommand implements MessageListener {
 		userIds.add(3622940);
 		userIds.add(2272617);
 		userIds.add(1803692);
+		userIds.add(74946);
 	}
 	private final Set<Integer> blacklist = new HashSet<>();
 
@@ -55,14 +56,14 @@ public class RunScriptCommand implements MessageListener {
             logger.finest("Entered onMessage for RunScriptCommand");
             
             if (!userIds.contains(msg.getUserId()) || blacklist.contains(msg.getUserId()))  {
-            	logger.finest("Ignoring message");
+            	logger.info("Ignoring message");
             	return;
             }
             
             String message = msg.getMessage();
             Matcher messageMatcher = messageRegex.matcher(message);
             if (!messageMatcher.find()){
-            	logger.finest("Message is not a bot command.");
+            	logger.info("Message is not a bot command.");
             	return;
             }
             
@@ -81,6 +82,9 @@ public class RunScriptCommand implements MessageListener {
             case "javadoc":
             	javadoc(jBot, msg, commandText);
             	break;
+            case "test":
+                logger.info("Entered test message handler");
+                jBot.sendMessage(msg.getSite(), msg.getRoomId(), "*~Testing outputs*");
             default:
             	jBot.sendMessage(msg.getSite(), msg.getRoomId(), "Sorry, I don't know that command. >.<");
             	break;
