@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.chat;
+package com.gmail.inverseconduit.datatype;
 
 public class JSONChatEvent {
 

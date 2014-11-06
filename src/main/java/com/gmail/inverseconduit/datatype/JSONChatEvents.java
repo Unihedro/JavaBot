@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.chat;
+package com.gmail.inverseconduit.datatype;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,5 +17,10 @@ public class JSONChatEvents {
 
     public SESite getSite() {
         return site;
+    }
+
+    public void setSite(SESite site) {
+        if (null == this.site)
+            this.site = site;
     }
 }

@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.chat;
+package com.gmail.inverseconduit.datatype;
 
 import com.gmail.inverseconduit.SESite;
 

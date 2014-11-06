@@ -12,11 +12,11 @@ import javax.annotation.Nonnull;
 
 import org.jsoup.helper.Validate;
 
-import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.ListenerProperty;
 import com.gmail.inverseconduit.chat.MessageListener;
 import com.gmail.inverseconduit.chat.TimedMessageListener;
 import com.gmail.inverseconduit.chat.ListenerProperty.Priority;
+import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;

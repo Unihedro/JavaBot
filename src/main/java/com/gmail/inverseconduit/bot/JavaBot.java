@@ -3,7 +3,6 @@ package com.gmail.inverseconduit.bot;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.ScriptBase;
 import com.gmail.inverseconduit.bot.AbstractBot;
-import com.gmail.inverseconduit.chat.ChatMessage;
 import com.gmail.inverseconduit.chat.MessageListener;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
+import com.gmail.inverseconduit.datatype.ChatMessage;
 
 /**
  * Procrastination: I'll fix this javadoc comment later.<br>

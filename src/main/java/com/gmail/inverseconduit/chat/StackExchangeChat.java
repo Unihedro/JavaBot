@@ -5,7 +5,12 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gmail.inverseconduit.bot.JavaBot;
+import com.gmail.inverseconduit.datatype.ChatEventType;
+import com.gmail.inverseconduit.datatype.ChatMessage;
+import com.gmail.inverseconduit.datatype.JSONChatEvent;
+import com.gmail.inverseconduit.datatype.JSONChatEvents;
 import com.gmail.inverseconduit.SESite;
+
 import org.jsoup.Jsoup;
 
 import java.io.IOException;

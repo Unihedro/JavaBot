@@ -1,6 +1,7 @@
 package com.gmail.inverseconduit.chat;
 
 import com.gmail.inverseconduit.bot.AbstractBot;
+import com.gmail.inverseconduit.datatype.ChatMessage;
 
 public interface MessageListener {
 

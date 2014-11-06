@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import com.gmail.inverseconduit.bot.AbstractBot;
+import com.gmail.inverseconduit.datatype.ChatMessage;
 
 public final class TimedMessageListener implements MessageListener {
 
