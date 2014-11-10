@@ -7,7 +7,7 @@ import java.net.URL;
 /**
  * Generates locations to the destinated address.<br>
  * SEChat @ com.gmail.inverseconduit
- * 
+ *
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
@@ -24,8 +24,8 @@ public enum SESite {
 
     SESite(String dir) {
         this.dir = dir;
-        this.rootUrl = "https://" + dir + ".com/";
-        this.loginUrl = rootUrl + "users/login";
+        rootUrl = "https://" + dir + ".com/";
+        loginUrl = rootUrl + "users/login";
     }
 
     public String urlToRoom(int id) throws IllegalArgumentException {

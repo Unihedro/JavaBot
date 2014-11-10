@@ -12,11 +12,13 @@ import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
 
 public class Main {
 
+    private static JavaBot javaBot;
+
     public static void main(String[] args) {
         Policy.setPolicy(ScriptSecurityPolicy.getInstance());
         System.setSecurityManager(ScriptSecurityManager.getInstance());
 
-        JavaBot javaBot = new JavaBot();
+        javaBot = new JavaBot();
         boolean loggedIn = javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
         if ( !loggedIn) {
             System.out.println("Login failed!");
@@ -45,6 +47,5 @@ public class Main {
                 Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
             }
         }, 5, 5, TimeUnit.SECONDS);
-
     }
 }

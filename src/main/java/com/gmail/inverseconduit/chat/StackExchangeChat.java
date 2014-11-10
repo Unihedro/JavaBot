@@ -38,8 +38,6 @@ public class StackExchangeChat {
 
     private final WebClient                                   webClient;
 
-    private final JSONChatReader                              jsonChatConnection;
-
     private final JavaBot                                     javaBot;
 
     private final Set<Long> handledMessages = new HashSet<Long>();
@@ -55,9 +53,6 @@ public class StackExchangeChat {
         Logger.getLogger("com.gargoylesoftware.htmlunit.DefaultCssErrorHandler").setLevel(Level.OFF);
         Logger.getLogger("com.gargoylesoftware.htmlunit.IncorrectnessListenerImpl").setLevel(Level.OFF);
         Logger.getLogger("com.gargoylesoftware.htmlunit.html.InputElementFactory").setLevel(Level.OFF);
-        //        jsonChatConnection = new JSONChatReader(webClient, this);
-        //        webClient.setWebConnection(jsonChatConnection);
-        jsonChatConnection = null;
         webClient.setWebConnection(new WebConnectionWrapper(webClient));
     }
 
@@ -116,9 +111,8 @@ public class StackExchangeChat {
 
     private void addChatPage(SESite site, int id, HtmlPage page) {
         HashMap<Integer, HtmlPage> siteMap = chatMap.get(site);
-        if (siteMap == null) {
+        if (null == siteMap)
             siteMap = new HashMap<>();
-        }
         siteMap.put(id, page);
         chatMap.put(site, siteMap);
     }
@@ -128,7 +122,7 @@ public class StackExchangeChat {
         try {
             HashMap<Integer, HtmlPage> map = chatMap.get(site);
             HtmlPage page = map.get(chatId);
-            if (page == null)
+            if (null == page)
                 return false;
             String fkey = page.getElementById("fkey").getAttribute("value");
             WebRequest r = new WebRequest(new URL(String.format("http://chat.%s.com/chats/%d/messages/new", site.getDir(), chatId)), HttpMethod.POST);
