@@ -40,8 +40,6 @@ public final class JavaBot extends AbstractBot {
 
     private final ExecutorService               threadPool    = Executors.newCachedThreadPool();
 
-    private final SynchronousQueue<ChatMessage> messageQueue  = new SynchronousQueue<>(true);
-
     public JavaBot() {
         seChat = new StackExchangeChat(this);
 
@@ -76,25 +74,18 @@ public final class JavaBot extends AbstractBot {
     @Override
     public void processMessages() {
         LOGGER.info("processing messages");
-        try {
-            final ChatMessage message = messageQueue.take();
-            System.out.println(message.toString());
-            threadPool.execute(() -> {
-                for (MessageListener listener : getListeners())
-                    listener.onMessage(this, message);
-            });
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        }
+        //TODO: handle all messages currently in queue
+        final ChatMessage message = messageQueue.poll();
+        System.out.println(message.toString());
+        threadPool.execute(() -> {
+            for (MessageListener listener : getListeners())
+                listener.onMessage(this, message);
+        });
     }
     
+    //FIXME: Extract this one to SEChat
     public void queryMessages(SESite site, int chatId) {
         LOGGER.info("querying for new messages");
         seChat.queryMessages(site, chatId);
     }
-
-    public void queueMessage(ChatMessage message) {
-        messageQueue.add(message);
-    }
-
 }

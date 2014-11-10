@@ -30,17 +30,17 @@ import com.google.gson.Gson;
 
 public class StackExchangeChat {
 
-    private final static Logger                               logger   = Logger.getLogger(StackExchangeChat.class.getName());
+    private final static Logger                               logger          = Logger.getLogger(StackExchangeChat.class.getName());
 
-    private final EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap  = new EnumMap<>(SESite.class);
+    private final EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap         = new EnumMap<>(SESite.class);
 
-    private boolean                                           loggedIn = true;
+    private boolean                                           loggedIn        = true;
 
     private final WebClient                                   webClient;
 
     private final JavaBot                                     javaBot;
 
-    private final Set<Long> handledMessages = new HashSet<Long>();
+    private final Set<Long>                                   handledMessages = new HashSet<Long>();
 
     public StackExchangeChat(JavaBot javaBot) {
         this.javaBot = javaBot;
@@ -49,6 +49,7 @@ public class StackExchangeChat {
         webClient.getOptions().setRedirectEnabled(true);
         webClient.getOptions().setJavaScriptEnabled(true);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
+        //FIXME: move into some static block.. not the responsibility of this constructor
         Logger.getLogger("com.gargoylesoftware.htmlunit.javascript.StrictErrorReporter").setLevel(Level.OFF);
         Logger.getLogger("com.gargoylesoftware.htmlunit.DefaultCssErrorHandler").setLevel(Level.OFF);
         Logger.getLogger("com.gargoylesoftware.htmlunit.IncorrectnessListenerImpl").setLevel(Level.OFF);
@@ -117,33 +118,66 @@ public class StackExchangeChat {
         chatMap.put(site, siteMap);
     }
 
-
+    /**
+     * Sends a plain text message to the chatroom specified
+     * 
+     * @param site
+     *        the SESite the chatroom belongs to. (de-facto either
+     *        STACK_OVERFLOW , STACK_EXCHANGE or META_STACK_EXCHANGE)
+     * @param chatId
+     *        the room number to post in. must be positive. If it isn't
+     *        {@link IllegalArgumentException} will be thrown.
+     * @param message
+     *        The String to post into the chatroom. The string is not required
+     *        to be encoded.
+     * @return a boolean indicating the success of posting to this chat.
+     */
     public synchronized boolean sendMessage(SESite site, int chatId, String message) {
+        if (0 >= chatId) { throw new IllegalArgumentException("Room number must be a positive number"); }
+
+        HashMap<Integer, HtmlPage> map = chatMap.get(site);
+        HtmlPage page = map.get(chatId);
+        if (null == page)
+            return false;
+        String fkey = page.getElementById("fkey").getAttribute("value");
+
+        ArrayList<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("fkey", fkey));
+        params.add(new NameValuePair("text", message));
+        
         try {
-            HashMap<Integer, HtmlPage> map = chatMap.get(site);
-            HtmlPage page = map.get(chatId);
-            if (null == page)
-                return false;
-            String fkey = page.getElementById("fkey").getAttribute("value");
             WebRequest r = new WebRequest(new URL(String.format("http://chat.%s.com/chats/%d/messages/new", site.getDir(), chatId)), HttpMethod.POST);
-            ArrayList<NameValuePair> params = new ArrayList<>();
-            params.add(new NameValuePair("fkey", fkey));
-            params.add(new NameValuePair("text", message));
             r.setRequestParameters(params);
             WebResponse response = webClient.loadWebResponse(r);
             if (response.getStatusCode() != 200) {
                 logger.warning(String.format("Could not send message. Response(%d): %s", response.getStatusCode(), response.getStatusMessage()));
                 return false;
             }
+            //TODO: "You must login to post" message also returns statuscode 200!
+            
             logger.info("POST " + r.toString());
             return true;
         } catch(IOException e) {
+            logger.warning("Couldn't send message due to IOException");
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
+    /**
+     * Queries the 5 latest messages for a given chatroom and enqueues them to
+     * the javaBot, respecting the already handled timestamps as maintained
+     * internally
+     * 
+     * @param site
+     *        The SESite the room to query belongs to.
+     * @param chatId
+     *        The room number of the room to query. It must be positive. If it
+     *        isn't {@link IllegalArgumentException} will be thrown.
+     */
     public synchronized void queryMessages(SESite site, int chatId) {
+        if (0 >= chatId) { throw new IllegalArgumentException("Room number must be positive"); }
+
         HashMap<Integer, HtmlPage> map = chatMap.get(site);
         HtmlPage page = map.get(chatId);
         if (page == null)
@@ -155,15 +189,14 @@ public class StackExchangeChat {
         params.add(new NameValuePair("mode", "messages"));
         params.add(new NameValuePair("msgCount", "5"));
 
-        WebRequest r;
         String rString;
         try {
-            r = new WebRequest(new URL(String.format("http://chat.%s.com/chats/%d/events", site.getDir(), chatId)), HttpMethod.POST);
+            WebRequest r = new WebRequest(new URL(String.format("http://chat.%s.com/chats/%d/events", site.getDir(), chatId)), HttpMethod.POST);
             r.setRequestParameters(params);
 
             WebResponse response = webClient.loadWebResponse(r);
             rString = response.getContentAsString();
-            
+
             logger.finest("responseString: " + rString);
         } catch(IOException e1) {
             rString = "{}";
@@ -176,8 +209,7 @@ public class StackExchangeChat {
         handleChatEvents(events);
     }
 
-    protected void handleChatEvents(JSONChatEvents events) {
-        
+    private void handleChatEvents(JSONChatEvents events) {
         events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains(e.getTime_stamp())).forEach(event -> {
             String message = Jsoup.parse(event.getContent()).text();
             ChatMessage chatMessage = new ChatMessage(events.getSite(), event.getRoom_id(), event.getRoom_name(), event.getUser_name(), event.getUser_id(), message);
