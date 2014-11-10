@@ -1,11 +1,14 @@
 package com.gmail.inverseconduit;
 
+import java.security.Policy;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
 import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.commands.RunScriptCommand;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
-
-import java.security.Policy;
 
 public class Main {
 
@@ -27,8 +30,21 @@ public class Main {
             ex.printStackTrace();
         }
 
-        //        while(true) {
-        //            javaBot.processMessages();
-        //        }
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+        executor.scheduleAtFixedRate(() -> {
+            try {
+                javaBot.processMessages();
+            } catch(Exception e) {
+                Logger.getAnonymousLogger().severe("Exception in processing thread: " + e.getMessage());
+            }
+        }, 5, 5, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(() -> {
+            try {
+            javaBot.queryMessages(SESite.STACK_OVERFLOW, 139); //FIXME: refactor this..
+            } catch (Exception e) {
+                Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
+            }
+        }, 5, 5, TimeUnit.SECONDS);
+
     }
 }

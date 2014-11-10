@@ -44,6 +44,11 @@ public abstract class AbstractBot {
         return ImmutableList.copyOf(listeners.values());
     }
 
+    /**
+     * Adds a listener to be notified of messages processed by this specific Bot
+     * @param listener The listener to be notified of messages
+     * @return a boolean indicating the succesfulness of the operation
+     */
     public boolean addListener(@Nonnull MessageListener listener) {
         Validate.notNull(listener);
 

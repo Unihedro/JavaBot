@@ -17,7 +17,9 @@ public enum SESite {
     META_STACK_EXCHANGE("meta." + STACK_EXCHANGE.dir);
 
     private final String dir;
+
     private final String rootUrl;
+
     private final String loginUrl;
 
     SESite(String dir) {
@@ -27,7 +29,8 @@ public enum SESite {
     }
 
     public String urlToRoom(int id) throws IllegalArgumentException {
-        if (id <= 0) throw new IllegalArgumentException("id must be a positive number.");
+        if (id <= 0)
+            throw new IllegalArgumentException("id must be a positive number.");
         return "http://chat." + dir + ".com/rooms/" + id;
     }
 
@@ -40,13 +43,23 @@ public enum SESite {
     }
 
     public static SESite fromUrl(URL url) {
-        for(SESite site : SESite.values()) {
-            if(url.toString().contains(site.dir)) return site;
+        for (SESite site : SESite.values()) {
+            if (url.toString().contains(site.dir))
+                return site;
         }
         return null;
     }
 
     public String getDir() {
         return dir;
+    }
+
+    public static SESite fromUrl(String value) {
+        for (SESite site : SESite.values()) {
+            if (value.contains(site.dir)) {
+                return site;
+            }
+        }
+        return null;
     }
 }

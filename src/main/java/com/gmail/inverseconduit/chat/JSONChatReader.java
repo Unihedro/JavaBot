@@ -9,16 +9,19 @@ import com.gmail.inverseconduit.datatype.JSONChatEvents;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
-public class JSONChatConnection extends WebConnectionWrapper {
+public class JSONChatReader extends WebConnectionWrapper {
 
+    private static final Logger LOGGER = Logger.getLogger(JSONChatReader.class.getName());
+    
     private boolean           isEnabled = false;
 
     private StackExchangeChat seBrowser;
 
     private Gson              gson      = new Gson();
 
-    public JSONChatConnection(WebClient webClient, StackExchangeChat seBrowser) throws IllegalArgumentException {
+    public JSONChatReader(WebClient webClient, StackExchangeChat seBrowser) throws IllegalArgumentException {
         super(webClient);
         this.seBrowser = seBrowser;
     }
@@ -29,11 +32,15 @@ public class JSONChatConnection extends WebConnectionWrapper {
         if (isEnabled)
             try {
                 String rString = response.getContentAsString();
-                String jsonString = rString.substring(rString.indexOf(":") + 1, rString.lastIndexOf("}"));
-                JSONChatEvents events = gson.fromJson(jsonString, JSONChatEvents.class);
+                LOGGER.info("response: " + rString);
+                
+//                String jsonString = rString.substring(rString.indexOf(":") + 1, rString.lastIndexOf("}"));
+                JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
                 events.setSite(SESite.fromUrl(request.getUrl()));
                 seBrowser.handleChatEvents(events);
-            } catch(Exception ignored) {}
+            } catch(Exception ignored) {
+                LOGGER.info("Ignored exception: " + ignored.getMessage());
+            }
         return response;
     }
 

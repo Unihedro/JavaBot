@@ -52,17 +52,21 @@ public class RunScriptCommand implements MessageListener {
 		//FIXME: Decouple the implementation from JavaBot class!
 		JavaBot jBot = (JavaBot) bot;
         try {
-            logger.finest("Entered onMessage for RunScriptCommand");
+            logger.info("Entered onMessage for RunScriptCommand");
             
             if (!userIds.contains(msg.getUserId()) || blacklist.contains(msg.getUserId()))  {
-            	logger.finest("Ignoring message");
+            	logger.info("Ignoring message");
             	return;
             }
             
             String message = msg.getMessage();
+            if (message.equals("test")){
+                jBot.sendMessage(msg.getSite(), msg.getRoomId(), "*~response*");
+            }
+            
             Matcher messageMatcher = messageRegex.matcher(message);
             if (!messageMatcher.find()){
-            	logger.finest("Message is not a bot command.");
+            	logger.info("Message is not a bot command.");
             	return;
             }
             
