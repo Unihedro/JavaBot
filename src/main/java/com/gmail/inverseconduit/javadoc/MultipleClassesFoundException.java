@@ -19,7 +19,8 @@ public class MultipleClassesFoundException extends RuntimeException{
 		return classes;
 	}
 	
-	public String toString(){
+	@Override
+    public String toString(){
 		return classes.toString();
 	}
 }

@@ -17,22 +17,27 @@ import com.gmail.inverseconduit.chat.MessageListener;
 import com.gmail.inverseconduit.chat.TimedMessageListener;
 import com.gmail.inverseconduit.chat.ListenerProperty.Priority;
 import com.gmail.inverseconduit.datatype.ChatMessage;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 public abstract class AbstractBot {
 
-    protected final BlockingQueue<ChatMessage>          messageQueue = new LinkedBlockingQueue<>();
+    protected final BlockingQueue<ChatMessage>        messageQueue;
 
-    protected final Multimap<Priority, MessageListener> listeners;
+    /**
+     * @deprecated @see <a href="https://github.com/Vincentyification/JavaBot/issues/9"
+     *             >#9</a>
+     */
+    @Deprecated
+    private final Multimap<Priority, MessageListener> listeners;
 
     protected AbstractBot() {
-        Supplier<ArrayList<MessageListener>> supplier = Suppliers.ofInstance(new ArrayList<>());
-        EnumMap<Priority, Collection<MessageListener>> map = new EnumMap<>(Priority.class);
-        listeners = Multimaps.newListMultimap(map, supplier);
+        messageQueue = new LinkedBlockingQueue<>();
+        listeners = Multimaps.newListMultimap(
+                new EnumMap<Priority, Collection<MessageListener>>(Priority.class),
+                ArrayList::new
+            );
     }
 
     public abstract void processMessages();
