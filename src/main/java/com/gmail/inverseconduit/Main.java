@@ -21,7 +21,7 @@ public class Main {
         javaBot = new JavaBot();
         boolean loggedIn = javaBot.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
         if ( !loggedIn) {
-            System.out.println("Login failed!");
+            Logger.getAnonymousLogger().severe("Login failed!");
             return;
         }
 
@@ -40,6 +40,7 @@ public class Main {
                 Logger.getAnonymousLogger().severe("Exception in processing thread: " + e.getMessage());
             }
         }, 5, 5, TimeUnit.SECONDS);
+        Logger.getAnonymousLogger().info("Processing thread started");
         executor.scheduleAtFixedRate(() -> {
             try {
             javaBot.queryMessages(SESite.STACK_OVERFLOW, 139); //FIXME: refactor this..
@@ -47,5 +48,6 @@ public class Main {
                 Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
             }
         }, 5, 5, TimeUnit.SECONDS);
+        Logger.getAnonymousLogger().info("querying thread started");
     }
 }
