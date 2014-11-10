@@ -4,7 +4,6 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
@@ -30,8 +29,6 @@ public final class JavaBot extends AbstractBot {
     private static final Logger                 LOGGER        = Logger.getLogger(JavaBot.class.getName());
 
     private final StackExchangeChat             seChat;
-
-    private final ArrayList<MessageListener>    listeners     = new ArrayList<>();
 
     private final Binding                       scriptBinding = new Binding();
 
@@ -90,6 +87,7 @@ public final class JavaBot extends AbstractBot {
             e.printStackTrace();
         }
     }
+    
     public void queryMessages(SESite site, int chatId) {
         LOGGER.info("querying for new messages");
         seChat.queryMessages(site, chatId);
