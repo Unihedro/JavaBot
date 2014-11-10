@@ -1,21 +1,21 @@
 package com.gmail.inverseconduit.bot;
 
-import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.ScriptBase;
-import com.gmail.inverseconduit.bot.AbstractBot;
-import com.gmail.inverseconduit.chat.MessageListener;
-import com.gmail.inverseconduit.chat.StackExchangeChat;
-
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
-
-import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
+import java.util.logging.Logger;
+
+import org.codehaus.groovy.control.CompilerConfiguration;
+
+import com.gmail.inverseconduit.SESite;
+import com.gmail.inverseconduit.ScriptBase;
+import com.gmail.inverseconduit.chat.MessageListener;
+import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 
 /**
@@ -26,6 +26,8 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  *         >vincentyification@gmail.com</a>>
  */
 public final class JavaBot extends AbstractBot {
+
+    private static final Logger                 LOGGER        = Logger.getLogger(JavaBot.class.getName());
 
     private final StackExchangeChat             seChat;
 
@@ -76,6 +78,7 @@ public final class JavaBot extends AbstractBot {
 
     @Override
     public void processMessages() {
+        LOGGER.info("processing messages");
         try {
             final ChatMessage message = messageQueue.take();
             System.out.println(message.toString());
@@ -87,8 +90,13 @@ public final class JavaBot extends AbstractBot {
             e.printStackTrace();
         }
     }
+    public void queryMessages(SESite site, int chatId) {
+        LOGGER.info("querying for new messages");
+        seChat.queryMessages(site, chatId);
+    }
 
     public void queueMessage(ChatMessage message) {
         messageQueue.add(message);
     }
+
 }
