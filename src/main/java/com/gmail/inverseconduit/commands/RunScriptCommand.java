@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.bot.AbstractBot;
 import com.gmail.inverseconduit.bot.JavaBot;
+import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.MessageListener;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.javadoc.ClassInfo;
@@ -23,6 +24,7 @@ import com.gmail.inverseconduit.javadoc.MultipleClassesFoundException;
 import com.gmail.inverseconduit.utils.PrintUtils;
 
 public class RunScriptCommand implements MessageListener {
+    
 	private static final Logger logger = Logger.getLogger(RunScriptCommand.class.getName());
 	private static final JavadocDao javadocDao;
 	static {
@@ -44,9 +46,14 @@ public class RunScriptCommand implements MessageListener {
 		userIds.add(1803692);
 	}
 	private final Set<Integer> blacklist = new HashSet<>();
+	private final ChatInterface chatInterface;
 
 	private final Pattern messageRegex = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "(.*?):(.*)");
 
+	public RunScriptCommand(ChatInterface chatInterface) {
+	    this.chatInterface = chatInterface;
+	}
+	
 	@Override
     public void onMessage(AbstractBot bot, ChatMessage msg) {
 		//FIXME: Decouple the implementation from JavaBot class!
@@ -61,7 +68,7 @@ public class RunScriptCommand implements MessageListener {
             
             String message = msg.getMessage();
             if (message.equals("test")){
-                jBot.sendMessage(msg.getSite(), msg.getRoomId(), "*~response*");
+                chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), "*~response*");
             }
             
             Matcher messageMatcher = messageRegex.matcher(message);
@@ -86,24 +93,24 @@ public class RunScriptCommand implements MessageListener {
             	javadoc(jBot, msg, commandText);
             	break;
             default:
-            	jBot.sendMessage(msg.getSite(), msg.getRoomId(), "Sorry, I don't know that command. >.<");
+            	chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), "Sorry, I don't know that command. >.<");
             	break;
             }
         } catch(Exception ex) {
-            jBot.sendMessage(msg.getSite(), msg.getRoomId(), PrintUtils.FixedFont(ex.getMessage()));
+            chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), PrintUtils.FixedFont(ex.getMessage()));
         }
     }
 
 	private void evaluateGroovy(JavaBot bot, ChatMessage msg, String commandText) {
 		logger.finest("Evaluating Groovy Script");
 		Object result = bot.getGroovyShell().evaluate(new GroovyCodeSource(commandText, "UserScript", "/sandboxScript"));
-		bot.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+		chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
 	}
 
 	private void compileAndCache(JavaBot bot, ChatMessage msg, String commandText) {
 		logger.finest("Compiling class to cache it");
 		Object gClass = bot.getGroovyLoader().parseClass(new GroovyCodeSource(commandText, "UserScript", "/sandboxScript"), true);
-		bot.sendMessage(msg.getSite(), msg.getRoomId(), "Thanks, I'll remember that.");
+		chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), "Thanks, I'll remember that.");
 	}
 
 	private void compileAndExecuteMain(JavaBot bot, ChatMessage msg, String commandText) throws IllegalAccessException,
@@ -111,7 +118,7 @@ public class RunScriptCommand implements MessageListener {
 		logger.finest("Compiling class for execution");
 		Object gClass = bot.getGroovyLoader().parseClass(new GroovyCodeSource(commandText, "UserScript", "/sandboxScript"), false);
 		String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, ((Object) new String[]{""})).toString();
-		bot.sendMessage(msg.getSite(), msg.getRoomId(), result);
+		chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result);
 	}
 
 	private void javadoc(JavaBot bot, ChatMessage msg, String commandText) throws IOException {
@@ -140,6 +147,6 @@ public class RunScriptCommand implements MessageListener {
 			}
 		}
 
-		bot.sendMessage(msg.getSite(), msg.getRoomId(), message);
+		chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), message);
 	}
 }
