@@ -32,7 +32,7 @@ public final class TimedMessageListener implements MessageListener {
 
         @Override
         public void run() {
-            bot.removeListener(listener);
+            bot.unSubscribe(listener);
             listener.expired = true;
             listener.listener = null;
         }
