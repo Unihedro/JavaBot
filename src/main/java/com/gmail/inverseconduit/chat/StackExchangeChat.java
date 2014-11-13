@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.codehaus.groovy.util.Finalizable;
 import org.jsoup.Jsoup;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -30,9 +31,10 @@ public class StackExchangeChat implements ChatInterface {
 
     @FunctionalInterface
     interface AllRoomsAction {
+
         void accept(SESite site, Integer chatId, String fkey);
     }
-    
+
     private static final Logger                               LOGGER          = Logger.getLogger(StackExchangeChat.class.getName());
 
     private static final int                                  MESSAGE_COUNT   = 5;
@@ -58,7 +60,7 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public boolean login(SESite site, String email, String password) {
+    public boolean login(final SESite site, final String email, final String password) {
         try {
             HtmlPage loginPage = webClient.getPage(new URL(site.getLoginUrl()));
             HtmlForm loginForm = loginPage.getFirstByXPath("//*[@id=\"se-login-form\"]");
@@ -88,7 +90,7 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public boolean joinChat(SESite site, int chatId) {
+    public boolean joinChat(final SESite site, final int chatId) {
         if ( !loggedIn) {
             LOGGER.warning("Not logged in. Cannot join chat.");
             return false;
@@ -110,14 +112,14 @@ public class StackExchangeChat implements ChatInterface {
         sendMessage(site, chatId, "*~JavaBot, at your service*");
         return true;
     }
-    
+
     @Override
-    public boolean leaveChat(SESite site, int chatId) {
+    public boolean leaveChat(final SESite site, final int chatId) {
         //Let timeout take care of leave
         return chatMap.get(site).remove(chatId) != null;
     }
 
-    private void addChatPage(SESite site, int id, HtmlPage page) {
+    private void addChatPage(final SESite site, final int id, final HtmlPage page) {
         HashMap<Integer, HtmlPage> siteMap = chatMap.get(site);
         if (null == siteMap)
             siteMap = new HashMap<>();
@@ -140,7 +142,7 @@ public class StackExchangeChat implements ChatInterface {
      * @return a boolean indicating the success of posting to this chat.
      */
     @Override
-    public synchronized boolean sendMessage(SESite site, int chatId, String message) {
+    public synchronized boolean sendMessage(final SESite site, final int chatId, final String message) {
         if (0 >= chatId) { throw new IllegalArgumentException("Room number must be a positive number"); }
 
         HashMap<Integer, HtmlPage> map = chatMap.get(site);
@@ -152,7 +154,7 @@ public class StackExchangeChat implements ChatInterface {
         return sendMessage(site, chatId, fkey, message);
     }
 
-    private boolean sendMessage(SESite site, int chatId, String fkey, String message) {
+    private boolean sendMessage(final SESite site, final int chatId, final String fkey, final String message) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("text", message));
@@ -189,17 +191,17 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public void broadcast(String message) {
+    public void broadcast(final String message) {
         forAllRooms((site, chatId, fkey) -> sendMessage(site, chatId, fkey, message));
     }
-    
+
     private void forAllRooms(AllRoomsAction action) {
         chatMap.forEach((site, chatRooms) -> {
             chatRooms.forEach((chatId, page) -> action.accept(site, chatId, page.getElementById("fkey").getAttribute("value")));
         });
     }
 
-    private void queryRoom(SESite site, Integer chatId, String fkey) {
+    private void queryRoom(final SESite site, final Integer chatId, final String fkey) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("mode", "messages"));
@@ -225,7 +227,7 @@ public class StackExchangeChat implements ChatInterface {
         handleChatEvents(events);
     }
 
-    private void handleChatEvents(JSONChatEvents events) {
+    private void handleChatEvents(final JSONChatEvents events) {
         events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains(e.getTime_stamp())).forEach(event -> {
             String message = Jsoup.parse(event.getContent()).text();
             ChatMessage chatMessage = new ChatMessage(events.getSite(), event.getRoom_id(), event.getRoom_name(), event.getUser_name(), event.getUser_id(), message);
@@ -242,12 +244,12 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public void subscribe(ChatWorker subscriber) {
+    public void subscribe(final ChatWorker subscriber) {
         subscribers.add(subscriber);
     }
 
     @Override
-    public void unSubscribe(ChatWorker subscriber) {
+    public void unSubscribe(final ChatWorker subscriber) {
         subscribers.remove(subscriber);
     }
 }

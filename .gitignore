@@ -12,5 +12,5 @@
 # Maven generated stuff!
 /target
 
-# Configurations!
-*BotConfig.java
+#Configuration
+bot.properties
