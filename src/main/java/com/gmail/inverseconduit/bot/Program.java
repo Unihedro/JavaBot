@@ -1,6 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
-import static com.gmail.inverseconduit.BotConfig.TRIGGER;
+import static com.gmail.inverseconduit.BotConfig.Configuration;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -40,7 +40,7 @@ public class Program {
 
     private final JavaDocAccessor                    javaDocAccessor;
 
-    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "javadoc:(.*)", Pattern.DOTALL);
+    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(Configuration.TRIGGER) + "javadoc:(.*)", Pattern.DOTALL);
 
     /**
      * @throws IOException if there's a problem loading the Javadocs
@@ -99,7 +99,7 @@ public class Program {
     }
 
     private void login() {
-        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
+        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, Configuration.LOGIN_EMAIL, Configuration.PASSWORD);
         if ( !loggedIn) {
             Logger.getAnonymousLogger().severe("Login failed!");
             System.exit( -255);

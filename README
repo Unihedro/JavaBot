@@ -1,30 +1,32 @@
-#What this is:
+<h1>What this is:</h1>
 
 Well it's relatively simple.. A bot. For the stackexchange chat.
 It can read and post messages and understands a few commands.
 
 Currently the Bot is under development.
 
-#How do I get it:
+<h1>How do I get it:</h1>
 
 You can simply pull the repository on your local machine, 
 import the maven project and already run it.
 
-#What do I need:
+<h1>What do I need:</h1>
 
 You need: Apache Maven, Java 1.8, 
 and a file named bot.properties, as well as an account at any StackExchange site, having 20 (or more) reputation
 
-##Running the bot:
+<h2>Running the bot:</h2>
 
 It's dead simple, you grab the repository, create a file named bot.properties
 in the project root containing your configuration. 
 
 The bot.properties must contain following property configurations:
 
-    TRIGGER={ExampleTrigger}
-    LOGIN-EMAIL={Stackexchange login email}
-    PASSWORD={Stackexchange login password}
+´´´
+TRIGGER={ExampleTrigger}
+LOGIN-EMAIL={Stackexchange login email}
+PASSWORD={Stackexchange login password}
+´´´
 
 Make sure there's no excess spaces in the properties file
 
