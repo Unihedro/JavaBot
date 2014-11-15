@@ -2,6 +2,7 @@ package com.gmail.inverseconduit.commands;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.datatype.ChatMessage;
 
@@ -26,7 +27,10 @@ public class Command {
     }
     
     public boolean matchesSyntax(String commandCall) {
-        return matchesSyntax.test(commandCall);
+        Logger.getAnonymousLogger().info("checking syntax of: " + commandCall);
+        boolean result = matchesSyntax.test(commandCall);
+        Logger.getAnonymousLogger().info("result: " + result);
+        return result;
     }
 
     public String getHelpText() {

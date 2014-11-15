@@ -16,10 +16,8 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  */
 public final class CommandBuilder {
 
-    private static final Predicate<String> FALSE    = (String s) -> {
-                                                        return false;
-                                                    };
-
+    private static final Predicate<String> FALSE    = s -> false;
+    
     private static final Logger            LOGGER   = Logger.getLogger(CommandBuilder.class.getName());
 
     private Predicate<String>              matchesSyntax;
@@ -44,7 +42,7 @@ public final class CommandBuilder {
      */
     public Command build() throws IllegalStateException {
         LOGGER.info("Building Command");
-        if (FALSE.equals(matchesSyntax) || null == executor) { throw new IllegalStateException("Internal builder state does not allow building command yet"); }
+        if (null == executor) { throw new IllegalStateException("Internal builder state does not allow building command yet"); }
 
         return new Command(matchesSyntax, executor, helpText, infoText);
     }
@@ -61,7 +59,7 @@ public final class CommandBuilder {
      * @return The Builder for chaining calls
      */
     public CommandBuilder addSyntax(Predicate<String> matcher) {
-        matchesSyntax.or(matcher);
+        matchesSyntax = matchesSyntax.or(matcher);
         return this;
     }
 
