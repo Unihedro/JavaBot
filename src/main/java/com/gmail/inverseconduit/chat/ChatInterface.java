@@ -1,7 +1,7 @@
 package com.gmail.inverseconduit.chat;
 
 import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.bot.AbstractBot;
+import com.gmail.inverseconduit.bot.DefaultBot;
 
 /**
  * Interface specifying least common methods for a class that acts as interface
@@ -9,12 +9,12 @@ import com.gmail.inverseconduit.bot.AbstractBot;
  * The Instances of this class are supposed to be threadsafe.
  * A ChatInterface currently produces
  * {@link com.gmail.inverseconduit.datatype.ChatMessage ChatMessages},
- * subscribers must implement {@link AbstractBot}
+ * subscribers must implement {@link DefaultBot}
  * 
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-public interface ChatInterface extends Subscribable<AbstractBot> {
+public interface ChatInterface extends Subscribable<DefaultBot> {
 
     public void queryMessages(SESite site, int chatId);
 

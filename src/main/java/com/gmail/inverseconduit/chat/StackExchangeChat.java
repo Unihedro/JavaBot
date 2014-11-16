@@ -21,7 +21,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
 import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.bot.AbstractBot;
+import com.gmail.inverseconduit.bot.DefaultBot;
 import com.gmail.inverseconduit.datatype.ChatEventType;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.JSONChatEvents;
@@ -39,7 +39,7 @@ public class StackExchangeChat implements ChatInterface {
 
     private final WebClient                                   webClient;
 
-    private final Set<AbstractBot>                            subscribers     = new HashSet<>();
+    private final Set<DefaultBot>                            subscribers     = new HashSet<>();
 
     private final Set<Long>                                   handledMessages = new HashSet<>();
 
@@ -224,12 +224,12 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public void subscribe(AbstractBot subscriber) {
+    public void subscribe(DefaultBot subscriber) {
         subscribers.add(subscriber);
     }
 
     @Override
-    public void unSubscribe(AbstractBot subscriber) {
+    public void unSubscribe(DefaultBot subscriber) {
         subscribers.remove(subscriber);
     }
 }

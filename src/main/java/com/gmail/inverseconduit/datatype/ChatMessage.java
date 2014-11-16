@@ -2,6 +2,7 @@ package com.gmail.inverseconduit.datatype;
 
 import com.gmail.inverseconduit.SESite;
 
+//FIXME: needs message timestamp to allow replying!
 public class ChatMessage {
     private final String username;
     private final int userId;

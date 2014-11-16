@@ -14,11 +14,11 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  * 
  * @author vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
  */
-public final class CommandBuilder {
+public final class CommandHandleBuilder {
 
     private static final Predicate<String> FALSE    = s -> false;
     
-    private static final Logger            LOGGER   = Logger.getLogger(CommandBuilder.class.getName());
+    private static final Logger            LOGGER   = Logger.getLogger(CommandHandleBuilder.class.getName());
 
     private Predicate<String>              matchesSyntax;
 
@@ -28,23 +28,23 @@ public final class CommandBuilder {
 
     private Consumer<ChatMessage>          executor;
 
-    public CommandBuilder() {
+    public CommandHandleBuilder() {
         matchesSyntax = FALSE;
     }
 
     /**
      * Build the command. Can be seen as ending the Builder's life span.
      * 
-     * @return the resulting {@link Command} assembled from the actions
+     * @return the resulting {@link CommandHandle} assembled from the actions
      *         performed on this instance.
      * @throws IllegalStateException
      *         if no syntax or execution were added.
      */
-    public Command build() throws IllegalStateException {
+    public CommandHandle build() throws IllegalStateException {
         LOGGER.info("Building Command");
         if (null == executor) { throw new IllegalStateException("Internal builder state does not allow building command yet"); }
 
-        return new Command(matchesSyntax, executor, helpText, infoText);
+        return new CommandHandle(matchesSyntax, executor, helpText, infoText);
     }
 
     /**
@@ -58,7 +58,7 @@ public final class CommandBuilder {
      *        A {@link Predicate Predicate<String>} describing the syntax
      * @return The Builder for chaining calls
      */
-    public CommandBuilder addSyntax(Predicate<String> matcher) {
+    public CommandHandleBuilder addSyntax(Predicate<String> matcher) {
         matchesSyntax = matchesSyntax.or(matcher);
         return this;
     }
@@ -66,13 +66,13 @@ public final class CommandBuilder {
     /**
      * Sets the command to be executed by the builder. Multiple calls to this
      * method overwrite each other, meaning only the latest given executor will
-     * be in the built {@link Command}
+     * be in the built {@link CommandHandle}
      * 
      * @param executor
      *        the final version of the Command "handler"
      * @return The Builder for chaining calls
      */
-    public CommandBuilder setExecution(Consumer<ChatMessage> executor) {
+    public CommandHandleBuilder setExecution(Consumer<ChatMessage> executor) {
         if (null != this.executor) {
             LOGGER.info("Overwriting existing executor");
         }
@@ -83,25 +83,25 @@ public final class CommandBuilder {
 
     /**
      * Sets the command's help text. The previously set helpText is overwritten,
-     * only the latest given helpText will be added to the built {@link Command}
+     * only the latest given helpText will be added to the built {@link CommandHandle}
      * 
      * @param help
      *        The help text for the command
      * @return The Builder for chaining calls
      */
-    public CommandBuilder setHelpText(String help) {
+    public CommandHandleBuilder setHelpText(String help) {
         this.helpText = help;
         return this;
     }
     /**
     * Sets the command's info text. The previously set infoText is overwritten,
-    * only the latest given infoText will be added to the built {@link Command}
+    * only the latest given infoText will be added to the built {@link CommandHandle}
     * 
     * @param info
     *        The info text for the command
     * @return The Builder for chaining calls
     */
-    public CommandBuilder setInfoText(String info) {
+    public CommandHandleBuilder setInfoText(String info) {
         this.infoText = info;
         return this;
     }
