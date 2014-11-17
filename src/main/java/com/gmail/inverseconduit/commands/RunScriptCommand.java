@@ -42,6 +42,7 @@ public class RunScriptCommand implements MessageListener {
 		userIds.add(3622940);
 		userIds.add(2272617);
 		userIds.add(1803692);
+		userIds.add(13379); //@Michael
 	}
 	private final Set<Integer> blacklist = new HashSet<>();
 
@@ -115,28 +116,42 @@ public class RunScriptCommand implements MessageListener {
 	}
 
 	private void javadoc(JavaBot bot, ChatMessage msg, String commandText) throws IOException {
+		//TODO find classes that extend/implement the class
+		//TODO show class hierarchy
 		String message;
 		if (javadocDao == null) {
 			message = "Sorry, I can't answer that.  My Javadocs folder isn't configured!";
 		} else {
 			try {
-				ClassInfo info = javadocDao.getClassInfo(commandText);
+				ClassInfo info = javadocDao.getClassInfo(commandText.trim());
 				if (info == null) {
 					message = "Sorry, I never heard of that class. :(";
 				} else {
-					message = info.getDescription();
-					int pos = message.indexOf("\n\n");
+					message = info.getDescription().trim();
+					int pos = message.indexOf("\n");
 					if (pos >= 0) {
 						//just display the first paragraph
 						message = message.substring(0, pos);
 					}
+					
+					StringBuilder sb = new StringBuilder();
+					String fullName = info.getFullName();
+					if (fullName.startsWith("java")){
+						String url = "https://docs.oracle.com/javase/8/docs/api/index.html?" + fullName.replace('.',  '/') + ".html";
+						sb.append("[**`").append(fullName).append("`**](").append(url).append(" \"view Javadocs\"): ");
+					} else {
+						sb.append("**`").append(fullName).append("`**: ");
+					}
+					
+					sb.append(message);
+					message = sb.toString();
 				}
 			} catch (MultipleClassesFoundException e) {
 				StringBuilder sb = new StringBuilder("Which one do you mean?");
 				for (String name : e.getClasses()) {
-					sb.append("\n    ").append(name);
+					sb.append("\n* ").append(name);
 				}
-				message = toString();
+				message = sb.toString();
 			}
 		}
 

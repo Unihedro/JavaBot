@@ -119,10 +119,12 @@ public class JavadocZipDao implements JavadocDao {
 
 		return path.getFileName().toString().endsWith(".zip");
 	}
-	
-	private static class DescriptionNodeVisitor implements NodeVisitor{
+
+	private static class DescriptionNodeVisitor implements NodeVisitor {
 		private final StringBuilder sb = new StringBuilder();
 		private boolean inPre = false;
+
+		private String linkUrl, linkTitle, linkText;
 
 		@Override
 		public void head(Node node, int depth) {
@@ -132,6 +134,14 @@ public class JavadocZipDao implements JavadocDao {
 			//System.out.println("head " + node.nodeName());
 
 			switch (node.nodeName()) {
+			case "a":
+				Element element = (Element) node;
+				String href = element.absUrl("href");
+				if (!href.isEmpty()) {
+					linkUrl = href;
+					linkTitle = element.attr("title");
+				}
+				break;
 			case "code":
 				sb.append("`");
 				break;
@@ -154,7 +164,12 @@ public class JavadocZipDao implements JavadocDao {
 			case "#text":
 				TextNode text = (TextNode) node;
 				String content = inPre ? text.getWholeText() : text.text();
-				sb.append(content);
+				content = content.replaceAll("[*_\\[\\]]", "\\$0"); //escape special chars
+				if (linkUrl != null) {
+					linkText = content;
+				} else {
+					sb.append(content);
+				}
 				break;
 			}
 		}
@@ -167,6 +182,17 @@ public class JavadocZipDao implements JavadocDao {
 			//System.out.println("tail " + node.nodeName());
 
 			switch (node.nodeName()) {
+			case "a":
+				if (linkUrl != null) {
+					sb.append("[").append(linkText).append("](").append(linkUrl);
+					if (!linkTitle.isEmpty()) {
+						sb.append(" \"").append(linkTitle).append("\"");
+					}
+					sb.append(")");
+					
+					linkUrl = linkText = linkTitle = null;
+				}
+				break;
 			case "code":
 				sb.append("`");
 				break;
