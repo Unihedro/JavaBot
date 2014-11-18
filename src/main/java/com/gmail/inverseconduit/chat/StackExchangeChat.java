@@ -21,7 +21,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
 import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.bot.DefaultBot;
 import com.gmail.inverseconduit.datatype.ChatEventType;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.JSONChatEvents;
@@ -39,7 +38,7 @@ public class StackExchangeChat implements ChatInterface {
 
     private final WebClient                                   webClient;
 
-    private final Set<DefaultBot>                            subscribers     = new HashSet<>();
+    private final Set<ChatWorker>                             subscribers     = new HashSet<>();
 
     private final Set<Long>                                   handledMessages = new HashSet<>();
 
@@ -52,6 +51,7 @@ public class StackExchangeChat implements ChatInterface {
         webClient.setWebConnection(new WebConnectionWrapper(webClient));
     }
 
+    @Override
     public boolean login(SESite site, String email, String password) {
         try {
             HtmlPage loginPage = webClient.getPage(new URL(site.getLoginUrl()));
@@ -81,6 +81,7 @@ public class StackExchangeChat implements ChatInterface {
         return loggedIn;
     }
 
+    @Override
     public boolean joinChat(SESite site, int chatId) {
         if ( !loggedIn) {
             LOGGER.warning("Not logged in. Cannot join chat.");
@@ -224,12 +225,12 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public void subscribe(DefaultBot subscriber) {
+    public void subscribe(ChatWorker subscriber) {
         subscribers.add(subscriber);
     }
 
     @Override
-    public void unSubscribe(DefaultBot subscriber) {
+    public void unSubscribe(ChatWorker subscriber) {
         subscribers.remove(subscriber);
     }
 }

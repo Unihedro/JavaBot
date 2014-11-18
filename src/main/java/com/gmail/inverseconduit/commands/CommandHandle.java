@@ -8,7 +8,8 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
 /**
  * Simple handle for a Command. Consists of a {@link Predicate} to match
  * messages (aka. invocations) against, a helpText,
- * an infoText and a {@link Consumer Consumer} for {@link ChatMessage ChatMessages}
+ * an infoText and a {@link Consumer Consumer} for {@link ChatMessage
+ * ChatMessages}
  * 
  * @author vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
  */
@@ -22,9 +23,8 @@ public class CommandHandle {
 
     private final Consumer<ChatMessage> executor;
 
-    public CommandHandle(
-        Predicate<String> matchesSyntax, Consumer<ChatMessage> executor,
-        String helpText, String infoText) {
+    // Only callable from same package to prevent external isntantiation
+    CommandHandle(Predicate<String> matchesSyntax, Consumer<ChatMessage> executor, String helpText, String infoText) {
         this.matchesSyntax = matchesSyntax;
         this.helpText = helpText;
         this.infoText = infoText;

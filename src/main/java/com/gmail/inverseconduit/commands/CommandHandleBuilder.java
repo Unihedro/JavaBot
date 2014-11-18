@@ -17,7 +17,7 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
 public final class CommandHandleBuilder {
 
     private static final Predicate<String> FALSE    = s -> false;
-    
+
     private static final Logger            LOGGER   = Logger.getLogger(CommandHandleBuilder.class.getName());
 
     private Predicate<String>              matchesSyntax;
@@ -26,7 +26,7 @@ public final class CommandHandleBuilder {
 
     private String                         infoText = "";
 
-    private Consumer<ChatMessage>          executor;
+    private Consumer<ChatMessage>          consumer;
 
     public CommandHandleBuilder() {
         matchesSyntax = FALSE;
@@ -42,9 +42,10 @@ public final class CommandHandleBuilder {
      */
     public CommandHandle build() throws IllegalStateException {
         LOGGER.info("Building Command");
-        if (null == executor) { throw new IllegalStateException("Internal builder state does not allow building command yet"); }
+        if (FALSE == matchesSyntax || null == consumer) { throw new IllegalStateException(
+            "Internal builder state does not allow building command yet, an execution and at least one syntax is required"); }
 
-        return new CommandHandle(matchesSyntax, executor, helpText, infoText);
+        return new CommandHandle(matchesSyntax, consumer, helpText, infoText);
     }
 
     /**
@@ -68,22 +69,23 @@ public final class CommandHandleBuilder {
      * method overwrite each other, meaning only the latest given executor will
      * be in the built {@link CommandHandle}
      * 
-     * @param executor
+     * @param consumer
      *        the final version of the Command "handler"
      * @return The Builder for chaining calls
      */
-    public CommandHandleBuilder setExecution(Consumer<ChatMessage> executor) {
-        if (null != this.executor) {
+    public CommandHandleBuilder setExecution(Consumer<ChatMessage> consumer) {
+        if (null != this.consumer) {
             LOGGER.info("Overwriting existing executor");
         }
 
-        this.executor = executor;
+        this.consumer = consumer;
         return this;
     }
 
     /**
      * Sets the command's help text. The previously set helpText is overwritten,
-     * only the latest given helpText will be added to the built {@link CommandHandle}
+     * only the latest given helpText will be added to the built
+     * {@link CommandHandle}
      * 
      * @param help
      *        The help text for the command
@@ -93,14 +95,16 @@ public final class CommandHandleBuilder {
         this.helpText = help;
         return this;
     }
+
     /**
-    * Sets the command's info text. The previously set infoText is overwritten,
-    * only the latest given infoText will be added to the built {@link CommandHandle}
-    * 
-    * @param info
-    *        The info text for the command
-    * @return The Builder for chaining calls
-    */
+     * Sets the command's info text. The previously set infoText is overwritten,
+     * only the latest given infoText will be added to the built
+     * {@link CommandHandle}
+     * 
+     * @param info
+     *        The info text for the command
+     * @return The Builder for chaining calls
+     */
     public CommandHandleBuilder setInfoText(String info) {
         this.infoText = info;
         return this;

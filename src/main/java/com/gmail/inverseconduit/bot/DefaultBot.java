@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.datatype.ChatMessage;
@@ -24,7 +25,7 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  *         >vincentyification@gmail.com</a>>
  * @author Vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
  */
-public class DefaultBot implements Subscribable<CommandHandle> {
+public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
 
     private final Logger                       LOGGER       = Logger.getLogger(DefaultBot.class.getName());
 
@@ -34,18 +35,19 @@ public class DefaultBot implements Subscribable<CommandHandle> {
 
     public DefaultBot() {}
 
+    @Override
     public synchronized void processMessages() {
         LOGGER.finest("processing messages");
 
-        while (true) {
+        while (messageQueue.peek() != null) {
             final ChatMessage message = messageQueue.poll();
-            if (null == message) { return; }
             commands.stream()
                 .filter(c -> c.matchesSyntax(message.getMessage()))
                 .findFirst().ifPresent(c -> c.execute(message));
         }
     }
 
+    @Override
     public boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
         return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }

@@ -1,25 +1,18 @@
 package com.gmail.inverseconduit.internal;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.util.logging.Logger;
-
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyShell;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Logger;
+
 import org.codehaus.groovy.control.CompilerConfiguration;
 
-import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.ScriptBase;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.datatype.ChatMessage;
-import com.gmail.inverseconduit.javadoc.ClassInfo;
-import com.gmail.inverseconduit.javadoc.JavadocDao;
-import com.gmail.inverseconduit.javadoc.JavadocZipDao;
-import com.gmail.inverseconduit.javadoc.MultipleClassesFoundException;
 
 /**
  * Class to run chat Code. The relevant commands submit code from the chat to
@@ -33,8 +26,6 @@ public class ScriptRunner {
 
     private static final Logger         LOGGER        = Logger.getLogger(ScriptRunner.class.getName());
 
-    private static final JavadocDao     javadocDao;
-
     private final Binding               scriptBinding = new Binding();
 
     private final GroovyShell           groovyShell;
@@ -45,18 +36,6 @@ public class ScriptRunner {
 
     private final ChatInterface         chatInterface;
 
-    static {
-        if (Files.isDirectory(BotConfig.JAVADOCS_DIR)) {
-            try {
-                javadocDao = new JavadocZipDao(BotConfig.JAVADOCS_DIR);
-            } catch(IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        else {
-            javadocDao = null;
-        }
-    }
 
     public ScriptRunner(ChatInterface chatInterface) {
         // Groovy
@@ -86,50 +65,10 @@ public class ScriptRunner {
         LOGGER.finest("Compiling and executing class");
 
         Object gClass = groovyLoader.parseClass(createCodeSource(commandText), false);
+        @SuppressWarnings({"unchecked", "rawtypes" })
         String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, (Object) new String[] {""}).toString();
 
         chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result);
-    }
-
-    public void javadoc(ChatMessage msg, String commandText) {
-        //FIXME: Clean this mess up..
-        final String message;
-        ClassInfo info;
-        if (javadocDao == null) {
-            message = "Sorry, I can't answer that. My Javadocs folder isn't configured!";
-        }
-        else {
-            try {
-                info = javadocDao.getClassInfo(commandText);
-            } catch(MultipleClassesFoundException e) {
-                StringBuilder sb = new StringBuilder("Which one do you mean?");
-                for (String name : e.getClasses()) {
-                    sb.append("\n    ").append(name);
-                }
-                message = sb.toString();
-                chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), message);
-                return;
-            } catch(IOException e) {
-                message = "Whoops! Something went wrong when checking the javadocs";
-                chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), message);
-                return;
-            }
-            if (info == null) {
-                message = "Sorry, I never heard of that class. :(";
-            }
-            else {
-                StringBuilder sb = new StringBuilder(info.getDescription());
-                int pos = sb.indexOf("\n\n");
-                if (pos >= 0) {
-                    //just display the first paragraph
-                    message = sb.substring(0, pos);
-                }
-                else {
-                    message = sb.toString();
-                }
-            }
-        }
-        chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), message);
     }
 
     private GroovyCodeSource createCodeSource(String commandText) {
