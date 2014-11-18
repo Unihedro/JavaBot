@@ -78,8 +78,7 @@ public class Program {
     private void scheduleQueryingThread() {
         executor.scheduleAtFixedRate(() -> {
             try {
-                // FIXME: someone needs to keep track of the rooms we query!
-                chatInterface.queryMessages(SESite.STACK_OVERFLOW, 139);
+                chatInterface.queryMessages();
             } catch(Exception e) {
                 Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
                 e.printStackTrace();
@@ -116,6 +115,50 @@ public class Program {
         bindLoadCommand();
         bindJavaDocCommand();
         bindTestCommand();
+        bindSummonCommand();
+        bindUnsummonCommand();
+    }
+
+    private void bindUnsummonCommand() {
+        CommandHandle unsummon = 
+                new CommandHandleBuilder().addSyntax(s -> {
+                    return s.trim().equals(TRIGGER + "unsummon");
+                }).setExecution(message -> {
+                    chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~bye, bye*");
+                    chatInterface.leaveChat(message.getSite(), message.getRoomId());
+                }).build();
+        bot.subscribe(unsummon);
+    }
+
+    private void bindSummonCommand() {
+        //FIXME: rewrite this to allow more actual wordings..
+        CommandHandle summon = new CommandHandleBuilder().addSyntax(s -> {
+            return s.trim().startsWith(TRIGGER + "summon") && s.trim().matches(".*summon (stack(overflow|exchange)|meta) [\\d]{1,6}");
+        }).setExecution(message -> {
+            LOGGER.info("Summon command came in");
+            String[] args = message.getMessage().trim().split(" ");
+            final SESite targetSite;
+            switch (args[1]) {
+            case "stackoverflow":
+                targetSite = SESite.STACK_OVERFLOW;
+                break;
+            case "stackexchange":
+                targetSite = SESite.STACK_EXCHANGE;
+                break;
+            case "meta":
+                targetSite = SESite.META_STACK_EXCHANGE;
+                break;
+            default:
+                LOGGER.info("The given site was not one of stackoverflow, stackexchange or meta");
+                chatInterface.sendMessage(message.getSite(), message.getRoomId(), "The given site was not one of stackoverflow, stackexchange or meta");
+                return;
+            }
+            LOGGER.info("Determined SESite: " + targetSite);
+
+            int targetRoom = Integer.parseInt(args[2]);
+            chatInterface.joinChat(targetSite, targetRoom);
+        }).build();
+        bot.subscribe(summon);
     }
 
     private void bindHelpCommand() {
@@ -132,8 +175,8 @@ public class Program {
         CommandHandle shutdown = new CommandHandleBuilder().addSyntax(s -> {
             return s.trim().startsWith(TRIGGER + "shutdown");
         }).setExecution(message -> {
-            //FIXME: broadcast!
-            chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~going down*");
+            //FIXME: Require permissions for this
+            chatInterface.broadcast("*~going down*");
             executor.shutdownNow();
             System.exit(0);
         }).build();
