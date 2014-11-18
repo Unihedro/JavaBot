@@ -16,11 +16,15 @@ import com.gmail.inverseconduit.SESite;
  */
 public interface ChatInterface extends Subscribable<ChatWorker> {
 
-    public void queryMessages(SESite site, int chatId);
+    void queryMessages();
 
-    public boolean sendMessage(SESite site, int chatId, String message);
+    boolean sendMessage(SESite site, int chatId, String message);
 
-    public boolean joinChat(SESite site, int chatId);
+    boolean joinChat(SESite site, int chatId);
+    
+    boolean leaveChat(SESite site, int chatId);
 
-    public boolean login(SESite site, String email, String password);
+    boolean login(SESite site, String email, String password);
+
+    void broadcast(String message);
 }

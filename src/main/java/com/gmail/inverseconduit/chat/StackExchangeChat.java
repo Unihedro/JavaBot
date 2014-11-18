@@ -28,6 +28,11 @@ import com.google.gson.Gson;
 
 public class StackExchangeChat implements ChatInterface {
 
+    @FunctionalInterface
+    interface AllRoomsAction {
+        void accept(SESite site, Integer chatId, String fkey);
+    }
+    
     private static final Logger                               LOGGER          = Logger.getLogger(StackExchangeChat.class.getName());
 
     private static final int                                  MESSAGE_COUNT   = 5;
@@ -40,6 +45,7 @@ public class StackExchangeChat implements ChatInterface {
 
     private final Set<ChatWorker>                             subscribers     = new HashSet<>();
 
+    //TODO: Change that from timestamp-handling to id-based handling or move it to the ChatWorker
     private final Set<Long>                                   handledMessages = new HashSet<>();
 
     public StackExchangeChat() {
@@ -95,7 +101,6 @@ public class StackExchangeChat implements ChatInterface {
             // TODO new rooms require new windows
             webClient.waitForBackgroundJavaScriptStartingBefore(10000);
             HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
-            // jsonChatConnection.setEnabled(true);
             addChatPage(site, chatId, chatPage);
             LOGGER.info("Joined room.");
         } catch(IOException e) {
@@ -104,6 +109,12 @@ public class StackExchangeChat implements ChatInterface {
         }
         sendMessage(site, chatId, "*~JavaBot, at your service*");
         return true;
+    }
+    
+    @Override
+    public boolean leaveChat(SESite site, int chatId) {
+        //Let timeout take care of leave
+        return chatMap.get(site).remove(chatId) != null;
     }
 
     private void addChatPage(SESite site, int id, HtmlPage page) {
@@ -138,6 +149,10 @@ public class StackExchangeChat implements ChatInterface {
             return false;
         String fkey = page.getElementById("fkey").getAttribute("value");
 
+        return sendMessage(site, chatId, fkey, message);
+    }
+
+    private boolean sendMessage(SESite site, int chatId, String fkey, String message) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("text", message));
@@ -163,26 +178,28 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     /**
-     * Queries the 5 latest messages for a given chatroom and enqueues them to
-     * the javaBot, respecting the already handled timestamps as maintained
+     * Queries the 5 latest messages for all chatrooms and enqueues them to
+     * the subscribed {@link ChatWorker Workers}, respecting the already handled
+     * timestamps as maintained
      * internally
-     * 
-     * @param site
-     *        The SESite the room to query belongs to.
-     * @param chatId
-     *        The room number of the room to query. It must be positive. If
-     *        it isn't {@link IllegalArgumentException} will be thrown.
      */
     @Override
-    public synchronized void queryMessages(SESite site, int chatId) {
-        if (0 >= chatId) { throw new IllegalArgumentException("Room number must be positive"); }
+    public synchronized void queryMessages() {
+        forAllRooms((site, chatId, page) -> queryRoom(site, chatId, page));
+    }
 
-        HashMap<Integer, HtmlPage> map = chatMap.get(site);
-        HtmlPage page = map.get(chatId);
-        if (page == null)
-            return;
-        String fkey = page.getElementById("fkey").getAttribute("value");
+    @Override
+    public void broadcast(String message) {
+        forAllRooms((site, chatId, fkey) -> sendMessage(site, chatId, fkey, message));
+    }
+    
+    private void forAllRooms(AllRoomsAction action) {
+        chatMap.forEach((site, chatRooms) -> {
+            chatRooms.forEach((chatId, page) -> action.accept(site, chatId, page.getElementById("fkey").getAttribute("value")));
+        });
+    }
 
+    private void queryRoom(SESite site, Integer chatId, String fkey) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("mode", "messages"));
