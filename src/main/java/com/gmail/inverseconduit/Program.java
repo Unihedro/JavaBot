@@ -13,7 +13,6 @@ import com.gmail.inverseconduit.bot.DefaultBot;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.commands.CommandHandle;
-import com.gmail.inverseconduit.commands.CommandHandleBuilder;
 import com.gmail.inverseconduit.internal.ScriptRunner;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 
@@ -120,21 +119,20 @@ public class Program {
     }
 
     private void bindUnsummonCommand() {
-        CommandHandle unsummon = 
-                new CommandHandleBuilder().addSyntax(s -> {
-                    return s.trim().equals(TRIGGER + "unsummon");
-                }).setExecution(message -> {
-                    chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~bye, bye*");
-                    chatInterface.leaveChat(message.getSite(), message.getRoomId());
-                }).build();
+        CommandHandle unsummon = new CommandHandle.Builder(s -> {
+            return s.trim().equals(TRIGGER + "unsummon");
+        }, message -> {
+            chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~bye, bye*");
+            chatInterface.leaveChat(message.getSite(), message.getRoomId());
+        }).build();
         bot.subscribe(unsummon);
     }
 
     private void bindSummonCommand() {
         //FIXME: rewrite this to allow more actual wordings..
-        CommandHandle summon = new CommandHandleBuilder().addSyntax(s -> {
+        CommandHandle summon = new CommandHandle.Builder(s -> {
             return s.trim().startsWith(TRIGGER + "summon") && s.trim().matches(".*summon (stack(overflow|exchange)|meta) [\\d]{1,6}");
-        }).setExecution(message -> {
+        }, message -> {
             LOGGER.info("Summon command came in");
             String[] args = message.getMessage().trim().split(" ");
             final SESite targetSite;
@@ -163,18 +161,20 @@ public class Program {
 
     private void bindHelpCommand() {
         CommandHandle help =
-                new CommandHandleBuilder().addSyntax(s -> {
-                    return s.trim().startsWith(TRIGGER + "help");
-                }).setExecution(message -> {
-                    chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
-                }).build();
+                new CommandHandle.Builder(
+                    s -> {
+                        return s.trim().startsWith(TRIGGER + "help");
+                    },
+                    message -> {
+                        chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
+                    }).build();
         bot.subscribe(help);
     }
 
     private void bindShutdownCommand() {
-        CommandHandle shutdown = new CommandHandleBuilder().addSyntax(s -> {
+        CommandHandle shutdown = new CommandHandle.Builder(s -> {
             return s.trim().startsWith(TRIGGER + "shutdown");
-        }).setExecution(message -> {
+        }, message -> {
             //FIXME: Require permissions for this
             chatInterface.broadcast("*~going down*");
             executor.shutdownNow();
@@ -184,7 +184,7 @@ public class Program {
     }
 
     private void bindEvalCommand() {
-        CommandHandle eval = new CommandHandleBuilder().addSyntax(evalPattern.asPredicate()).setExecution(message -> {
+        CommandHandle eval = new CommandHandle.Builder(evalPattern.asPredicate(), message -> {
             Matcher matcher = evalPattern.matcher(message.getMessage());
             matcher.find();
             scriptRunner.evaluateGroovy(message, matcher.group(1));
@@ -193,7 +193,7 @@ public class Program {
     }
 
     private void bindJavaCommand() {
-        CommandHandle java = new CommandHandleBuilder().addSyntax(javaPattern.asPredicate()).setExecution(message -> {
+        CommandHandle java = new CommandHandle.Builder(javaPattern.asPredicate(), message -> {
             Matcher matcher = javaPattern.matcher(message.getMessage());
             matcher.find();
             try {
@@ -206,7 +206,7 @@ public class Program {
     }
 
     private void bindLoadCommand() {
-        CommandHandle load = new CommandHandleBuilder().addSyntax(loadPattern.asPredicate()).setExecution(message -> {
+        CommandHandle load = new CommandHandle.Builder(loadPattern.asPredicate(), message -> {
             Matcher matcher = loadPattern.matcher(message.getMessage());
             matcher.find();
             scriptRunner.evaluateAndCache(message, matcher.group(1));
@@ -215,7 +215,7 @@ public class Program {
     }
 
     private void bindJavaDocCommand() {
-        CommandHandle javaDoc = new CommandHandleBuilder().addSyntax(javadocPattern.asPredicate()).setExecution(message -> {
+        CommandHandle javaDoc = new CommandHandle.Builder(javadocPattern.asPredicate(), message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
             javaDocAccessor.javadoc(message, matcher.group(1));
@@ -224,7 +224,7 @@ public class Program {
     }
 
     private void bindTestCommand() {
-        CommandHandle test = new CommandHandleBuilder().addSyntax(s -> s.equals("test")).setExecution(message -> {
+        CommandHandle test = new CommandHandle.Builder(s -> s.equals("test"), message -> {
             chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~response*");
         }).build();
         bot.subscribe(test);
