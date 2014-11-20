@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
@@ -147,7 +146,7 @@ public class Program {
         CommandHandle help =
                 new CommandHandle.Builder("help", 
                     s -> {
-                        return s.trim().startsWith(TRIGGER + "help");
+                        return s.trim().startsWith(Configuration.TRIGGER + "help");
                     },
                     message -> {
                         chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
@@ -166,7 +165,7 @@ public class Program {
 
     private void bindShutdownCommand() {
         CommandHandle shutdown = new CommandHandle.Builder("shutdown", s -> {
-            return s.trim().startsWith(TRIGGER + "shutdown");
+            return s.trim().startsWith(Configuration.TRIGGER + "shutdown");
         }, message -> {
             //FIXME: Require permissions for this
             chatInterface.broadcast("*~going down*");

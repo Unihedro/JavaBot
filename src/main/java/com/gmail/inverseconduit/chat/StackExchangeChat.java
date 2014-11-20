@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.codehaus.groovy.util.Finalizable;
 import org.jsoup.Jsoup;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
