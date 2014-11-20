@@ -9,7 +9,7 @@ import com.gmail.inverseconduit.commands.CommandHandle;
 
 public final class ChatCommands {
     public static  CommandHandle unsummonCommand(ChatInterface chatInterface) {
-        return new CommandHandle.Builder(s -> {
+        return new CommandHandle.Builder("unsummon", s -> {
             return s.trim().equals(TRIGGER + "unsummon");
         }, message -> {
             chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~bye, bye*");
@@ -18,7 +18,7 @@ public final class ChatCommands {
     }
     
     public static CommandHandle summonCommand(ChatInterface chatInterface) {
-        return new CommandHandle.Builder(s -> {
+        return new CommandHandle.Builder("summon", s -> {
             return s.trim().startsWith(TRIGGER) && s.trim().matches("/.*summon (stack(overflow|exchange)|meta) [\\d]{1,6}/gi");
         }, message -> {
             String[] args = message.getMessage().trim().split(" ");

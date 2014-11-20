@@ -17,7 +17,7 @@ public final class ScriptRunnerCommands {
     private static final Pattern loadPattern = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "load:(.*)", Pattern.DOTALL);
 
     public static CommandHandle evalCommand(ScriptRunner scriptRunner) {
-        return new CommandHandle.Builder(evalPattern.asPredicate(), message -> {
+        return new CommandHandle.Builder("eval", evalPattern.asPredicate(), message -> {
             Matcher matcher = evalPattern.matcher(message.getMessage());
             matcher.find();
             scriptRunner.evaluateGroovy(message, matcher.group(1));
@@ -25,7 +25,7 @@ public final class ScriptRunnerCommands {
     }
 
     public static CommandHandle javaCommand(ScriptRunner scriptRunner, ChatInterface chatInterface) {
-        return new CommandHandle.Builder(javaPattern.asPredicate(), message -> {
+        return new CommandHandle.Builder("java", javaPattern.asPredicate(), message -> {
             Matcher matcher = javaPattern.matcher(message.getMessage());
             matcher.find();
             try {
@@ -37,7 +37,7 @@ public final class ScriptRunnerCommands {
     }
 
     public static CommandHandle loadCommand(ScriptRunner scriptRunner) {
-        return new CommandHandle.Builder(loadPattern.asPredicate(), message -> {
+        return new CommandHandle.Builder("load", loadPattern.asPredicate(), message -> {
             Matcher matcher = loadPattern.matcher(message.getMessage());
             matcher.find();
             scriptRunner.evaluateAndCache(message, matcher.group(1));

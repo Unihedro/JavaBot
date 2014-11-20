@@ -141,7 +141,7 @@ public class Program {
 
     private void bindHelpCommand() {
         CommandHandle help =
-                new CommandHandle.Builder(
+                new CommandHandle.Builder("help", 
                     s -> {
                         return s.trim().startsWith(TRIGGER + "help");
                     },
@@ -152,7 +152,7 @@ public class Program {
     }
 
     private void bindJavaDocCommand() {
-        CommandHandle javaDoc = new CommandHandle.Builder(javadocPattern.asPredicate(), message -> {
+        CommandHandle javaDoc = new CommandHandle.Builder("javadoc", javadocPattern.asPredicate(), message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
             javaDocAccessor.javadoc(message, matcher.group(1));
@@ -161,7 +161,7 @@ public class Program {
     }
 
     private void bindShutdownCommand() {
-        CommandHandle shutdown = new CommandHandle.Builder(s -> {
+        CommandHandle shutdown = new CommandHandle.Builder("shutdown", s -> {
             return s.trim().startsWith(TRIGGER + "shutdown");
         }, message -> {
             //FIXME: Require permissions for this
@@ -173,7 +173,7 @@ public class Program {
     }
 
     private void bindTestCommand() {
-        CommandHandle test = new CommandHandle.Builder(s -> s.equals("test"), message -> {
+        CommandHandle test = new CommandHandle.Builder("test", s -> s.equals("test"), message -> {
             chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~response*");
         }).build();
         bot.subscribe(test);

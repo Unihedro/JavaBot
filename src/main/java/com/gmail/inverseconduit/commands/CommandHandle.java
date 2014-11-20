@@ -17,6 +17,8 @@ public class CommandHandle {
 
     private final Predicate<String>     matchesSyntax;
 
+    private final String                name;
+
     private final String                helpText;
 
     private final String                infoText;
@@ -24,23 +26,29 @@ public class CommandHandle {
     private final Consumer<ChatMessage> consumer;
 
     /**
-     * Command Builder for assembling commands. The command builder is not intended
+     * Command Builder for assembling commands. The command builder is not
+     * intended
      * to be threadsafe or reusable.
-     * After building a command it should be disposed of, or undefined results may
+     * After building a command it should be disposed of, or undefined results
+     * may
      * occur
      * 
      * @author vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
      */
     public static class Builder {
-        private Predicate<String>              matchesSyntax;
 
-        private String                         helpText = "";
+        private Predicate<String>     matchesSyntax;
 
-        private String                         infoText = "";
+        private String                name;
 
-        private Consumer<ChatMessage>          consumer;
+        private String                helpText = "";
 
-        public Builder(Predicate<String> matchesSyntax, Consumer<ChatMessage> consumer) {
+        private String                infoText = "";
+
+        private Consumer<ChatMessage> consumer;
+
+        public Builder(String name, Predicate<String> matchesSyntax, Consumer<ChatMessage> consumer) {
+            this.name = name;
             this.matchesSyntax = matchesSyntax;
             this.consumer = consumer;
         }
@@ -48,7 +56,8 @@ public class CommandHandle {
         /**
          * Build the command. Can be seen as ending the Builder's life span.
          * 
-         * @return the resulting {@link CommandHandle} assembled from the actions
+         * @return the resulting {@link CommandHandle} assembled from the
+         *         actions
          *         performed on this instance.
          * @throws IllegalStateException
          *         if no syntax or execution were added.
@@ -58,7 +67,8 @@ public class CommandHandle {
         }
 
         /**
-         * Sets the command's help text. The previously set helpText is overwritten,
+         * Sets the command's help text. The previously set helpText is
+         * overwritten,
          * only the latest given helpText will be added to the built
          * {@link CommandHandle}
          * 
@@ -72,7 +82,8 @@ public class CommandHandle {
         }
 
         /**
-         * Sets the command's info text. The previously set infoText is overwritten,
+         * Sets the command's info text. The previously set infoText is
+         * overwritten,
          * only the latest given infoText will be added to the built
          * {@link CommandHandle}
          * 
@@ -85,15 +96,14 @@ public class CommandHandle {
             return this;
         }
     }
-    
+
     private CommandHandle(Builder builder) {
+        this.name = builder.name;
         this.matchesSyntax = builder.matchesSyntax;
         this.helpText = builder.helpText;
         this.infoText = builder.infoText;
         this.consumer = builder.consumer;
     }
-    
-    
 
     public void execute(ChatMessage message) {
         consumer.accept(message);
@@ -109,5 +119,9 @@ public class CommandHandle {
 
     public String getInfoText() {
         return infoText;
+    }
+
+    public String getName() {
+        return name;
     }
 }
