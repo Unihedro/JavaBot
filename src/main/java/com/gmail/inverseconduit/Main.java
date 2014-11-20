@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
 
