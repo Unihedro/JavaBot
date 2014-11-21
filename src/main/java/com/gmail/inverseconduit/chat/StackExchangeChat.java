@@ -7,7 +7,6 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
@@ -22,15 +21,21 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
 import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.bot.JavaBot;
 import com.gmail.inverseconduit.datatype.ChatEventType;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.JSONChatEvents;
 import com.google.gson.Gson;
 
-public class StackExchangeChat {
+public class StackExchangeChat implements ChatInterface {
 
-    private final static Logger                               logger          = Logger.getLogger(StackExchangeChat.class.getName());
+    @FunctionalInterface
+    interface AllRoomsAction {
+        void accept(SESite site, Integer chatId, String fkey);
+    }
+    
+    private static final Logger                               LOGGER          = Logger.getLogger(StackExchangeChat.class.getName());
+
+    private static final int                                  MESSAGE_COUNT   = 5;
 
     private final EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap         = new EnumMap<>(SESite.class);
 
@@ -38,25 +43,21 @@ public class StackExchangeChat {
 
     private final WebClient                                   webClient;
 
-    private final JavaBot                                     javaBot;
+    private final Set<ChatWorker>                             subscribers     = new HashSet<>();
 
-    private final Set<Long>                                   handledMessages = new HashSet<Long>();
+    //TODO: Change that from timestamp-handling to id-based handling or move it to the ChatWorker
+    private final Set<Long>                                   handledMessages = new HashSet<>();
 
-    public StackExchangeChat(JavaBot javaBot) {
-        this.javaBot = javaBot;
+    public StackExchangeChat() {
         webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getCookieManager().setCookiesEnabled(true);
         webClient.getOptions().setRedirectEnabled(true);
         webClient.getOptions().setJavaScriptEnabled(true);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
-        //FIXME: move into some static block.. not the responsibility of this constructor
-        Logger.getLogger("com.gargoylesoftware.htmlunit.javascript.StrictErrorReporter").setLevel(Level.OFF);
-        Logger.getLogger("com.gargoylesoftware.htmlunit.DefaultCssErrorHandler").setLevel(Level.OFF);
-        Logger.getLogger("com.gargoylesoftware.htmlunit.IncorrectnessListenerImpl").setLevel(Level.OFF);
-        Logger.getLogger("com.gargoylesoftware.htmlunit.html.InputElementFactory").setLevel(Level.OFF);
         webClient.setWebConnection(new WebConnectionWrapper(webClient));
     }
 
+    @Override
     public boolean login(SESite site, String email, String password) {
         try {
             HtmlPage loginPage = webClient.getPage(new URL(site.getLoginUrl()));
@@ -73,7 +74,7 @@ public class StackExchangeChat {
             else {
                 logMessage = String.format("Login failed. Got status code %d", response.getStatusCode());
             }
-            logger.info(logMessage);
+            LOGGER.info(logMessage);
 
             return loggedIn;
         } catch(IOException e) {
@@ -86,28 +87,34 @@ public class StackExchangeChat {
         return loggedIn;
     }
 
+    @Override
     public boolean joinChat(SESite site, int chatId) {
         if ( !loggedIn) {
-            logger.warning("Not logged in. Cannot join chat.");
+            LOGGER.warning("Not logged in. Cannot join chat.");
             return false;
         }
         if (chatMap.containsKey(site) && chatMap.get(site).containsKey(chatId)) {
-            logger.warning("Already in that room.");
+            LOGGER.warning("Already in that room.");
             return false;
         }
         try {
             // TODO new rooms require new windows
             webClient.waitForBackgroundJavaScriptStartingBefore(10000);
             HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
-            //            jsonChatConnection.setEnabled(true);
             addChatPage(site, chatId, chatPage);
-            logger.info("Joined room.");
+            LOGGER.info("Joined room.");
         } catch(IOException e) {
             e.printStackTrace();
             return false;
         }
         sendMessage(site, chatId, "*~JavaBot, at your service*");
         return true;
+    }
+    
+    @Override
+    public boolean leaveChat(SESite site, int chatId) {
+        //Let timeout take care of leave
+        return chatMap.get(site).remove(chatId) != null;
     }
 
     private void addChatPage(SESite site, int id, HtmlPage page) {
@@ -128,10 +135,11 @@ public class StackExchangeChat {
      *        the room number to post in. must be positive. If it isn't
      *        {@link IllegalArgumentException} will be thrown.
      * @param message
-     *        The String to post into the chatroom. The string is not required
-     *        to be encoded.
+     *        The String to post into the chatroom. The string is not
+     *        required to be encoded.
      * @return a boolean indicating the success of posting to this chat.
      */
+    @Override
     public synchronized boolean sendMessage(SESite site, int chatId, String message) {
         if (0 >= chatId) { throw new IllegalArgumentException("Room number must be a positive number"); }
 
@@ -141,53 +149,61 @@ public class StackExchangeChat {
             return false;
         String fkey = page.getElementById("fkey").getAttribute("value");
 
+        return sendMessage(site, chatId, fkey, message);
+    }
+
+    private boolean sendMessage(SESite site, int chatId, String fkey, String message) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("text", message));
-        
+
         try {
             WebRequest r = new WebRequest(new URL(String.format("http://chat.%s.com/chats/%d/messages/new", site.getDir(), chatId)), HttpMethod.POST);
             r.setRequestParameters(params);
             WebResponse response = webClient.loadWebResponse(r);
             if (response.getStatusCode() != 200) {
-                logger.warning(String.format("Could not send message. Response(%d): %s", response.getStatusCode(), response.getStatusMessage()));
+                LOGGER.warning(String.format("Could not send message. Response(%d): %s", response.getStatusCode(), response.getStatusMessage()));
                 return false;
             }
-            //TODO: "You must login to post" message also returns statuscode 200!
-            
-            logger.info("POST " + r.toString());
+            // TODO: "You must login to post" message also returns statuscode
+            // 200!
+
+            LOGGER.info("POST " + r.toString());
             return true;
         } catch(IOException e) {
-            logger.warning("Couldn't send message due to IOException");
+            LOGGER.warning("Couldn't send message due to IOException");
             e.printStackTrace();
             return false;
         }
     }
 
     /**
-     * Queries the 5 latest messages for a given chatroom and enqueues them to
-     * the javaBot, respecting the already handled timestamps as maintained
+     * Queries the 5 latest messages for all chatrooms and enqueues them to
+     * the subscribed {@link ChatWorker Workers}, respecting the already handled
+     * timestamps as maintained
      * internally
-     * 
-     * @param site
-     *        The SESite the room to query belongs to.
-     * @param chatId
-     *        The room number of the room to query. It must be positive. If it
-     *        isn't {@link IllegalArgumentException} will be thrown.
      */
-    public synchronized void queryMessages(SESite site, int chatId) {
-        if (0 >= chatId) { throw new IllegalArgumentException("Room number must be positive"); }
+    @Override
+    public synchronized void queryMessages() {
+        forAllRooms((site, chatId, page) -> queryRoom(site, chatId, page));
+    }
 
-        HashMap<Integer, HtmlPage> map = chatMap.get(site);
-        HtmlPage page = map.get(chatId);
-        if (page == null)
-            return;
-        String fkey = page.getElementById("fkey").getAttribute("value");
+    @Override
+    public void broadcast(String message) {
+        forAllRooms((site, chatId, fkey) -> sendMessage(site, chatId, fkey, message));
+    }
+    
+    private void forAllRooms(AllRoomsAction action) {
+        chatMap.forEach((site, chatRooms) -> {
+            chatRooms.forEach((chatId, page) -> action.accept(site, chatId, page.getElementById("fkey").getAttribute("value")));
+        });
+    }
 
+    private void queryRoom(SESite site, Integer chatId, String fkey) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("mode", "messages"));
-        params.add(new NameValuePair("msgCount", "5"));
+        params.add(new NameValuePair("msgCount", String.valueOf(MESSAGE_COUNT)));
 
         String rString;
         try {
@@ -197,10 +213,10 @@ public class StackExchangeChat {
             WebResponse response = webClient.loadWebResponse(r);
             rString = response.getContentAsString();
 
-            logger.finest("responseString: " + rString);
+            LOGGER.finest("responseString: " + rString);
         } catch(IOException e1) {
             rString = "{}";
-            logger.severe("Exception when requesting events");
+            LOGGER.severe("Exception when requesting events");
         }
 
         Gson gson = new Gson();
@@ -213,13 +229,25 @@ public class StackExchangeChat {
         events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains(e.getTime_stamp())).forEach(event -> {
             String message = Jsoup.parse(event.getContent()).text();
             ChatMessage chatMessage = new ChatMessage(events.getSite(), event.getRoom_id(), event.getRoom_name(), event.getUser_name(), event.getUser_id(), message);
-            try {
-                logger.info("enqueueing message with timestamp: " + event.getTime_stamp());
-                javaBot.enqueueMessage(chatMessage);
-                handledMessages.add(event.getTime_stamp());
-            } catch(InterruptedException e1) {
-                logger.warning("Could not enqueue message: " + message);
-            }
+            LOGGER.finest("enqueueing message with timestamp: " + event.getTime_stamp());
+            subscribers.forEach(s -> {
+                try {
+                    s.enqueueMessage(chatMessage);
+                } catch(Exception e) {
+                    LOGGER.warning("Could not enqueue message: " + message + "to subscriber " + s);
+                }
+            });
+            handledMessages.add(event.getTime_stamp());
         });
+    }
+
+    @Override
+    public void subscribe(ChatWorker subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    @Override
+    public void unSubscribe(ChatWorker subscriber) {
+        subscribers.remove(subscriber);
     }
 }
