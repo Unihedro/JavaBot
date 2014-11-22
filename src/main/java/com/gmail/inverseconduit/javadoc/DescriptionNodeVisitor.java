@@ -42,6 +42,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			}
 			break;
 		case "code":
+		case "tt":
 			sb.append("`");
 			break;
 		case "i":
@@ -108,6 +109,7 @@ public class DescriptionNodeVisitor implements NodeVisitor {
 			}
 			break;
 		case "code":
+		case "tt":
 			sb.append("`");
 			break;
 		case "i":
