@@ -48,7 +48,7 @@ public class Java8PageParserTest {
 
 		//@formatter:off
 		assertEquals(
-		" The `String` class represents character strings.\n" +
+		"The `String` class represents character strings.\n" +
 		" `code` text \n" +
 		" **bold** text\n" +
 		" **bold** text\n" +
@@ -72,7 +72,7 @@ public class Java8PageParserTest {
 		"    String str = new String(data);\n" +
 		"\n" +
 		" \n" +
-		"ignore me \n", info.getDescription());
+		"ignore me", info.getDescription());
 		//@formatter:on
 	}
 }
