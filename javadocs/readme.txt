@@ -1,4 +1,4 @@
-Put a ZIP file containing Java's Javadocs here (or where ever "BotConfig.JAVADOCS_DIR" points to)
+Put a ZIP file here named "java8.zip" containing Java's Javadocs (or where ever "BotConfig.JAVADOCS_DIR" points to)
 
 The ZIP file should contain the files that are in the "api" directory of the "Documentation" download, found here:
 http://www.oracle.com/technetwork/java/javase/documentation/jdk8-doc-downloads-2133158.html

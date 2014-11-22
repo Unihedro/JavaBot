@@ -22,7 +22,7 @@ public class Main {
         disabledLoggers.add(Logger.getLogger("com.gargoylesoftware.htmlunit.html.InputElementFactory"));
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // HtmlUnit didn't properly clean up, so we have to
         disabledLoggers.forEach(l -> l.setLevel(Level.OFF));
 

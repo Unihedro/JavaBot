@@ -2,6 +2,7 @@ package com.gmail.inverseconduit.bot;
 
 import static com.gmail.inverseconduit.BotConfig.TRIGGER;
 
+import java.io.IOException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -41,14 +42,17 @@ public class Program {
 
     private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "javadoc:(.*)", Pattern.DOTALL);
 
-    public Program() {
+    /**
+     * @throws IOException if there's a problem loading the Javadocs
+     */
+    public Program() throws IOException {
         LOGGER.finest("Instantiating Program");
         chatInterface = new StackExchangeChat();
         bot = new DefaultBot();
 
         chatInterface.subscribe(bot);
 
-        javaDocAccessor = new JavaDocAccessor(chatInterface);
+        javaDocAccessor = new JavaDocAccessor(chatInterface, BotConfig.JAVADOCS_DIR);
         scriptRunner = new ScriptRunner(chatInterface);
         LOGGER.info("Basic component setup complete");
     }
