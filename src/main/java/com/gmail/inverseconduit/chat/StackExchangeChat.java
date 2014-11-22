@@ -102,6 +102,7 @@ public class StackExchangeChat implements ChatInterface {
             // TODO new rooms require new windows
             webClient.waitForBackgroundJavaScriptStartingBefore(10000);
             HtmlPage chatPage = webClient.getPage(site.urlToRoom(chatId));
+            handleInitialEvents(site, chatId, chatPage.getElementById("fkey").getAttribute("value"));
             addChatPage(site, chatId, chatPage);
             LOGGER.info("Joined room.");
         } catch(IOException e) {
@@ -110,6 +111,13 @@ public class StackExchangeChat implements ChatInterface {
         }
         sendMessage(site, chatId, "*~JavaBot, at your service*");
         return true;
+    }
+
+    private void handleInitialEvents(SESite site, int chatId, String fkey) {
+        String rString = fetchJson(site, chatId, fkey);
+        Gson gson = new Gson();
+        JSONChatEvents assumeHandled = gson.fromJson(rString, JSONChatEvents.class);
+        assumeHandled.getEvents().forEach(event -> handledMessages.add(event.getTime_stamp()));
     }
 
     @Override
@@ -201,6 +209,14 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     private void queryRoom(final SESite site, final Integer chatId, final String fkey) {
+        String rString = fetchJson(site, chatId, fkey);
+        Gson gson = new Gson();
+        JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
+        events.setSite(site);
+        handleChatEvents(events);
+    }
+
+    private String fetchJson(final SESite site, final Integer chatId, final String fkey) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("mode", "messages"));
@@ -219,11 +235,7 @@ public class StackExchangeChat implements ChatInterface {
             rString = "{}";
             LOGGER.severe("Exception when requesting events");
         }
-
-        Gson gson = new Gson();
-        JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
-        events.setSite(site);
-        handleChatEvents(events);
+        return rString;
     }
 
     private void handleChatEvents(final JSONChatEvents events) {

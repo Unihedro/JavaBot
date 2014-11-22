@@ -51,7 +51,7 @@ public class Program {
 
         chatInterface.subscribe(bot);
 
-        javaDocAccessor = new JavaDocAccessor(chatInterface, BotConfig.JAVADOCS_DIR);
+        javaDocAccessor = new JavaDocAccessor(chatInterface, Configuration.JAVADOCS_DIR);
         scriptRunner = new ScriptRunner(chatInterface);
         LOGGER.info("Basic component setup complete");
     }
@@ -70,7 +70,7 @@ public class Program {
     }
 
     private void joinDefaultRoom() {
-        chatInterface.joinChat(SESite.STACK_OVERFLOW, 139);
+        chatInterface.joinChat(SESite.STACK_OVERFLOW, 1);
     }
 
     private void scheduleQueryingThread() {
@@ -81,7 +81,7 @@ public class Program {
                 Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 3, TimeUnit.SECONDS);
         Logger.getAnonymousLogger().info("querying thread started");
     }
 
@@ -93,7 +93,7 @@ public class Program {
                 Logger.getAnonymousLogger().severe("Exception in processing thread: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 5, TimeUnit.SECONDS); //reduces strain
         Logger.getAnonymousLogger().info("Processing thread started");
     }
 
@@ -144,7 +144,8 @@ public class Program {
 
     private void bindHelpCommand() {
         CommandHandle help =
-                new CommandHandle.Builder("help", 
+                new CommandHandle.Builder(
+                    "help",
                     s -> {
                         return s.trim().startsWith(Configuration.TRIGGER + "help");
                     },

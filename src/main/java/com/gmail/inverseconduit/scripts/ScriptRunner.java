@@ -36,12 +36,11 @@ public class ScriptRunner {
 
     private final ChatInterface         chatInterface;
 
-
     public ScriptRunner(ChatInterface chatInterface) {
         // Groovy
         groovyConfig = new CompilerConfiguration();
         groovyConfig.setScriptBaseClass(ScriptBase.class.getName());
-        scriptBinding.setVariable("javaBot", this);
+        scriptBinding.setVariable("javaBot", chatInterface);
         groovyLoader = new GroovyClassLoader(this.getClass().getClassLoader(), groovyConfig);
         groovyShell = new GroovyShell(this.getClass().getClassLoader(), scriptBinding, groovyConfig);
         this.chatInterface = chatInterface;
@@ -51,7 +50,9 @@ public class ScriptRunner {
         LOGGER.finest("Evaluating Groovy Script");
 
         Object result = groovyShell.evaluate(createCodeSource(commandText));
-        chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result.toString());
+        chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result == null
+            ? "no result"
+            : result.toString());
     }
 
     public void evaluateAndCache(ChatMessage msg, String commandText) {
@@ -65,7 +66,7 @@ public class ScriptRunner {
         LOGGER.finest("Compiling and executing class");
 
         Object gClass = groovyLoader.parseClass(createCodeSource(commandText), false);
-        @SuppressWarnings({"unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, (Object) new String[] {""}).toString();
 
         chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result);

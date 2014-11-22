@@ -11,13 +11,15 @@ import java.util.logging.Logger;
 
 public class BotConfig {
 
-    private static final Logger   LOGGER       = Logger.getLogger(BotConfig.class.getName());
+    private static final Logger   LOGGER        = Logger.getLogger(BotConfig.class.getName());
 
-    public static final BotConfig Configuration     = new BotConfig();
+    public static final BotConfig Configuration = new BotConfig();
 
     public final String           LOGIN_EMAIL;
 
     public final String           PASSWORD;
+
+    public final Path             JAVADOCS_DIR;
 
     /**
      * @deprecated This constant is only here for legacy purposes. Use
@@ -28,11 +30,13 @@ public class BotConfig {
     @Deprecated
     public final String           TRIGGER;
 
-    public static final Path      JAVADOCS_DIR = Paths.get("javadocs");
-    
-    String loginEmail = "";
-    String trigger = "!!";
-    String password = "";
+    String                        loginEmail    = "";
+
+    String                        trigger       = "!!";
+
+    String                        password      = "";
+
+    String                        javadocs      = "javadocs";
 
     private BotConfig() {
         List<String> configSets;
@@ -41,6 +45,7 @@ public class BotConfig {
         } catch(IOException e) {
             Logger.getAnonymousLogger().severe("Cannot read configuration file, falling back to default configuration");
             configSets = Collections.EMPTY_LIST;
+            System.exit( -1); //Continuing execution is retarded...
         }
 
         configSets.stream().forEach(config -> {
@@ -56,10 +61,15 @@ public class BotConfig {
                 trigger = config.substring(config.indexOf("=") + 1);
                 LOGGER.info("Setting trigger to " + trigger);
             }
+            else if (config.startsWith("JAVADOCS=")) {
+                javadocs = config.substring(config.indexOf("=") + 1);
+                LOGGER.info("Setting javadocs dir to " + javadocs);
+            }
         });
 
         LOGIN_EMAIL = loginEmail;
         PASSWORD = password;
         TRIGGER = trigger;
+        JAVADOCS_DIR = Paths.get(javadocs);
     }
 }
