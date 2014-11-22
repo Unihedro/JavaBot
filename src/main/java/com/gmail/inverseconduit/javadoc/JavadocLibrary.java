@@ -15,11 +15,21 @@ public class JavadocLibrary {
 	private final PageLoader loader;
 	private final PageParser parser;
 
+	/**
+	 * @param loader the page loader
+	 * @param parser the page parser
+	 */
 	public JavadocLibrary(PageLoader loader, PageParser parser) {
 		this.loader = loader;
 		this.parser = parser;
 	}
 
+	/**
+	 * Gets the fully-qualified names of all the classes that are contained
+	 * within this library.
+	 * @return the fully-qualified class names
+	 * @throws IOException if there was a problem reading from the Javadocs
+	 */
 	public List<String> getAllClassNames() throws IOException {
 		Document document;
 		try (InputStream in = loader.getAllClassesFile()) {
@@ -28,6 +38,12 @@ public class JavadocLibrary {
 		return parser.parseClassNames(document);
 	}
 
+	/**
+	 * Gets the Javadoc documentation of a class.
+	 * @param className the fully-qualified class name (e.g. "java.lang.String")
+	 * @return the documentation or null if the class was not found
+	 * @throws IOException if there was a problem reading from the Javadocs
+	 */
 	public ClassInfo getClassInfo(String className) throws IOException {
 		Document document;
 		try (InputStream in = loader.getClassPage(className)) {
