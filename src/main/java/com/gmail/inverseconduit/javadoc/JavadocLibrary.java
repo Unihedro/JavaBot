@@ -31,6 +31,9 @@ public class JavadocLibrary {
 	public ClassInfo getClassInfo(String className) throws IOException {
 		Document document;
 		try (InputStream in = loader.getClassPage(className)) {
+			if (in == null) {
+				return null;
+			}
 			document = Jsoup.parse(in, "UTF-8", parser.getBaseUrl());
 		}
 		return parser.parseClassPage(document, className);
