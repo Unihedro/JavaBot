@@ -10,4 +10,15 @@ public class PrintUtils {
             builder.append("    ").append(segment);
         return builder.toString();
     }
+
+    public static String truncate(String message) {
+        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) {
+            return message.substring(0, message.lastIndexOf("."));
+        }
+        message = message.substring(0, 499);
+        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) {
+            return message.substring(0, message.lastIndexOf("."));
+        }
+        return message;
+    }
 }

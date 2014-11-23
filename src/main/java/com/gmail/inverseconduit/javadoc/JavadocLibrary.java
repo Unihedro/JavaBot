@@ -2,6 +2,7 @@ package com.gmail.inverseconduit.javadoc;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -33,6 +34,9 @@ public class JavadocLibrary {
 	public List<String> getAllClassNames() throws IOException {
 		Document document;
 		try (InputStream in = loader.getAllClassesFile()) {
+		    if (null == in) {
+		        return Collections.EMPTY_LIST;
+		    }
 			document = Jsoup.parse(in, "UTF-8", parser.getBaseUrl());
 		}
 		return parser.parseClassNames(document);
@@ -47,9 +51,9 @@ public class JavadocLibrary {
 	public ClassInfo getClassInfo(String className) throws IOException {
 		Document document;
 		try (InputStream in = loader.getClassPage(className)) {
-			if (in == null) {
-				return null;
-			}
+		    if (null == in) {
+		        return null;
+		    }
 			document = Jsoup.parse(in, "UTF-8", parser.getBaseUrl());
 		}
 		return parser.parseClassPage(document, className);

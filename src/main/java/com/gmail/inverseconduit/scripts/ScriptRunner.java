@@ -51,8 +51,8 @@ public class ScriptRunner {
 
         Object result = groovyShell.evaluate(createCodeSource(commandText));
         chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result == null
-            ? "no result"
-            : result.toString());
+            ? "[tag:groovy]: no result"
+            : "[tag:groovy]: " + result.toString());
     }
 
     public void evaluateAndCache(ChatMessage msg, String commandText) {
