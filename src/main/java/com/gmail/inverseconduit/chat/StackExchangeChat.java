@@ -258,6 +258,9 @@ public class StackExchangeChat implements ChatInterface {
         String rString = fetchJson(site, chatId, fkey);
         Gson gson = new Gson();
         JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
+        if (null == events) {
+            return;
+        }
         events.setSite(site);
         handleChatEvents(events);
     }
