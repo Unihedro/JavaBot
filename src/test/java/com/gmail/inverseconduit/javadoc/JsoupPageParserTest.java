@@ -1,6 +1,7 @@
 package com.gmail.inverseconduit.javadoc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -45,6 +46,8 @@ public class JsoupPageParserTest {
 		JsoupPageParser parser = new JsoupPageParser();
 		ClassInfo info = parser.parseClassPage(document, "org.jsoup.nodes.Attribute");
 		assertEquals("org.jsoup.nodes.Attribute", info.getFullName());
+		assertEquals(Arrays.asList("public", "class"), info.getModifiers());
+		assertFalse(info.isDeprecated());
 		assertEquals("http://jsoup.org/apidocs/?org/jsoup/nodes/Attribute.html", info.getUrl());
 		assertEquals("A single key + value attribute. Keys are trimmed and normalised to lower-case.", info.getDescription());
 	}

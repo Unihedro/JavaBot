@@ -1,6 +1,9 @@
 package com.gmail.inverseconduit.javadoc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -46,6 +49,9 @@ public class Java8PageParserTest {
 		assertEquals("java.lang.String", info.getFullName());
 		assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/lang/String.html", info.getUrl());
 
+		assertEquals(Arrays.asList("public", "final", "class"), info.getModifiers());
+		assertFalse(info.isDeprecated());
+
 		//@formatter:off
 		assertEquals(
 		"The `String` class represents character strings.\n" +
@@ -74,5 +80,41 @@ public class Java8PageParserTest {
 		" \n" +
 		"ignore me", info.getDescription());
 		//@formatter:on
+	}
+
+	@Test
+	public void getClassInfo_annotation() throws Exception {
+		Document document;
+		try (InputStream in = getClass().getResourceAsStream("SuppressWarnings.html")) {
+			document = Jsoup.parse(in, "UTF-8", "");
+		}
+
+		Java8PageParser parser = new Java8PageParser();
+		ClassInfo info = parser.parseClassPage(document, "java.lang.SuppressWarnings");
+		assertEquals("java.lang.SuppressWarnings", info.getFullName());
+		assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/lang/SuppressWarnings.html", info.getUrl());
+
+		assertEquals(Arrays.asList("public", "@interface"), info.getModifiers());
+		assertFalse(info.isDeprecated());
+		assertNotNull(info.getDescription());
+	}
+
+	@Test
+	public void getClassInfo_deprecated() throws Exception {
+		Document document;
+		try (InputStream in = getClass().getResourceAsStream("StringBufferInputStream.html")) {
+			document = Jsoup.parse(in, "UTF-8", "");
+		}
+
+		Java8PageParser parser = new Java8PageParser();
+		ClassInfo info = parser.parseClassPage(document, "java.io.StringBufferInputStream");
+		assertEquals("java.io.StringBufferInputStream", info.getFullName());
+		assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/io/StringBufferInputStream.html", info.getUrl());
+
+		assertEquals(Arrays.asList("public", "class"), info.getModifiers());
+		assertTrue(info.isDeprecated());
+		System.out.println((int)info.getDescription().charAt(12));
+		System.out.println((int)info.getDescription().charAt(13));
+		assertNotNull(info.getDescription());
 	}
 }

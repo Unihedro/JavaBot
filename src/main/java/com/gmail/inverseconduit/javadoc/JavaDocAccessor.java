@@ -28,7 +28,7 @@ public class JavaDocAccessor {
 			dao.addJavadocApi(loader, parser);
 		} else {
 			//for testing purposes
-			//this ZIP only hass the "java.lang.String" class
+			//this ZIP only has the "java.lang.String" class
 			Path sample = dir.resolve("sample.zip");
 			if (Files.exists(sample)) {
 				PageLoader loader = new ZipPageLoader(sample);
@@ -67,6 +67,49 @@ public class JavaDocAccessor {
 			return "Sorry, I never heard of that class. :(";
 		}
 
+		StringBuilder sb = new StringBuilder();
+
+		boolean deprecated = info.isDeprecated();
+		for (String modifier : info.getModifiers()) {
+			boolean italic = false;
+			switch (modifier) {
+			case "abstract":
+			case "final":
+				italic = true;
+				break;
+			case "class":
+			case "enum":
+			case "interface":
+				italic = false;
+				break;
+			case "@interface":
+				italic = false;
+				modifier = "annotation";
+				break;
+			default:
+				//ignore all the rest
+				continue;
+			}
+
+			if (italic) sb.append('*');
+			if (deprecated) sb.append("---");
+			sb.append("[tag:").append(modifier).append("]");
+			if (deprecated) sb.append("---");
+			if (italic) sb.append('*');
+			sb.append(' ');
+		}
+
+		if (deprecated) sb.append("---");
+		String fullName = info.getFullName();
+		String url = info.getUrl();
+		if (url == null) {
+			sb.append("**`").append(fullName).append("`**");
+		} else {
+			sb.append("[**`").append(fullName).append("`**](").append(url).append(" \"View the Javadocs\")");
+		}
+		if (deprecated) sb.append("---");
+		sb.append(": ");
+
 		//get the class description
 		String description = info.getDescription();
 		int pos = description.indexOf("\n");
@@ -74,12 +117,8 @@ public class JavaDocAccessor {
 			//just display the first paragraph
 			description = description.substring(0, pos);
 		}
+		sb.append(description);
 
-		String url = info.getUrl();
-		if (url == null) {
-			return "**`" + info.getFullName() + "`**: " + description;
-		}
-
-		return "[**`" + info.getFullName() + "`**](" + url + " \"View the Javadocs\"): " + description;
+		return sb.toString();
 	}
 }

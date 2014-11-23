@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,7 +38,7 @@ public class JavadocDaoTest {
 				@Override
 				public ClassInfo getClassInfo(String className) throws IOException {
 					if (className.startsWith("java.")) {
-						return new ClassInfo(className, "description - " + className, null);
+						return new ClassInfo(className, "description - " + className, null, Collections.emptyList(), false);
 					}
 					return null;
 				}
@@ -55,7 +56,7 @@ public class JavadocDaoTest {
 				@Override
 				public ClassInfo getClassInfo(String className) throws IOException {
 					if (className.startsWith("org.")) {
-						return new ClassInfo(className, "description - " + className, null);
+						return new ClassInfo(className, "description - " + className, null, Collections.emptyList(), false);
 					}
 					return null;
 				}
@@ -122,7 +123,7 @@ public class JavadocDaoTest {
 			@Override
 			public ClassInfo getClassInfo(String className) throws IOException {
 				if (className.startsWith("java.")) {
-					return new ClassInfo(className, "description - " + className, null);
+					return new ClassInfo(className, "description - " + className, null, Collections.emptyList(), false);
 				}
 				return null;
 			}

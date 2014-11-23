@@ -1,6 +1,7 @@
 package com.gmail.inverseconduit.javadoc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jsoup.nodes.Document;
@@ -31,12 +32,25 @@ public class JsoupPageParser implements PageParser {
 
 	@Override
 	public ClassInfo parseClassPage(Document document, String className) {
-		JsoupDescriptionNodeVisitor visitor = new JsoupDescriptionNodeVisitor();
-		document.traverse(visitor);
-		String description = visitor.getStringBuilder().toString().trim();
+		String description;
+		{
+			JsoupDescriptionNodeVisitor visitor = new JsoupDescriptionNodeVisitor();
+			document.traverse(visitor);
+			description = visitor.getStringBuilder().toString().trim();
+		}
 
 		String url = getBaseUrl() + "?" + className.replace('.', '/') + ".html";
-		return new ClassInfo(className, description, url);
+
+		List<String> modifiers;
+		{
+			Element element = document.select("dt").get(1);
+			modifiers = Arrays.asList(element.text().trim().split(" "));
+			String simpleName = className.substring(className.lastIndexOf('.') + 1);
+			int pos = modifiers.indexOf(simpleName);
+			modifiers = modifiers.subList(0, pos);
+		}
+
+		return new ClassInfo(className, description, url, modifiers, false);
 	}
 
 	@Override
