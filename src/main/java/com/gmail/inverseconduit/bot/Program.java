@@ -1,6 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
-import static com.gmail.inverseconduit.BotConfig.TRIGGER;
+import static com.gmail.inverseconduit.BotConfig.Configuration;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
@@ -40,7 +39,7 @@ public class Program {
 
     private final JavaDocAccessor                    javaDocAccessor;
 
-    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(BotConfig.TRIGGER) + "javadoc:(.*)", Pattern.DOTALL);
+    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(Configuration.TRIGGER) + "javadoc:(.*)", Pattern.DOTALL);
 
     /**
      * @throws IOException if there's a problem loading the Javadocs
@@ -52,7 +51,7 @@ public class Program {
 
         chatInterface.subscribe(bot);
 
-        javaDocAccessor = new JavaDocAccessor(chatInterface, BotConfig.JAVADOCS_DIR);
+        javaDocAccessor = new JavaDocAccessor(chatInterface, Configuration.JAVADOCS_DIR);
         scriptRunner = new ScriptRunner(chatInterface);
         LOGGER.info("Basic component setup complete");
     }
@@ -71,7 +70,7 @@ public class Program {
     }
 
     private void joinDefaultRoom() {
-        chatInterface.joinChat(SESite.STACK_OVERFLOW, 139);
+        chatInterface.joinChat(SESite.STACK_OVERFLOW, 1);
     }
 
     private void scheduleQueryingThread() {
@@ -82,7 +81,7 @@ public class Program {
                 Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 3, TimeUnit.SECONDS);
         Logger.getAnonymousLogger().info("querying thread started");
     }
 
@@ -94,12 +93,12 @@ public class Program {
                 Logger.getAnonymousLogger().severe("Exception in processing thread: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 5, TimeUnit.SECONDS); //reduces strain
         Logger.getAnonymousLogger().info("Processing thread started");
     }
 
     private void login() {
-        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, BotConfig.LOGIN_EMAIL, BotConfig.PASSWORD);
+        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, Configuration.LOGIN_EMAIL, Configuration.PASSWORD);
         if ( !loggedIn) {
             Logger.getAnonymousLogger().severe("Login failed!");
             System.exit( -255);
@@ -145,9 +144,10 @@ public class Program {
 
     private void bindHelpCommand() {
         CommandHandle help =
-                new CommandHandle.Builder("help", 
+                new CommandHandle.Builder(
+                    "help",
                     s -> {
-                        return s.trim().startsWith(TRIGGER + "help");
+                        return s.trim().startsWith(Configuration.TRIGGER + "help");
                     },
                     message -> {
                         chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
@@ -166,7 +166,7 @@ public class Program {
 
     private void bindShutdownCommand() {
         CommandHandle shutdown = new CommandHandle.Builder("shutdown", s -> {
-            return s.trim().startsWith(TRIGGER + "shutdown");
+            return s.trim().startsWith(Configuration.TRIGGER + "shutdown");
         }, message -> {
             //FIXME: Require permissions for this
             chatInterface.broadcast("*~going down*");
