@@ -7,10 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Policy;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
-import java.util.logging.Level;
+import java.util.logging.Filter;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.bot.Program;
@@ -18,21 +18,9 @@ import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
 
 public class Main {
-
-    // Prevents GC of loggers before htmlUnit can get them again...
-    private static final Set<Logger> disabledLoggers = new HashSet<>();
-
-    static {
-        disabledLoggers.add(Logger.getLogger("com.gargoylesoftware.htmlunit.javascript.StrictErrorReporter"));
-        disabledLoggers.add(Logger.getLogger("com.gargoylesoftware.htmlunit.DefaultCssErrorHandler"));
-        disabledLoggers.add(Logger.getLogger("com.gargoylesoftware.htmlunit.IncorrectnessListenerImpl"));
-        disabledLoggers.add(Logger.getLogger("com.gargoylesoftware.htmlunit.html.InputElementFactory"));
-    }
-
     public static void main(String[] args) throws Exception {
-        // HtmlUnit didn't properly clean up, so we have to
-        disabledLoggers.forEach(l -> l.setLevel(Level.OFF));
-
+    	setupLogging();
+    	
         //sandbox this ...
         Policy.setPolicy(ScriptSecurityPolicy.getInstance());
         System.setSecurityManager(ScriptSecurityManager.getInstance());
@@ -42,6 +30,24 @@ public class Main {
 
         Program p = new Program();
         p.startup();
+    }
+    
+    private static void setupLogging(){
+    	Filter filter = new Filter() {
+    		private final String packageName = getClass().getPackage().getName();
+    		
+			@Override
+			public boolean isLoggable(LogRecord record) {
+				//only log messages from this app
+				String name = record.getLoggerName();
+				return (name == null) ? false : name.startsWith(packageName);
+			}
+		};
+		
+    	Logger global = Logger.getLogger("");
+        for (Handler handler : global.getHandlers()){
+        	handler.setFilter(filter);
+        }
     }
     
     private static BotConfig loadConfig() throws IOException{
