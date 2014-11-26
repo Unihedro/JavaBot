@@ -1,7 +1,5 @@
 package com.gmail.inverseconduit.bot;
 
-import static com.gmail.inverseconduit.BotConfig.Configuration;
-
 import java.io.IOException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -9,6 +7,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.gmail.inverseconduit.AppContext;
+import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
@@ -30,6 +30,8 @@ public class Program {
     private static final Logger                      LOGGER         = Logger.getLogger(Program.class.getName());
 
     private static final ScheduledThreadPoolExecutor executor       = new ScheduledThreadPoolExecutor(2);
+    
+    private static final BotConfig                   config         = AppContext.INSTANCE.get(BotConfig.class);
 
     private final DefaultBot                         bot;
 
@@ -39,7 +41,7 @@ public class Program {
 
     private final JavaDocAccessor                    javaDocAccessor;
 
-    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(Configuration.TRIGGER) + "javadoc:(.*)", Pattern.DOTALL);
+    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
     /**
      * @throws IOException if there's a problem loading the Javadocs
@@ -51,7 +53,7 @@ public class Program {
 
         chatInterface.subscribe(bot);
 
-        javaDocAccessor = new JavaDocAccessor(chatInterface, Configuration.JAVADOCS_DIR);
+        javaDocAccessor = new JavaDocAccessor(chatInterface, config.getJavadocsDir());
         scriptRunner = new ScriptRunner(chatInterface);
         LOGGER.info("Basic component setup complete");
     }
@@ -63,14 +65,12 @@ public class Program {
         LOGGER.info("Beginning startup process");
         bindDefaultCommands();
         login();
-        joinDefaultRoom();
+        for (Integer room : config.getRooms()){
+        	chatInterface.joinChat(SESite.STACK_OVERFLOW, room);
+        }
         scheduleProcessingThread();
         scheduleQueryingThread();
         LOGGER.info("Startup completed.");
-    }
-
-    private void joinDefaultRoom() {
-        chatInterface.joinChat(SESite.STACK_OVERFLOW, 1);
     }
 
     private void scheduleQueryingThread() {
@@ -98,7 +98,7 @@ public class Program {
     }
 
     private void login() {
-        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, Configuration.LOGIN_EMAIL, Configuration.PASSWORD);
+        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config.getLoginEmail(), config.getLoginPassword());
         if ( !loggedIn) {
             Logger.getAnonymousLogger().severe("Login failed!");
             System.exit( -255);
@@ -147,7 +147,7 @@ public class Program {
                 new CommandHandle.Builder(
                     "help",
                     s -> {
-                        return s.trim().startsWith(Configuration.TRIGGER + "help");
+                        return s.trim().startsWith(config.getTrigger() + "help");
                     },
                     message -> {
                         chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
@@ -166,7 +166,7 @@ public class Program {
 
     private void bindShutdownCommand() {
         CommandHandle shutdown = new CommandHandle.Builder("shutdown", s -> {
-            return s.trim().startsWith(Configuration.TRIGGER + "shutdown");
+            return s.trim().startsWith(config.getTrigger() + "shutdown");
         }, message -> {
             //FIXME: Require permissions for this
             chatInterface.broadcast("*~going down*");

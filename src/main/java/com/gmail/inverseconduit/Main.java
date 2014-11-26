@@ -1,7 +1,14 @@
 package com.gmail.inverseconduit;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Policy;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,8 +36,20 @@ public class Main {
         //sandbox this ...
         Policy.setPolicy(ScriptSecurityPolicy.getInstance());
         System.setSecurityManager(ScriptSecurityManager.getInstance());
+        
+        BotConfig config = loadConfig();
+        AppContext.INSTANCE.add(config);
 
         Program p = new Program();
         p.startup();
+    }
+    
+    private static BotConfig loadConfig() throws IOException{
+    	Path file = Paths.get("bot.properties");
+    	Properties properties = new Properties();
+    	try (Reader reader = Files.newBufferedReader(file, Charset.forName("UTF-8"))){
+    		properties.load(reader);
+    	}
+    	return new BotConfig(properties);
     }
 }
