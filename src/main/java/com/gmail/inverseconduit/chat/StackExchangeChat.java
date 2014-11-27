@@ -64,34 +64,73 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
-    public boolean login(
-        final SESite site, final String email, final String password) {
+    public boolean login(ProviderDescriptor descriptor, CredentialsProvider credentials) {
+        HtmlPage loginPage = getLoginPage(descriptor);
+        if (null == loginPage) { return false; }
+
+        HtmlForm loginForm = processLoginPage(credentials.getIdentificator(), credentials.getAuthenticator(), loginPage);
+
+        WebResponse response = submitLoginForm(loginForm);
+        if (null == response) { return false; }
+
+        loggedIn = (response.getStatusCode() == 200);
+        logLoginMessage(descriptor.getDescription().toString(), credentials.getIdentificator(), response);
+        return loggedIn;
+    }
+
+    private WebResponse submitLoginForm(HtmlForm loginForm) {
+        WebResponse response;
         try {
-            HtmlPage loginPage = webClient.getPage(new URL(site.getLoginUrl()));
-            HtmlForm loginForm =
-                    loginPage.getFirstByXPath("//*[@id=\"se-login-form\"]");
-            loginForm.getInputByName("email").setValueAttribute(email);
-            loginForm.getInputByName("password").setValueAttribute(password);
-            WebResponse response =
-                    loginForm.getInputByName("submit-button").click().getWebResponse();
-            loggedIn = (response.getStatusCode() == 200);
-
-            String logMessage;
-            if (loggedIn) {
-                logMessage =
-                        String.format("Logged in to %s with email %s", site.getRootUrl(), email);
-            }
-            else {
-                logMessage =
-                        String.format("Login failed. Got status code %d", response.getStatusCode());
-            }
-            LOGGER.info(logMessage);
-
-            return loggedIn;
-        } catch(IOException e) {
+            response = loginForm.getInputByName("submit-button").click().getWebResponse();
+        } catch(ElementNotFoundException | IOException e) {
+            LOGGER.severe("Couldn't find submit button to Form / IOException when logging in");
             e.printStackTrace();
+            return null;
         }
-        return false;
+        return response;
+    }
+
+    private HtmlPage getLoginPage(ProviderDescriptor descriptor) {
+        HtmlPage loginPage;
+        try {
+            loginPage = webClient.getPage(new URL(descriptor.getDescription() + "users/login"));
+        } catch(FailingHttpStatusCodeException | IOException e) {
+            LOGGER.severe("Couldn't fetch Login Page / IOException when logging in");
+            e.printStackTrace();
+            return null;
+        }
+        return loginPage;
+    }
+
+    @Override
+    public boolean login(final SESite site, final String email, final String password) {
+        HtmlPage loginPage = getLoginPage(() -> site.getRootUrl());
+
+        HtmlForm loginForm = processLoginPage(email, password, loginPage);
+        WebResponse response = submitLoginForm(loginForm);
+        loggedIn = (response.getStatusCode() == 200);
+
+        logLoginMessage(site.getRootUrl(), email, response);
+
+        return loggedIn;
+    }
+
+    private void logLoginMessage(final String site, final String email, WebResponse response) {
+        String logMessage;
+        if (loggedIn) {
+            logMessage = String.format("Logged in to %s with email %s", site, email);
+        }
+        else {
+            logMessage = String.format("Login failed. Got status code %d", response.getStatusCode());
+        }
+        LOGGER.info(logMessage);
+    }
+
+    private HtmlForm processLoginPage(final String email, final String password, HtmlPage loginPage) {
+        HtmlForm loginForm = loginPage.getFirstByXPath("//*[@id=\"se-login-form\"]");
+        loginForm.getInputByName("email").setValueAttribute(email);
+        loginForm.getInputByName("password").setValueAttribute(password);
+        return loginForm;
     }
 
     public boolean isLoggedIn() {
