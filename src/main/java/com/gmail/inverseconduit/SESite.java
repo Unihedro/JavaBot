@@ -4,6 +4,8 @@ package com.gmail.inverseconduit;
 
 import java.net.URL;
 
+import com.gmail.inverseconduit.datatype.ProviderDescriptor;
+
 /**
  * Generates locations to the destinated address.<br>
  * SEChat @ com.gmail.inverseconduit
@@ -11,7 +13,7 @@ import java.net.URL;
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
  */
-public enum SESite {
+public enum SESite implements ProviderDescriptor {
     STACK_OVERFLOW("stackoverflow"),
     STACK_EXCHANGE("stackexchange"),
     META_STACK_EXCHANGE("meta." + STACK_EXCHANGE.dir);
@@ -61,5 +63,10 @@ public enum SESite {
             }
         }
         return null;
+    }
+
+    @Override
+    public Object getDescription() {
+        return rootUrl;
     }
 }

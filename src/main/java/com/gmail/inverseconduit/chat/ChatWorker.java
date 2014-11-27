@@ -13,7 +13,10 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
 @ThreadSafe
 public interface ChatWorker {
 
+    @Deprecated
     void processMessages();
+    
+    void start();
 
     boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException;
 
