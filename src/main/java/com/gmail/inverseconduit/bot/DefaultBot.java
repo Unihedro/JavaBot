@@ -3,7 +3,9 @@ package com.gmail.inverseconduit.bot;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -29,6 +31,8 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
 
     private final Logger                       LOGGER       = Logger.getLogger(DefaultBot.class.getName());
 
+    protected final ScheduledExecutorService   executor     = Executors.newSingleThreadScheduledExecutor();
+
     protected final BlockingQueue<ChatMessage> messageQueue = new LinkedBlockingQueue<>();
 
     protected final Set<CommandHandle>         commands     = new HashSet<>();
@@ -36,21 +40,33 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
     public DefaultBot() {}
 
     @Override
+    public synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
+        return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
+    }
+    
+    @Override
+    @Deprecated
     public synchronized void processMessages() {
         LOGGER.finest("processing messages");
-
-        while (messageQueue.peek() != null) {
-            final ChatMessage message = messageQueue.poll();
-            commands.stream()
-                .filter(c -> c.matchesSyntax(message.getMessage()))
-                .findFirst().ifPresent(c -> c.execute(message));
-        }
+        processMessageQueue();
     }
 
     @Override
-    public boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
-        return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
+    public void start() {
+        executor.scheduleAtFixedRate(() -> processMessageQueue(), 1, 500, TimeUnit.MILLISECONDS);
     }
+    
+    private void processMessageQueue() {
+        while (messageQueue.peek() != null) {
+            processMessage();
+        }
+    }
+
+    private void processMessage() {
+        final ChatMessage message = messageQueue.poll();
+        commands.stream().filter(c -> c.matchesSyntax(message.getMessage())).findFirst().ifPresent(c -> c.execute(message));
+    }
+
 
     @Override
     public void subscribe(CommandHandle subscriber) {
@@ -60,5 +76,11 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
     @Override
     public void unSubscribe(CommandHandle subscriber) {
         commands.remove(subscriber);
+    }
+
+
+    @Override
+    public void finalize() {
+        executor.shutdownNow();
     }
 }
