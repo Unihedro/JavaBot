@@ -15,6 +15,7 @@ import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.chat.commands.ChatCommands;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
 import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
@@ -140,7 +141,7 @@ public class Program {
                         return s.trim().startsWith(config.getTrigger() + "help");
                     },
                     message -> {
-                        chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
+                        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
                     }).build();
         bot.subscribe(help);
     }
@@ -168,7 +169,7 @@ public class Program {
 
     private void bindTestCommand() {
         CommandHandle test = new CommandHandle.Builder("test", s -> s.equals("test"), message -> {
-            chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~response*");
+            chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), "*~response*");
         }).build();
         bot.subscribe(test);
     }

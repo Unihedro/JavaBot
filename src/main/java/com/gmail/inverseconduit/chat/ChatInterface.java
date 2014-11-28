@@ -1,6 +1,5 @@
 package com.gmail.inverseconduit.chat;
 
-import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.datatype.ChatDescriptor;
 import com.gmail.inverseconduit.datatype.CredentialsProvider;
 import com.gmail.inverseconduit.datatype.ProviderDescriptor;
@@ -21,25 +20,13 @@ public interface ChatInterface extends Subscribable<ChatWorker> {
 
     void queryMessages();
 
-    @Deprecated
-    boolean sendMessage(SESite site, int chatId, String message);
-
-    @Deprecated
-    boolean joinChat(SESite site, int chatId);
-    
-    @Deprecated
-    boolean leaveChat(SESite site, int chatId);
-
-    @Deprecated
-    boolean login(SESite site, String email, String password);
-
     boolean sendMessage(ChatDescriptor descriptor, String message);
-    
+
     boolean joinChat(ChatDescriptor descriptor);
-    
+
     boolean leaveChat(ChatDescriptor descriptor);
-    
-    boolean login (ProviderDescriptor descriptor, CredentialsProvider credentials);
-    
+
+    boolean login(ProviderDescriptor descriptor, CredentialsProvider credentials);
+
     void broadcast(String message);
 }

@@ -58,15 +58,13 @@ public enum SESite implements ProviderDescriptor {
 
     public static SESite fromUrl(String value) {
         for (SESite site : SESite.values()) {
-            if (value.contains(site.dir)) {
-                return site;
-            }
+            if (value.contains(site.dir)) { return site; }
         }
         return null;
     }
 
     @Override
     public Object getDescription() {
-        return rootUrl;
+        return "http://chat." + dir + ".com/";
     }
 }

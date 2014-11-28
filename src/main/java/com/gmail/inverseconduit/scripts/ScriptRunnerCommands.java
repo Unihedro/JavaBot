@@ -8,6 +8,7 @@ import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 public final class ScriptRunnerCommands {
 	private static final BotConfig config = AppContext.INSTANCE.get(BotConfig.class);
@@ -33,7 +34,7 @@ public final class ScriptRunnerCommands {
             try {
                 scriptRunner.compileAndExecuteMain(message, matcher.group(1));
             } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                chatInterface.sendMessage(message.getSite(), message.getRoomId(), "No main-method found for execution");
+                chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), "No main-method found for execution");
             }
         }).build();
     }

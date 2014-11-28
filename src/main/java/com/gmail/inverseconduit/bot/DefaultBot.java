@@ -43,21 +43,15 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
     public synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
         return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }
-    
-    @Override
-    @Deprecated
-    public synchronized void processMessages() {
-        LOGGER.finest("processing messages");
-        processMessageQueue();
-    }
 
     @Override
     public void start() {
         executor.scheduleAtFixedRate(() -> processMessageQueue(), 1, 500, TimeUnit.MILLISECONDS);
     }
-    
+
     private void processMessageQueue() {
         while (messageQueue.peek() != null) {
+            LOGGER.info("processing message from queue");
             processMessage();
         }
     }
@@ -66,7 +60,6 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
         final ChatMessage message = messageQueue.poll();
         commands.stream().filter(c -> c.matchesSyntax(message.getMessage())).findFirst().ifPresent(c -> c.execute(message));
     }
-
 
     @Override
     public void subscribe(CommandHandle subscriber) {
@@ -78,9 +71,8 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
         commands.remove(subscriber);
     }
 
-
     @Override
-    public void finalize() {
+    protected void finalize() {
         executor.shutdownNow();
     }
 }
