@@ -2,11 +2,11 @@ package com.gmail.inverseconduit.datatype;
 
 public class ChatDescriptor {
 
-    private final ProviderDescriptor provider;
+    protected final ProviderDescriptor provider;
 
-    private final RoomDescriptor     room;
+    protected final RoomDescriptor     room;
 
-    private ChatDescriptor(DescriptorBuilder builder) {
+    ChatDescriptor(DescriptorBuilder builder) {
         provider = builder.getProvider();
         room = builder.getRoom();
     }
@@ -15,12 +15,12 @@ public class ChatDescriptor {
 
         private final ProviderDescriptor provider;
 
-        private RoomDescriptor     room;
+        private RoomDescriptor           room;
 
         public DescriptorBuilder(ProviderDescriptor provider) {
             this.provider = provider;
         }
-        
+
         public ChatDescriptor build() {
             return new ChatDescriptor(this);
         }
@@ -33,8 +33,9 @@ public class ChatDescriptor {
             return room;
         }
 
-        public void setRoom(RoomDescriptor room) {
+        public DescriptorBuilder setRoom(RoomDescriptor room) {
             this.room = room;
+            return this;
         }
     }
 

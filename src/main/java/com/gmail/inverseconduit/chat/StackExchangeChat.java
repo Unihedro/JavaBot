@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -20,17 +21,13 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
 import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.datatype.ChatDescriptor;
-import com.gmail.inverseconduit.datatype.ChatEventType;
-import com.gmail.inverseconduit.datatype.ChatMessage;
-import com.gmail.inverseconduit.datatype.CredentialsProvider;
-import com.gmail.inverseconduit.datatype.JSONChatEvents;
-import com.gmail.inverseconduit.datatype.ProviderDescriptor;
+import com.gmail.inverseconduit.datatype.*;
 import com.gmail.inverseconduit.utils.PrintUtils;
 import com.google.gson.Gson;
 
 public class StackExchangeChat implements ChatInterface {
 
+    @Deprecated
     @FunctionalInterface
     interface AllRoomsAction {
 
@@ -42,6 +39,8 @@ public class StackExchangeChat implements ChatInterface {
     private static final int                                  MESSAGE_COUNT   = 5;
 
     private final EnumMap<SESite, HashMap<Integer, HtmlPage>> chatMap         = new EnumMap<>(SESite.class);
+
+    private final Map<SeChatDescriptor, HtmlPage>             descriptorMap   = new HashMap<>();
 
     private boolean                                           loggedIn        = true;
 
@@ -103,6 +102,7 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
+    @Deprecated
     public boolean login(final SESite site, final String email, final String password) {
         HtmlPage loginPage = getLoginPage(() -> site.getRootUrl());
 
@@ -138,6 +138,37 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
+    public boolean joinChat(ChatDescriptor descriptor) {
+        if ( ! (descriptor instanceof SeChatDescriptor)) {
+            LOGGER.warning("Passed descriptor was not suitable for describing an Se Chat");
+            return false;
+        }
+        if ( !loggedIn) {
+            LOGGER.warning("Not logged in. Cannot join chat.");
+            return false;
+        }
+        SeChatDescriptor seDescriptor = (SeChatDescriptor) descriptor;
+
+        if (descriptorMap.containsKey(seDescriptor)) {
+            LOGGER.warning("Already in that room.");
+            return false;
+        }
+
+        webClient.waitForBackgroundJavaScriptStartingBefore(10000);
+        HtmlPage chatPage;
+        try {
+            //FIXME: get room description sucks
+            chatPage = webClient.getPage(seDescriptor.buildRoomUrl());
+        } catch(FailingHttpStatusCodeException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        handleInitialEvents(seDescriptor, chatPage.getElementById("fkey").getAttribute("value"));
+        return true;
+    }
+
+    @Override
+    @Deprecated
     public boolean joinChat(final SESite site, final int chatId) {
         if ( !loggedIn) {
             LOGGER.warning("Not logged in. Cannot join chat.");
@@ -162,6 +193,14 @@ public class StackExchangeChat implements ChatInterface {
         return true;
     }
 
+    private void handleInitialEvents(SeChatDescriptor descriptor, String fkey) {
+        String rString = fetchJson(descriptor.buildRestRootUrl(), fkey);
+        Gson gson = new Gson();
+        JSONChatEvents assumeHandled = gson.fromJson(rString, JSONChatEvents.class);
+        assumeHandled.getEvents().forEach(event -> handledMessages.add(event.getTime_stamp()));
+    }
+
+    @Deprecated
     private void handleInitialEvents(SESite site, int chatId, String fkey) {
         String rString = fetchJson(site, chatId, fkey);
         Gson gson = new Gson();
@@ -170,6 +209,13 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     @Override
+    public boolean leaveChat(ChatDescriptor descriptor) {
+        //Let timeout take care of leave
+        return descriptorMap.remove(descriptor) != null;
+    }
+
+    @Override
+    @Deprecated
     public boolean leaveChat(final SESite site, final int chatId) {
         //Let timeout take care of leave
         return chatMap.get(site).remove(chatId) != null;
@@ -200,6 +246,19 @@ public class StackExchangeChat implements ChatInterface {
     @Override
     public synchronized boolean sendMessage(final SESite site, final int chatId, String message) {
         if (0 >= chatId) { throw new IllegalArgumentException("Room number must be a positive number"); }
+        message = handleMessageOversize(site, chatId, message);
+
+        HashMap<Integer, HtmlPage> map = chatMap.get(site);
+        HtmlPage page = map.get(chatId);
+        if (null == page)
+            return false;
+        String fkey = page.getElementById("fkey").getAttribute("value");
+
+        return sendMessage(site, chatId, fkey, message);
+    }
+
+    @Deprecated
+    private String handleMessageOversize(final SESite site, final int chatId, String message) {
         if (message.length() >= 500 && message.length() < 600) {
             LOGGER.warning("Truncating message!");
             message = PrintUtils.truncate(message);
@@ -214,16 +273,67 @@ public class StackExchangeChat implements ChatInterface {
             LOGGER.warning("Nobody sends messages this long!");
             message = message.substring(0, 495) + "...";
         }
-
-        HashMap<Integer, HtmlPage> map = chatMap.get(site);
-        HtmlPage page = map.get(chatId);
-        if (null == page)
-            return false;
-        String fkey = page.getElementById("fkey").getAttribute("value");
-
-        return sendMessage(site, chatId, fkey, message);
+        return message;
     }
 
+    @Override
+    public boolean sendMessage(ChatDescriptor descriptor, String message) {
+        if ( ! (descriptor instanceof SeChatDescriptor)) {
+            LOGGER.warning("descriptor was not suitable to describe an SeChat");
+            return false;
+        }
+        SeChatDescriptor seDescriptor = (SeChatDescriptor) descriptor;
+        message = handleMessageOversize(seDescriptor, message);
+        String fkey = descriptorMap.get(seDescriptor).getElementById("fkey").getAttribute("value");
+        return sendMessage(seDescriptor.buildRestRootUrl(), fkey, message);
+    }
+
+    private String handleMessageOversize(final SeChatDescriptor descriptor, String message) {
+        if (message.length() >= 500 && message.length() < 600) {
+            LOGGER.warning("Truncating message!");
+            message = PrintUtils.truncate(message);
+        }
+        else if (message.length() > 500 && message.length() < 1000) {
+            LOGGER.warning("Splitting message");
+            String continuation = "..." + message.substring(message.length() / 2);
+            message = message.substring(0, message.length() / 2) + "...";
+            this.sender.schedule(() -> sendMessage(descriptor, continuation), 2, TimeUnit.SECONDS);
+        }
+        else if (message.length() >= 1000) {
+            LOGGER.warning("Nobody sends messages this long!");
+            message = message.substring(0, 495) + "...";
+        }
+        return message;
+    }
+
+    private boolean sendMessage(String restRootUrl, String fkey, String message) {
+        ArrayList<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("fkey", fkey));
+        params.add(new NameValuePair("text", message));
+
+        try {
+            URL newMessageUrl = new URL(restRootUrl + "/messages/new");
+            WebRequest r = new WebRequest(newMessageUrl, HttpMethod.POST);
+            r.setRequestParameters(params);
+            WebResponse response = webClient.loadWebResponse(r);
+            if (response.getStatusCode() != 200) {
+                LOGGER.warning(String.format("Could not send message. Response(%d): %s", response.getStatusCode(), response.getStatusMessage()));
+                LOGGER.warning("Posted against URL: " + newMessageUrl);
+                //FIXME retry at a more random time...
+                this.sender.schedule(() -> sendMessage(restRootUrl, fkey, message), 5, TimeUnit.SECONDS);
+                return false;
+            }
+            //TODO: "You must log in to post also returns HTTP 200
+            LOGGER.info("POST " + r.toString());
+            return true;
+        } catch(IOException e) {
+            LOGGER.warning("Couldn't send message due to IOException");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Deprecated
     private boolean sendMessage(final SESite site, final int chatId, final String fkey, final String message) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
@@ -261,11 +371,13 @@ public class StackExchangeChat implements ChatInterface {
     @Override
     public synchronized void queryMessages() {
         forAllRooms((site, chatId, page) -> queryRoom(site, chatId, page));
+        descriptorMap.keySet().forEach((descriptor) -> queryRoom(descriptor));
     }
 
     @Override
     public void broadcast(final String message) {
         forAllRooms((site, chatId, fkey) -> sendMessage(site, chatId, fkey, message));
+        descriptorMap.keySet().forEach((descriptor) -> sendMessage(descriptor, message));
     }
 
     private void forAllRooms(AllRoomsAction action) {
@@ -274,12 +386,26 @@ public class StackExchangeChat implements ChatInterface {
         });
     }
 
+    @Deprecated
     private void queryRoom(final SESite site, final Integer chatId, final String fkey) {
         String rString = fetchJson(site, chatId, fkey);
         Gson gson = new Gson();
         JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
         if (null == events) { return; }
         events.setSite(site);
+        handleChatEvents(events);
+    }
+
+    private void queryRoom(final SeChatDescriptor descriptor) {
+        String fkey = descriptorMap.get(descriptor).getElementById("fkey").getAttribute("value");
+        String roomUrl = descriptor.buildRestRootUrl();
+        String rString = fetchJson(roomUrl, fkey);
+
+        Gson gson = new Gson();
+        JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
+
+        if (null == events) { return; }
+        events.setSite(SESite.fromUrl(descriptor.getProvider().getDescription().toString()));
         handleChatEvents(events);
     }
 
@@ -292,6 +418,28 @@ public class StackExchangeChat implements ChatInterface {
         String rString;
         try {
             WebRequest r = new WebRequest(new URL(String.format("http://chat.%s.com/chats/%d/events", site.getDir(), chatId)), HttpMethod.POST);
+            r.setRequestParameters(params);
+
+            WebResponse response = webClient.loadWebResponse(r);
+            rString = response.getContentAsString();
+
+            LOGGER.finest("responseString: " + rString);
+        } catch(IOException e1) {
+            rString = "{}";
+            LOGGER.severe("Exception when requesting events");
+        }
+        return rString;
+    }
+
+    private String fetchJson(final String roomUrl, final String fkey) {
+        ArrayList<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("fkey", fkey));
+        params.add(new NameValuePair("mode", "messages"));
+        params.add(new NameValuePair("msgCount", String.valueOf(MESSAGE_COUNT)));
+
+        String rString;
+        try {
+            WebRequest r = new WebRequest(new URL(roomUrl), HttpMethod.POST);
             r.setRequestParameters(params);
 
             WebResponse response = webClient.loadWebResponse(r);
@@ -329,22 +477,6 @@ public class StackExchangeChat implements ChatInterface {
     @Override
     public void unSubscribe(final ChatWorker subscriber) {
         subscribers.remove(subscriber);
-    }
-
-    //FIXME: Implement these methods properly!
-    @Override
-    public boolean sendMessage(ChatDescriptor descriptor, String message) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean joinChat(ChatDescriptor descriptor) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean leaveChat(ChatDescriptor descriptor) {
-        throw new UnsupportedOperationException();
     }
 
 }
