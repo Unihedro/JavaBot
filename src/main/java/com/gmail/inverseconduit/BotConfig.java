@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -38,8 +39,12 @@ public class BotConfig {
 		value = properties.getProperty("ROOMS", "1"); //default to "Sandbox"
 		List<Integer> rooms = new ArrayList<>();
 		for (String v : value.split("\\s*,\\s*")) { //split by comma
-			Integer room = Integer.valueOf(v);
-			rooms.add(room);
+			try {
+				Integer room = Integer.valueOf(v);
+				rooms.add(room);
+			} catch (NumberFormatException e) {
+				LOGGER.log(Level.WARNING, "Skipping unparsable room ID.", e);
+			}
 		}
 		this.rooms = Collections.unmodifiableList(rooms);
 		LOGGER.info("Setting rooms to " + rooms);

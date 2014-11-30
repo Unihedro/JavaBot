@@ -1,7 +1,7 @@
 package com.gmail.inverseconduit;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Holds objects that are used throughout the application.
@@ -10,7 +10,7 @@ import java.util.List;
 public enum AppContext {
 	INSTANCE;
 
-	private final List<Object> objects = new ArrayList<>();
+	private final Set<Object> objects = new HashSet<>();
 
 	/**
 	 * Retrieves an object from the application context.
@@ -33,6 +33,9 @@ public enum AppContext {
 	 * @param object the object to add
 	 */
 	public void add(Object object) {
+		if (object == null) {
+			throw new IllegalArgumentException("Object cannot be null.");
+		}
 		objects.add(object);
 	}
 }
