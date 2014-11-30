@@ -34,7 +34,7 @@ public class Main {
     
     private static void setupLogging(){
     	Filter filter = new Filter() {
-    		private final String packageName = getClass().getPackage().getName();
+    		private final String packageName = Main.class.getPackage().getName();
     		
 			@Override
 			public boolean isLoggable(LogRecord record) {
