@@ -150,7 +150,7 @@ public class Program {
         CommandHandle javaDoc = new CommandHandle.Builder("javadoc", javadocPattern.asPredicate(), message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
-            javaDocAccessor.javadoc(message, matcher.group(1));
+            javaDocAccessor.javadoc(message, matcher.group(1).trim());
         }).build();
         bot.subscribe(javaDoc);
     }
