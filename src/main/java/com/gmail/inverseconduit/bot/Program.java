@@ -69,7 +69,7 @@ public class Program {
         bindDefaultCommands();
         login();
         for (Integer room : config.getRooms()) {
-            chatInterface.joinChat(SESite.STACK_OVERFLOW, room);
+            chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
         scheduleQueryingThread();
         bot.start();

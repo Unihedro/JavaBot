@@ -3,7 +3,6 @@ package com.gmail.inverseconduit.chat;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -11,8 +10,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-
-import org.jsoup.Jsoup;
 
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -29,6 +26,8 @@ public class StackExchangeChat implements ChatInterface {
     private static final Logger                   LOGGER          = Logger.getLogger(StackExchangeChat.class.getName());
 
     private static final int                      MESSAGE_COUNT   = 5;
+
+    private static final Gson                     GSON            = new Gson();
 
     private final Map<SeChatDescriptor, HtmlPage> chatMap         = new TreeMap<>();
 
@@ -52,6 +51,9 @@ public class StackExchangeChat implements ChatInterface {
         webClient.setWebConnection(new WebConnectionWrapper(webClient));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean login(ProviderDescriptor descriptor, CredentialsProvider credentials) {
         HtmlPage loginPage = getLoginPage(descriptor);
@@ -113,6 +115,9 @@ public class StackExchangeChat implements ChatInterface {
         return loggedIn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean joinChat(ChatDescriptor descriptor) {
         if ( ! (descriptor instanceof SeChatDescriptor)) {
@@ -145,6 +150,9 @@ public class StackExchangeChat implements ChatInterface {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean leaveChat(ChatDescriptor descriptor) {
         //Let timeout take care of leave
@@ -152,19 +160,7 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     /**
-     * Sends a plain text message to the chatroom specified
-     * FIXME: clean up javadoc
-     *
-     * @param site
-     *        the SESite the chatroom belongs to. (de-facto either
-     *        STACK_OVERFLOW , STACK_EXCHANGE or META_STACK_EXCHANGE)
-     * @param chatId
-     *        the room number to post in. must be positive. If it isn't
-     *        {@link IllegalArgumentException} will be thrown.
-     * @param message
-     *        The String to post into the chatroom. The string is not
-     *        required to be encoded.
-     * @return a boolean indicating the success of posting to this chat.
+     * {@inheritDoc}
      */
     @Override
     public boolean sendMessage(ChatDescriptor descriptor, String message) {
@@ -228,38 +224,44 @@ public class StackExchangeChat implements ChatInterface {
     /**
      * Queries the 5 latest messages for all chatrooms and enqueues them to
      * the subscribed {@link ChatWorker Workers}, respecting the already handled
-     * timestamps as maintained
-     * internally
+     * timestamps as maintained internally.
+     * 
+     * @see ChatInterface#queryMessages()
      */
     @Override
     public synchronized void queryMessages() {
-        chatMap.keySet().forEach((descriptor) -> queryRoom(descriptor));
+        chatMap.entrySet().forEach((entry) -> {
+            queryRoomEvents(entry.getKey(), entry.getValue().getElementById("fkey").getAttribute("value"));
+        });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void broadcast(final String message) {
         chatMap.keySet().forEach((descriptor) -> sendMessage(descriptor, message));
     }
 
-    private void queryRoom(final SeChatDescriptor descriptor) {
-        String fkey = chatMap.get(descriptor).getElementById("fkey").getAttribute("value");
-        String roomUrl = descriptor.buildRestRootUrl() + "events/";
-        String rString = fetchMessageJson(roomUrl, fkey);
-
-        Gson gson = new Gson();
-        JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
-
+    private void queryRoomEvents(final SeChatDescriptor descriptor, final String fkey) {
+        JSONChatEvents events = queryForMessages(descriptor, fkey);
         if (null == events) { return; }
+
         events.setSite(SESite.fromUrl(descriptor.getProvider().getDescription().toString()));
         handleChatEvents(events);
     }
 
+    private JSONChatEvents queryForMessages(final SeChatDescriptor descriptor, final String fkey) {
+        String roomUrl = descriptor.buildRestRootUrl() + "events/";
+        String rString = fetchMessageJson(roomUrl, fkey);
+
+        JSONChatEvents events = GSON.fromJson(rString, JSONChatEvents.class);
+        return events;
+    }
+
     private void handleInitialEvents(SeChatDescriptor descriptor, String fkey) {
-        String restUrl = descriptor.buildRestRootUrl() + "events/";
-        String rString = fetchMessageJson(restUrl, fkey);
-        LOGGER.info(rString);
-        Gson gson = new Gson();
-        JSONChatEvents assumeHandled = gson.fromJson(rString, JSONChatEvents.class);
+        JSONChatEvents assumeHandled = queryForMessages(descriptor, fkey);
+        if (null == assumeHandled) { return; }
 
         assumeHandled.getEvents().forEach(event -> handledMessages.add((long) event.getMessage_id()));
     }
@@ -279,8 +281,7 @@ public class StackExchangeChat implements ChatInterface {
             WebRequest r = new WebRequest(new URL(restUrl), HttpMethod.POST);
             r.setRequestParameters(params);
 
-            WebResponse response;
-            response = webClient.loadWebResponse(r);
+            WebResponse response = webClient.loadWebResponse(r);
             rString = response.getContentAsString();
             return rString;
         } catch(IOException e) {
@@ -291,16 +292,21 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     private void handleChatEvents(final JSONChatEvents events) {
-        events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains((long) e.getMessage_id())).map(event -> ChatMessage.fromJsonChatEvent(event, events.getSite())).forEach(message -> {
-            subscribers.forEach(s -> {
-                try {
-                    s.enqueueMessage(message);
-                } catch(Exception e) {
-                    LOGGER.warning("Could not enqueue message: " + message + "to subscriber " + s);
-                }
+        //@formatter:off
+        events.getEvents().stream()
+            .filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains((long) e.getMessage_id()))
+            .map(event -> ChatMessage.fromJsonChatEvent(event, events.getSite()))
+            .forEach(message -> {
+                subscribers.forEach(s -> {
+                    try {
+                        s.enqueueMessage(message);
+                    } catch(Exception e) {
+                        LOGGER.warning("Could not enqueue message: " + message + "to subscriber " + s);
+                    }
+                });
+                handledMessages.add(message.getMessageId());
             });
-            handledMessages.add(message.getMessageId());
-        });
+        //@formatter:on
     }
 
     @Override
