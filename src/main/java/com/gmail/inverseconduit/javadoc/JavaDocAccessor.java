@@ -53,7 +53,7 @@ public class JavaDocAccessor {
             throw new RuntimeException("Problem getting Javadoc info.", e);
         }
 
-        response = "@" + chatMessage.getUsername() + " " + response;
+        response = ":" + chatMessage.getMessageId() + " " + response;
         chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), response);
     }
 

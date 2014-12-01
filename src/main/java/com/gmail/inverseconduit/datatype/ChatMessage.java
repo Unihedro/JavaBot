@@ -2,29 +2,39 @@ package com.gmail.inverseconduit.datatype;
 
 import com.gmail.inverseconduit.SESite;
 
-//FIXME: needs message timestamp to allow replying!
 public class ChatMessage {
+
+    private final long   messageId;
+
     private final String username;
-    private final int userId;
+
+    private final int    userId;
+
     private final String message;
+
     private final SESite site;
-    private final int roomId;
+
+    private final int    roomId;
+
     private final String roomName;
 
-    public ChatMessage(SESite site, int roomId, String roomName,
-                       String username, int userId, String message) {
+    public ChatMessage(SESite site, int roomId, String roomName, String username, int userId, String message, long messageId) {
         this.site = site;
         this.roomId = roomId;
         this.roomName = roomName;
         this.username = username;
         this.userId = userId;
         this.message = message;
+        this.messageId = messageId;
+    }
+
+    public static ChatMessage fromJsonChatEvent(final JSONChatEvent event, final SESite site) {
+        return new ChatMessage(site, event.getRoom_id(), event.getRoom_name(), event.getUser_name(), event.getUser_id(), event.getContent(), event.getMessage_id());
     }
 
     @Override
     public String toString() {
-        return String.format("%s:%s(%s) / %s(%s): %s", site.name(),
-                roomName, roomId, username, userId, message);
+        return String.format("%s:%s(%s) / %s(%s): %s", site.name(), roomName, roomId, username, userId, message);
     }
 
     public String getUsername() {
@@ -49,5 +59,9 @@ public class ChatMessage {
 
     public String getRoomName() {
         return roomName;
+    }
+
+    public long getMessageId() {
+        return messageId;
     }
 }

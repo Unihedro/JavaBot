@@ -244,7 +244,7 @@ public class StackExchangeChat implements ChatInterface {
     private void queryRoom(final SeChatDescriptor descriptor) {
         String fkey = chatMap.get(descriptor).getElementById("fkey").getAttribute("value");
         String roomUrl = descriptor.buildRestRootUrl() + "events/";
-        String rString = fetchJson(roomUrl, fkey);
+        String rString = fetchMessageJson(roomUrl, fkey);
 
         Gson gson = new Gson();
         JSONChatEvents events = gson.fromJson(rString, JSONChatEvents.class);
@@ -256,49 +256,50 @@ public class StackExchangeChat implements ChatInterface {
 
     private void handleInitialEvents(SeChatDescriptor descriptor, String fkey) {
         String restUrl = descriptor.buildRestRootUrl() + "events/";
-        String rString = fetchJson(restUrl, fkey);
+        String rString = fetchMessageJson(restUrl, fkey);
         LOGGER.info(rString);
         Gson gson = new Gson();
         JSONChatEvents assumeHandled = gson.fromJson(rString, JSONChatEvents.class);
 
-        assumeHandled.getEvents().forEach(event -> handledMessages.add(event.getTime_stamp()));
+        assumeHandled.getEvents().forEach(event -> handledMessages.add((long) event.getMessage_id()));
     }
 
-    private String fetchJson(final String roomUrl, final String fkey) {
+    private String fetchMessageJson(final String roomUrl, final String fkey) {
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("fkey", fkey));
         params.add(new NameValuePair("mode", "messages"));
         params.add(new NameValuePair("msgCount", String.valueOf(MESSAGE_COUNT)));
 
+        return fetchJson(roomUrl, params);
+    }
+
+    private String fetchJson(final String restUrl, final ArrayList<NameValuePair> params) {
         String rString;
         try {
-            WebRequest r = new WebRequest(new URL(roomUrl), HttpMethod.POST);
+            WebRequest r = new WebRequest(new URL(restUrl), HttpMethod.POST);
             r.setRequestParameters(params);
 
-            WebResponse response = webClient.loadWebResponse(r);
+            WebResponse response;
+            response = webClient.loadWebResponse(r);
             rString = response.getContentAsString();
-
-            LOGGER.finest("responseString: " + rString);
-        } catch(IOException e1) {
-            rString = "{\"events\": []}";
-            LOGGER.severe("Exception when requesting events");
+            return rString;
+        } catch(IOException e) {
+            LOGGER.warning("Exception when fetching Json from: " + restUrl);
+            e.printStackTrace();
+            return "";
         }
-        return rString;
     }
 
     private void handleChatEvents(final JSONChatEvents events) {
-        events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains(e.getTime_stamp())).forEach(event -> {
-            String message = Jsoup.parse(event.getContent()).text();
-            ChatMessage chatMessage = new ChatMessage(events.getSite(), event.getRoom_id(), event.getRoom_name(), event.getUser_name(), event.getUser_id(), message);
-            LOGGER.finest("enqueueing message with timestamp: " + event.getTime_stamp());
+        events.getEvents().stream().filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains((long) e.getMessage_id())).map(event -> ChatMessage.fromJsonChatEvent(event, events.getSite())).forEach(message -> {
             subscribers.forEach(s -> {
                 try {
-                    s.enqueueMessage(chatMessage);
+                    s.enqueueMessage(message);
                 } catch(Exception e) {
                     LOGGER.warning("Could not enqueue message: " + message + "to subscriber " + s);
                 }
             });
-            handledMessages.add(event.getTime_stamp());
+            handledMessages.add(message.getMessageId());
         });
     }
 
