@@ -100,7 +100,6 @@ public class Program {
         bindHelpCommand();
         bindShutdownCommand();
         bindEvalCommand();
-        bindJavaCommand();
         bindLoadCommand();
         bindJavaDocCommand();
         bindTestCommand();
@@ -121,11 +120,6 @@ public class Program {
     private void bindEvalCommand() {
         CommandHandle eval = ScriptRunnerCommands.evalCommand(scriptRunner);
         bot.subscribe(eval);
-    }
-
-    private void bindJavaCommand() {
-        CommandHandle java = ScriptRunnerCommands.javaCommand(scriptRunner, chatInterface);
-        bot.subscribe(java);
     }
 
     private void bindLoadCommand() {

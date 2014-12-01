@@ -5,7 +5,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyShell;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -61,16 +60,6 @@ public class ScriptRunner {
 
         groovyLoader.parseClass(createCodeSource(commandText), true);
         chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(msg), "Thanks, I'll remember that");
-    }
-
-    public void compileAndExecuteMain(ChatMessage msg, String commandText) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        LOGGER.finest("Compiling and executing class");
-
-        Object gClass = groovyLoader.parseClass(createCodeSource(commandText), false);
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, (Object) new String[] {""}).toString();
-
-        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(msg), result);
     }
 
     private GroovyCodeSource createCodeSource(String commandText) {
