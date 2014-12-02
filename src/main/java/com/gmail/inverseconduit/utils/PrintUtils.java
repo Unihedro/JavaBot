@@ -34,7 +34,10 @@ public class PrintUtils {
         int groups = m.groupCount();
         List<String> tokens = new ArrayList<>();
         for (int i = 1; i <= groups; i++ ) {
-            tokens.add(m.group(i));
+            String matchedGroup = m.group(i);
+            if (null != matchedGroup) {
+                tokens.add(matchedGroup);
+            }
         }
         return tokens;
     }
