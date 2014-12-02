@@ -15,7 +15,7 @@ public final class SeChatDescriptor extends ChatDescriptor implements Comparable
     }
 
     private SeChatDescriptor(DescriptorBuilder builder) {
-        super(new ChatDescriptor.DescriptorBuilder(builder.provider).setRoom(builder.room));
+        super(new ChatDescriptor.DescriptorBuilder(builder.provider).room(builder.room));
     }
 
     public static class DescriptorBuilder {

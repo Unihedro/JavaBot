@@ -7,8 +7,8 @@ public class ChatDescriptor {
     protected final RoomDescriptor     room;
 
     ChatDescriptor(DescriptorBuilder builder) {
-        provider = builder.getProvider();
-        room = builder.getRoom();
+        provider = builder.provider;
+        room = builder.room;
     }
 
     public static class DescriptorBuilder {
@@ -25,15 +25,9 @@ public class ChatDescriptor {
             return new ChatDescriptor(this);
         }
 
-        private ProviderDescriptor getProvider() {
-            return provider;
-        }
+        public DescriptorBuilder room(RoomDescriptor room) {
+            if (null == room) { throw new IllegalArgumentException(); }
 
-        private RoomDescriptor getRoom() {
-            return room;
-        }
-
-        public DescriptorBuilder setRoom(RoomDescriptor room) {
             this.room = room;
             return this;
         }
