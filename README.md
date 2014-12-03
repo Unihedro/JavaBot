@@ -13,7 +13,7 @@ import the maven project and already run it.
 <h1>What do I need:</h1>
 
 You need: Apache Maven, Java 1.8, 
-and a file named `bot.properties`, as well as an account at any Stack Exchange site, having at least 20 reputation.
+and a file named `bot.properties`, as well as an account on any Stack Exchange site (or Stack Overflow and Meta Stack Exchange as the reputation points do not inherit from network rep on these two domains), having at least 20 reputation.
 
 <h2>Running the bot:</h2>
 
