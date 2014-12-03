@@ -80,8 +80,8 @@ public class Program {
         executor.scheduleAtFixedRate(() -> {
             try {
                 chatInterface.queryMessages();
-            } catch(Exception e) {
-                Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
+            } catch(Throwable e) {
+                Logger.getAnonymousLogger().severe("Throwable occurred in querying thread: " + e.getMessage());
                 e.printStackTrace();
             }
         }, 5, 3, TimeUnit.SECONDS);
