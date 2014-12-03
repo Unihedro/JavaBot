@@ -167,18 +167,21 @@ public class StackExchangeChat implements ChatInterface {
         if (message.length() >= 500) {
             LOGGER.warning("Splitting down message");
             List<String> messages = PrintUtils.splitUsefully(message);
-
+            LOGGER.info("Message elements:" + messages);
             StringBuilder messageBuilder = new StringBuilder();
             for (String msg : messages) {
                 if (messageBuilder.length() + msg.length() < 498) {
                     messageBuilder.append(" " + msg);
                 }
                 else {
+                    LOGGER.info("Message part from splitting: " + messageBuilder.toString());
                     sendMessage(site, chatId, fkey, messageBuilder.toString());
                     messageBuilder = new StringBuilder();
                     messageBuilder.append(msg);
                 }
             }
+            if (messageBuilder.length() < 12) { return true; }
+            LOGGER.info("last Message part from splitting: " + messageBuilder.toString());
             sendMessage(site, chatId, fkey, messageBuilder.toString());
         }
         else {

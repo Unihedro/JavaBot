@@ -30,7 +30,7 @@ public class Program {
     private static final Logger                      LOGGER         = Logger.getLogger(Program.class.getName());
 
     private static final ScheduledThreadPoolExecutor executor       = new ScheduledThreadPoolExecutor(2);
-    
+
     private static final BotConfig                   config         = AppContext.INSTANCE.get(BotConfig.class);
 
     private final DefaultBot                         bot;
@@ -44,7 +44,8 @@ public class Program {
     private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
     /**
-     * @throws IOException if there's a problem loading the Javadocs
+     * @throws IOException
+     *         if there's a problem loading the Javadocs
      */
     public Program() throws IOException {
         LOGGER.finest("Instantiating Program");
@@ -65,8 +66,8 @@ public class Program {
         LOGGER.info("Beginning startup process");
         bindDefaultCommands();
         login();
-        for (Integer room : config.getRooms()){
-        	chatInterface.joinChat(SESite.STACK_OVERFLOW, room);
+        for (Integer room : config.getRooms()) {
+            chatInterface.joinChat(SESite.STACK_OVERFLOW, room);
         }
         scheduleProcessingThread();
         scheduleQueryingThread();
@@ -77,8 +78,8 @@ public class Program {
         executor.scheduleAtFixedRate(() -> {
             try {
                 chatInterface.queryMessages();
-            } catch(Exception e) {
-                Logger.getAnonymousLogger().severe("Exception in querying thread: " + e.getMessage());
+            } catch(Throwable e) {
+                Logger.getAnonymousLogger().severe("Throwable occurred in querying thread: " + e.getMessage());
                 e.printStackTrace();
             }
         }, 5, 3, TimeUnit.SECONDS);
@@ -89,8 +90,8 @@ public class Program {
         executor.scheduleAtFixedRate(() -> {
             try {
                 bot.processMessages();
-            } catch(Exception e) {
-                Logger.getAnonymousLogger().severe("Exception in processing thread: " + e.getMessage());
+            } catch(Throwable e) {
+                Logger.getAnonymousLogger().severe("Throwable occurred in processing thread: " + e.getMessage());
                 e.printStackTrace();
             }
         }, 5, 5, TimeUnit.SECONDS); //reduces strain

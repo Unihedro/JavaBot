@@ -24,7 +24,7 @@ public enum SESite {
 
     SESite(String dir) {
         this.dir = dir;
-        rootUrl = "https://" + dir + ".com/";
+        rootUrl = "http://www." + dir + ".com/";
         loginUrl = rootUrl + "users/login";
     }
 
@@ -56,9 +56,7 @@ public enum SESite {
 
     public static SESite fromUrl(String value) {
         for (SESite site : SESite.values()) {
-            if (value.contains(site.dir)) {
-                return site;
-            }
+            if (value.contains(site.dir)) { return site; }
         }
         return null;
     }
