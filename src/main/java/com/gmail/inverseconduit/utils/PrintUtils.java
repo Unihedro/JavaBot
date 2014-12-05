@@ -12,13 +12,10 @@ public class PrintUtils {
     }
 
     public static String truncate(String message) {
-        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) {
-            return message.substring(0, message.lastIndexOf("."));
-        }
-        message = message.substring(0, 499);
-        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) {
-            return message.substring(0, message.lastIndexOf("."));
-        }
-        return message;
+        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) { return message.substring(0, message.lastIndexOf(".")); }
+        message = message.substring(0, 495);
+        //this one can cut quite a lot of stuff..
+        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) { return message.substring(0, message.lastIndexOf(".")); }
+        return message + "...";
     }
 }

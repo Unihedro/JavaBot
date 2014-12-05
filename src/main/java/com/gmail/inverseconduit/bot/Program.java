@@ -1,7 +1,8 @@
 package com.gmail.inverseconduit.bot;
 
 import java.io.IOException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -14,6 +15,7 @@ import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.chat.commands.ChatCommands;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
 import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
@@ -27,24 +29,25 @@ import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
 @SuppressWarnings("deprecation")
 public class Program {
 
-    private static final Logger                      LOGGER         = Logger.getLogger(Program.class.getName());
+    private static final Logger                   LOGGER         = Logger.getLogger(Program.class.getName());
 
-    private static final ScheduledThreadPoolExecutor executor       = new ScheduledThreadPoolExecutor(2);
-    
-    private static final BotConfig                   config         = AppContext.INSTANCE.get(BotConfig.class);
+    private static final ScheduledExecutorService executor       = Executors.newSingleThreadScheduledExecutor();
 
-    private final DefaultBot                         bot;
+    private static final BotConfig                config         = AppContext.INSTANCE.get(BotConfig.class);
 
-    private final ChatInterface                      chatInterface;
+    private final DefaultBot                      bot;
 
-    private final ScriptRunner                       scriptRunner;
+    private final ChatInterface                   chatInterface;
 
-    private final JavaDocAccessor                    javaDocAccessor;
+    private final ScriptRunner                    scriptRunner;
 
-    private static final Pattern                     javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
+    private final JavaDocAccessor                 javaDocAccessor;
+
+    private static final Pattern                  javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
     /**
-     * @throws IOException if there's a problem loading the Javadocs
+     * @throws IOException
+     *         if there's a problem loading the Javadocs
      */
     public Program() throws IOException {
         LOGGER.finest("Instantiating Program");
@@ -65,11 +68,11 @@ public class Program {
         LOGGER.info("Beginning startup process");
         bindDefaultCommands();
         login();
-        for (Integer room : config.getRooms()){
-        	chatInterface.joinChat(SESite.STACK_OVERFLOW, room);
+        for (Integer room : config.getRooms()) {
+            chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
-        scheduleProcessingThread();
         scheduleQueryingThread();
+        bot.start();
         LOGGER.info("Startup completed.");
     }
 
@@ -85,23 +88,11 @@ public class Program {
         Logger.getAnonymousLogger().info("querying thread started");
     }
 
-    private void scheduleProcessingThread() {
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                bot.processMessages();
-            } catch(Exception e) {
-                Logger.getAnonymousLogger().severe("Exception in processing thread: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }, 5, 5, TimeUnit.SECONDS); //reduces strain
-        Logger.getAnonymousLogger().info("Processing thread started");
-    }
-
     private void login() {
-        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config.getLoginEmail(), config.getLoginPassword());
+        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config);
         if ( !loggedIn) {
             Logger.getAnonymousLogger().severe("Login failed!");
-            System.exit( -255);
+            System.exit(2);
         }
     }
 
@@ -109,7 +100,6 @@ public class Program {
         bindHelpCommand();
         bindShutdownCommand();
         bindEvalCommand();
-        bindJavaCommand();
         bindLoadCommand();
         bindJavaDocCommand();
         bindTestCommand();
@@ -132,11 +122,6 @@ public class Program {
         bot.subscribe(eval);
     }
 
-    private void bindJavaCommand() {
-        CommandHandle java = ScriptRunnerCommands.javaCommand(scriptRunner, chatInterface);
-        bot.subscribe(java);
-    }
-
     private void bindLoadCommand() {
         CommandHandle load = ScriptRunnerCommands.loadCommand(scriptRunner);
         bot.subscribe(load);
@@ -150,7 +135,7 @@ public class Program {
                         return s.trim().startsWith(config.getTrigger() + "help");
                     },
                     message -> {
-                        chatInterface.sendMessage(message.getSite(), message.getRoomId(), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
+                        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername()));
                     }).build();
         bot.subscribe(help);
     }
@@ -159,7 +144,7 @@ public class Program {
         CommandHandle javaDoc = new CommandHandle.Builder("javadoc", javadocPattern.asPredicate(), message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
-            javaDocAccessor.javadoc(message, matcher.group(1));
+            javaDocAccessor.javadoc(message, matcher.group(1).trim());
         }).build();
         bot.subscribe(javaDoc);
     }
@@ -178,7 +163,7 @@ public class Program {
 
     private void bindTestCommand() {
         CommandHandle test = new CommandHandle.Builder("test", s -> s.equals("test"), message -> {
-            chatInterface.sendMessage(message.getSite(), message.getRoomId(), "*~response*");
+            chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), "*~response*");
         }).build();
         bot.subscribe(test);
     }

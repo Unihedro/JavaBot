@@ -5,7 +5,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyShell;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -13,6 +12,7 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import com.gmail.inverseconduit.ScriptBase;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.datatype.ChatMessage;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 /**
  * Class to run chat Code. The relevant commands submit code from the chat to
@@ -50,7 +50,7 @@ public class ScriptRunner {
         LOGGER.finest("Evaluating Groovy Script");
 
         Object result = groovyShell.evaluate(createCodeSource(commandText));
-        chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result == null
+        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(msg), result == null
             ? "[tag:groovy]: no result"
             : "[tag:groovy]: " + result.toString());
     }
@@ -59,17 +59,7 @@ public class ScriptRunner {
         LOGGER.finest("Compiling class to cache it");
 
         groovyLoader.parseClass(createCodeSource(commandText), true);
-        chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), "Thanks, I'll remember that");
-    }
-
-    public void compileAndExecuteMain(ChatMessage msg, String commandText) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        LOGGER.finest("Compiling and executing class");
-
-        Object gClass = groovyLoader.parseClass(createCodeSource(commandText), false);
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        String result = ((Class) gClass).getMethod("main", String[].class).invoke(null, (Object) new String[] {""}).toString();
-
-        chatInterface.sendMessage(msg.getSite(), msg.getRoomId(), result);
+        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(msg), "Thanks, I'll remember that");
     }
 
     private GroovyCodeSource createCodeSource(String commandText) {
