@@ -46,7 +46,7 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
 
     @Override
     public void start() {
-        executor.scheduleAtFixedRate(() -> processMessageQueue(), 1, 500, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(this::processMessageQueue, 1, 500, TimeUnit.MILLISECONDS);
     }
 
     private void processMessageQueue() {

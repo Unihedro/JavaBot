@@ -46,7 +46,7 @@ public final class ChatCommands {
                 return;
             }
             try {
-                int targetRoom = Integer.parseInt(args[2]);
+                final int targetRoom = Integer.parseInt(args[2]);
                 if ( !chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(targetSite).setRoom(() -> targetRoom).build())) {
                     chatInterface.sendMessage(callingRoomDescriptor, "Could not join room.");
                 }
