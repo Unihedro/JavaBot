@@ -27,7 +27,6 @@ import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
  * 
  * @author vogel612<<a href="vogel612@gmx.de">vogel612@gmx.de</a>>
  */
-@SuppressWarnings("deprecation")
 public class Program {
 
 	private static final Logger LOGGER = Logger.getLogger(Program.class
@@ -41,9 +40,9 @@ public class Program {
 
 	private final DefaultBot bot;
 
-	private final ChatInterface chatInterface;
+	private final ChatInterface chatInterface = new StackExchangeChat();
 
-	private final ScriptRunner scriptRunner;
+	private final ScriptRunner scriptRunner = new ScriptRunner();
 
 	private final JavaDocAccessor javaDocAccessor;
 
@@ -57,14 +56,11 @@ public class Program {
 	 */
 	public Program() throws IOException {
 		LOGGER.finest("Instantiating Program");
-		chatInterface = new StackExchangeChat();
-		bot = new DefaultBot();
+		bot = new DefaultBot(chatInterface);
 
 		chatInterface.subscribe(bot);
 
-		javaDocAccessor = new JavaDocAccessor(chatInterface,
-				config.getJavadocsDir());
-		scriptRunner = new ScriptRunner(chatInterface);
+		javaDocAccessor = new JavaDocAccessor(config.getJavadocsDir());
 		LOGGER.info("Basic component setup complete");
 	}
 
@@ -90,8 +86,10 @@ public class Program {
 					try {
 						chatInterface.queryMessages();
 					} catch (RuntimeException | Error e) {
-						Logger.getAnonymousLogger().log(Level.SEVERE,
-								"Throwable occurred in querying thread", e);
+						Logger.getAnonymousLogger()
+								.log(Level.SEVERE,
+										"Runtime Exception or Error occurred in querying thread",
+										e);
 						throw e;
 					} catch (Exception e) {
 						Logger.getAnonymousLogger().log(Level.WARNING,
@@ -110,6 +108,7 @@ public class Program {
 	}
 
 	private void bindDefaultCommands() {
+		bindAboutCommand();
 		bindHelpCommand();
 		bindShutdownCommand();
 		bindEvalCommand();
@@ -141,19 +140,32 @@ public class Program {
 	}
 
 	private void bindHelpCommand() {
-		CommandHandle help = new CommandHandle.Builder(
-				"help",
+		CommandHandle help = new CommandHandle.Builder("help", s -> s.trim()
+				.matches(Pattern.quote(config.getTrigger()) + "help [^ ]++"),
+				message -> {
+					String[] parts = message.getMessage().split(" ");
+					String commandName = parts[parts.length - 1];
+					return bot.getCommands().stream()
+							.filter(c -> c.getName().equals(commandName))
+							.findFirst().map(c -> c.getHelpText()).get();
+				}).setHelpText(
+				"help command: Get additional info about a command of your choice, syntax:"
+						+ config.getTrigger() + "help [commandName]").build();
+		bot.subscribe(help);
+	}
+
+	private void bindAboutCommand() {
+		CommandHandle about = new CommandHandle.Builder(
+				"about",
 				s -> {
-					return s.trim().startsWith(config.getTrigger() + "help");
+					return s.trim().startsWith(config.getTrigger() + "about");
 				},
 				message -> {
-					chatInterface.sendMessage(
-							SeChatDescriptor.buildSeChatDescriptorFrom(message),
-							String.format(
-									"@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot",
-									message.getUsername()));
+					return String
+							.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot",
+									message.getUsername());
 				}).build();
-		bot.subscribe(help);
+		bot.subscribe(about);
 	}
 
 	private void bindJavaDocCommand() {
@@ -163,6 +175,8 @@ public class Program {
 							.getMessage());
 					matcher.find();
 					javaDocAccessor.javadoc(message, matcher.group(1).trim());
+					return javaDocAccessor.javadoc(message, matcher.group(1)
+							.trim());
 				}).build();
 		bot.subscribe(javaDoc);
 	}
@@ -175,18 +189,15 @@ public class Program {
 				chatInterface.broadcast("*~going down*");
 				executor.shutdownNow();
 				System.exit(0);
+				return "";
 			}).build();
 		bot.subscribe(shutdown);
 	}
 
 	private void bindTestCommand() {
-		CommandHandle test = new CommandHandle.Builder(
-				"test",
-				s -> s.equals("test"),
-				message -> {
-					chatInterface.sendMessage(
-							SeChatDescriptor.buildSeChatDescriptorFrom(message),
-							"*~response*");
+		CommandHandle test = new CommandHandle.Builder("test",
+				s -> s.equals("test"), message -> {
+					return "*~response*";
 				}).build();
 		bot.subscribe(test);
 	}

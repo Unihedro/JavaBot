@@ -1,6 +1,7 @@
 package com.gmail.inverseconduit.commands;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.gmail.inverseconduit.datatype.ChatMessage;
@@ -23,7 +24,7 @@ public class CommandHandle {
 
     private final String                infoText;
 
-    private final Consumer<ChatMessage> consumer;
+    private final Function<ChatMessage, String> consumer;
 
     /**
      * Command Builder for assembling commands. The command builder is not
@@ -45,9 +46,9 @@ public class CommandHandle {
 
         private String                infoText = "";
 
-        private Consumer<ChatMessage> consumer;
+        private Function<ChatMessage, String> consumer;
 
-        public Builder(String name, Predicate<String> matchesSyntax, Consumer<ChatMessage> consumer) {
+        public Builder(String name, Predicate<String> matchesSyntax, Function<ChatMessage, String> consumer) {
             this.name = name;
             this.matchesSyntax = matchesSyntax;
             this.consumer = consumer;
@@ -105,8 +106,8 @@ public class CommandHandle {
         this.consumer = builder.consumer;
     }
 
-    public void execute(ChatMessage message) {
-        consumer.accept(message);
+    public String execute(ChatMessage message) {
+        return consumer.apply(message);
     }
 
     public boolean matchesSyntax(String commandCall) {

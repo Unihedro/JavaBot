@@ -1,5 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -9,10 +10,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.datatype.ChatMessage;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 /**
  * Defines bot core functionality. A bot manages {@link CommandHandle
@@ -29,18 +32,26 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  */
 public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
 
-    private final Logger                       LOGGER       = Logger.getLogger(DefaultBot.class.getName());
+    private final Logger                       LOGGER       =
+                                                                    Logger.getLogger(DefaultBot.class.getName());
 
-    protected final ScheduledExecutorService   executor     = Executors.newSingleThreadScheduledExecutor();
+    protected final ScheduledExecutorService   executor     =
+                                                                    Executors.newSingleThreadScheduledExecutor();
 
-    protected final BlockingQueue<ChatMessage> messageQueue = new LinkedBlockingQueue<>();
+    protected final BlockingQueue<ChatMessage> messageQueue =
+                                                                    new LinkedBlockingQueue<>();
 
     protected final Set<CommandHandle>         commands     = new HashSet<>();
 
-    public DefaultBot() {}
+    protected final ChatInterface              chatInterface;
+
+    public DefaultBot(ChatInterface chatInterface) {
+        this.chatInterface = chatInterface;
+    }
 
     @Override
-    public synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
+    public synchronized boolean enqueueMessage(ChatMessage chatMessage)
+        throws InterruptedException {
         return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }
 
@@ -58,7 +69,10 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
 
     private void processMessage() {
         final ChatMessage message = messageQueue.poll();
-        commands.stream().filter(c -> c.matchesSyntax(message.getMessage())).findFirst().ifPresent(c -> c.execute(message));
+        commands.stream().filter(c -> c.matchesSyntax(message.getMessage())).findFirst().map(c -> {
+            LOGGER.info("executing command:" + c.getName());
+            return c.execute(message);
+        }).ifPresent(msg -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), msg));
     }
 
     @Override
@@ -69,6 +83,10 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
     @Override
     public void unSubscribe(CommandHandle subscriber) {
         commands.remove(subscriber);
+    }
+
+    public Set<CommandHandle> getCommands() {
+        return Collections.unmodifiableSet(commands);
     }
 
     @Override

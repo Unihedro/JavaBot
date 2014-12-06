@@ -19,8 +19,8 @@ public final class ScriptRunnerCommands {
         return new CommandHandle.Builder("eval", evalPattern.asPredicate(), message -> {
             Matcher matcher = evalPattern.matcher(message.getMessage());
             matcher.find();
-            scriptRunner.evaluateGroovy(message, matcher.group(1));
-        }).setHelpText("Evaluates a given groovy script. Syntax: '{trigger}eval:{groovy}'").setInfoText("GroovyScript evalutation").build();
+            return scriptRunner.evaluateGroovy(message, matcher.group(1).trim());
+        }).setHelpText("Evaluates a given groovy script. Syntax: '" + config.getTrigger() + "eval:{groovy}'").setInfoText("GroovyScript evaluation").build();
     }
 
     public static CommandHandle loadCommand(ScriptRunner scriptRunner) {
@@ -28,6 +28,7 @@ public final class ScriptRunnerCommands {
             Matcher matcher = loadPattern.matcher(message.getMessage());
             matcher.find();
             scriptRunner.evaluateAndCache(message, matcher.group(1));
+            return "Thanks, I'll remember that";
         }).build();
     }
 }
