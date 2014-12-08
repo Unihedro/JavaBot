@@ -23,8 +23,7 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  */
 public class ScriptRunner {
 
-    private static final Logger         LOGGER        =
-                                                              Logger.getLogger(ScriptRunner.class.getName());
+    private static final Logger         LOGGER        = Logger.getLogger(ScriptRunner.class.getName());
 
     private final Binding               scriptBinding = new Binding();
 
@@ -40,12 +39,8 @@ public class ScriptRunner {
         groovyConfig.setScriptBaseClass(ScriptBase.class.getName());
         // scriptBinding.setVariable("javaBot", null);
         //FIXME: we could use JavaBot for this
-        groovyLoader =
-                new GroovyClassLoader(this.getClass().getClassLoader(),
-                    groovyConfig);
-        groovyShell =
-                new GroovyShell(this.getClass().getClassLoader(),
-                    scriptBinding, groovyConfig);
+        groovyLoader = new GroovyClassLoader(this.getClass().getClassLoader(), groovyConfig);
+        groovyShell = new GroovyShell(this.getClass().getClassLoader(), scriptBinding, groovyConfig);
     }
 
     public String evaluateGroovy(ChatMessage msg, String commandText) {
@@ -54,12 +49,14 @@ public class ScriptRunner {
         try {
             result = groovyShell.evaluate(createCodeSource(commandText));
         } catch(CompilationFailedException ex) {
-            result = "compilation failed";
+            result = "compilation failed with error " + ex.getMessage();
+        } catch(Exception ex) {
+            result = "undefined execution error: " + ex.getMessage();
         }
         LOGGER.info("Result:" + result);
         return result == null
-            ? String.format(":%d :no result", msg.getMessageId())
-            : String.format(":%d :%s", msg.getMessageId(), result.toString());
+            ? String.format(":%d [tag:groovy]: no result", msg.getMessageId())
+            : String.format(":%d [tag:groovy]: %s", msg.getMessageId(), result.toString());
     }
 
     public void evaluateAndCache(ChatMessage msg, String commandText) {

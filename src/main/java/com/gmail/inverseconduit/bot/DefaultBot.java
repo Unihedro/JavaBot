@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,16 +33,15 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  */
 public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
 
-    private final Logger                       LOGGER       =
-                                                                    Logger.getLogger(DefaultBot.class.getName());
+    private final Logger                       LOGGER           = Logger.getLogger(DefaultBot.class.getName());
 
-    protected final ScheduledExecutorService   executor     =
-                                                                    Executors.newSingleThreadScheduledExecutor();
+    protected final ScheduledExecutorService   executor         = Executors.newSingleThreadScheduledExecutor();
 
-    protected final BlockingQueue<ChatMessage> messageQueue =
-                                                                    new LinkedBlockingQueue<>();
+    private final ExecutorService              processingThread = Executors.newSingleThreadExecutor();
 
-    protected final Set<CommandHandle>         commands     = new HashSet<>();
+    protected final BlockingQueue<ChatMessage> messageQueue     = new LinkedBlockingQueue<>();
+
+    protected final Set<CommandHandle>         commands         = new HashSet<>();
 
     protected final ChatInterface              chatInterface;
 
@@ -50,8 +50,7 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
     }
 
     @Override
-    public synchronized boolean enqueueMessage(ChatMessage chatMessage)
-        throws InterruptedException {
+    public synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
         return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }
 
@@ -63,12 +62,11 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
     private void processMessageQueue() {
         while (messageQueue.peek() != null) {
             LOGGER.info("processing message from queue");
-            processMessage();
+            processingThread.submit(() -> processMessage(messageQueue.poll()));
         }
     }
 
-    private void processMessage() {
-        final ChatMessage message = messageQueue.poll();
+    private void processMessage(final ChatMessage message) {
         commands.stream().filter(c -> c.matchesSyntax(message.getMessage())).findFirst().map(c -> {
             LOGGER.info("executing command:" + c.getName());
             return c.execute(message);
