@@ -3,11 +3,6 @@ package com.gmail.inverseconduit.bot;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -31,27 +26,16 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  *         >vincentyification@gmail.com</a>>
  * @author Vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
  */
-public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
+public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-    private final Logger                       LOGGER           = Logger.getLogger(DefaultBot.class.getName());
+    private final Logger               LOGGER   = Logger.getLogger(DefaultBot.class.getName());
 
-    protected final ScheduledExecutorService   executor         = Executors.newSingleThreadScheduledExecutor();
+    protected final ChatInterface      chatInterface;
 
-    private final ExecutorService              processingThread = Executors.newSingleThreadExecutor();
-
-    protected final BlockingQueue<ChatMessage> messageQueue     = new LinkedBlockingQueue<>();
-
-    protected final Set<CommandHandle>         commands         = new HashSet<>();
-
-    protected final ChatInterface              chatInterface;
+    protected final Set<CommandHandle> commands = new HashSet<>();
 
     public DefaultBot(ChatInterface chatInterface) {
         this.chatInterface = chatInterface;
-    }
-
-    @Override
-    public synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
-        return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -73,6 +57,10 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
         }).ifPresent(msg -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), msg));
     }
 
+    public Set<CommandHandle> getCommands() {
+        return Collections.unmodifiableSet(commands);
+    }
+
     @Override
     public void subscribe(CommandHandle subscriber) {
         commands.add(subscriber);
@@ -83,12 +71,4 @@ public class DefaultBot implements Subscribable<CommandHandle>, ChatWorker {
         commands.remove(subscriber);
     }
 
-    public Set<CommandHandle> getCommands() {
-        return Collections.unmodifiableSet(commands);
-    }
-
-    @Override
-    protected void finalize() {
-        executor.shutdownNow();
-    }
 }

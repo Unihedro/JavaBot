@@ -16,13 +16,13 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  */
 public class CommandHandle {
 
-    private final Predicate<String>     matchesSyntax;
+    private final Predicate<String>             matchesSyntax;
 
-    private final String                name;
+    private final String                        name;
 
-    private final String                helpText;
+    private final String                        helpText;
 
-    private final String                infoText;
+    private final String                        infoText;
 
     private final Function<ChatMessage, String> consumer;
 
@@ -38,13 +38,13 @@ public class CommandHandle {
      */
     public static class Builder {
 
-        private Predicate<String>     matchesSyntax;
+        private Predicate<String>             matchesSyntax;
 
-        private String                name;
+        private String                        name;
 
-        private String                helpText = "";
+        private String                        helpText = "";
 
-        private String                infoText = "";
+        private String                        infoText = "";
 
         private Function<ChatMessage, String> consumer;
 

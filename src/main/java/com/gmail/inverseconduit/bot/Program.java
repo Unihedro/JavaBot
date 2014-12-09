@@ -38,6 +38,8 @@ public class Program {
 
     private final DefaultBot                      bot;
 
+    private final InteractionBot                  interactionBot;
+
     private final ChatInterface                   chatInterface  = new StackExchangeChat();
 
     private final ScriptRunner                    scriptRunner   = new ScriptRunner();
@@ -53,10 +55,12 @@ public class Program {
     public Program() throws IOException {
         LOGGER.finest("Instantiating Program");
         bot = new DefaultBot(chatInterface);
+        interactionBot = new InteractionBot(chatInterface);
 
-        // better not get ExceptionInInitializerError
+        //better not get ExceptionInInitializerError
         javaDocAccessor = new JavaDocAccessor(config.getJavadocsDir());
         chatInterface.subscribe(bot);
+        chatInterface.subscribe(interactionBot);
         LOGGER.info("Basic component setup complete");
     }
 
@@ -72,6 +76,7 @@ public class Program {
         }
         scheduleQueryingThread();
         bot.start();
+        interactionBot.start();
         LOGGER.info("Startup completed.");
     }
 
