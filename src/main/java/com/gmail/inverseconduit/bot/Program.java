@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,9 +81,11 @@ public class Program {
         executor.scheduleAtFixedRate(() -> {
             try {
                 chatInterface.queryMessages();
-            } catch(Throwable e) {
-                Logger.getAnonymousLogger().severe("Throwable occurred in querying thread: " + e.getMessage());
-                e.printStackTrace();
+            } catch(RuntimeException | Error e) {
+                Logger.getAnonymousLogger().log(Level.SEVERE, "Throwable occurred in querying thread: " + e.getMessage(), e);
+                throw e;
+            } catch(Exception e) {
+                Logger.getAnonymousLogger().log(Level.WARNING, "Exception occured in querying thread: " + e.getMessage(), e);
             }
         }, 5, 3, TimeUnit.SECONDS);
         Logger.getAnonymousLogger().info("querying thread started");
