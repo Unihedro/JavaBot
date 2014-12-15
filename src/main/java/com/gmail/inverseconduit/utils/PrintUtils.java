@@ -7,10 +7,22 @@ import java.util.regex.Pattern;
 
 public class PrintUtils {
 
-    private static final String  messageTokenRegex =
-                                                           "(((\\[[^]]++\\]\\(https?+:\\/\\/[^\\s\"]++(\\s++\\\"[^\"]++\\\")?\\)[^\\s]++)|([-*_]{1,3})?+\\[(meta-)?tag:[^\\]]++\\]\\2|([-\\`_*]{1,3})?.*?\\2|[^\\s]++)*)";
+    private static final String  linkTokenRegex          = "(\\[[^]]++\\]\\(https?+:\\/\\/[^\\s\"]++(\\h++\"[^\"]++\")?\\))";
 
-    private static final Pattern markdownTokenizer = Pattern.compile(messageTokenRegex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.UNICODE_CASE);
+    private static final String  tagTokenRegex           = "(\\[(meta)?+tag:[^\\]]++\\])";
+
+    private static final String  strikethroughTokenRegex = "(---.*?---)";
+
+    private static final String  codeTokenRegex          = "(\\`[^\\`]++\\`)";
+
+    private static final String  markdownTokenRegex      = "([*_]{1,3}.*?[*_]{1,3})";
+
+    private static final String  wordTokenRegex          = "([^\\s]++)";
+
+    private static final String  messageTokenRegex       = "(" + linkTokenRegex + "|" + tagTokenRegex + "|" + markdownTokenRegex + "|" + strikethroughTokenRegex + "|"
+                                                             + codeTokenRegex + "|" + wordTokenRegex + ")*";
+
+    private static final Pattern markdownTokenizer       = Pattern.compile(messageTokenRegex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.UNICODE_CASE);
 
     public static String FixedFont(String msg) {
         if (msg.isEmpty())
@@ -33,10 +45,6 @@ public class PrintUtils {
         Matcher m = markdownTokenizer.matcher(message);
         List<String> tokens = new ArrayList<>();
         while (m.find()) {
-            // Matcher groups are "incorrect", since the matchers don't respect 
-            // word-boundaries and split stuff into large sentence blocks. 
-            // This is undesirable, but for now it works... 
-            // TODO: Fix regex to properly subdivide non-(link|tag|markdown) stuff
             String match = m.group(0);
             if (match != null && !match.trim().isEmpty()) {
                 tokens.add(match);
