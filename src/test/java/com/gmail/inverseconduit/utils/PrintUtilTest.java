@@ -8,10 +8,10 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class PrintUtilTests {
+public class PrintUtilTest {
 
     @Test
-    public void testTagParsing() {
+    public void tagParsing() {
         final String testString = "testing [tag:tags] for correct splitting";
         List<String> parts = PrintUtils.splitUsefully(testString);
 
@@ -20,7 +20,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testMetaTagParsing() {
+    public void metaTagParsing() {
         final String testString = "testing [meta-tag:meta-tags] for correct splitting";
 
         List<String> parts = PrintUtils.splitUsefully(testString);
@@ -30,7 +30,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testStrikethrough() {
+    public void strikethrough() {
         final String testString = "testing ---strikethrough--- for correct splitting";
 
         List<String> parts = PrintUtils.splitUsefully(testString);
@@ -40,7 +40,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testStrikethroughMultipleWords() {
+    public void strikethroughMultipleWords() {
         final String testString = "testing ---multiple struck words--- for correct splitting";
 
         List<String> parts = PrintUtils.splitUsefully(testString);
@@ -50,7 +50,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testSimpleWords() {
+    public void simpleWords() {
         final String testString = "testing simple words for correct splitting.";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
@@ -60,7 +60,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testCodeTokens() {
+    public void codeTokens() {
         final String testTString = "testing `code` for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testTString);
@@ -70,7 +70,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testMultiWordCodeTokens() {
+    public void multiWordCodeTokens() {
         final String testString = "testing `multiple words of code` for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
@@ -80,7 +80,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testSimpleLink() {
+    public void simpleLink() {
         final String testString = "testing [something](http://example.com) for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
@@ -90,7 +90,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testSophisticatedLink() {
+    public void sophisticatedLink() {
         final String testString = "testing [a very sophisticated link](https://chat.meta.stackexchange.com/rooms/89 \"with a title text\") for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
@@ -102,7 +102,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testItalicMarkdown() {
+    public void italicMarkdown() {
         final String testString = "testing *italic markdown* for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
@@ -112,7 +112,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testBoldMarkdown() {
+    public void boldMarkdown() {
         final String testString = "testing **bolded markdown** for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
@@ -122,7 +122,7 @@ public class PrintUtilTests {
     }
 
     @Test
-    public void testBoldItalicMarkdown() {
+    public void boldItalicMarkdown() {
         final String testString = "testing ***bolded italic markdown*** for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
