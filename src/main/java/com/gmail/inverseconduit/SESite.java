@@ -26,7 +26,7 @@ public enum SESite implements ProviderDescriptor {
 
     SESite(String dir) {
         this.dir = dir;
-        rootUrl = "https://" + dir + ".com/";
+        rootUrl = "http://www." + dir + ".com/";
         loginUrl = rootUrl + "users/login";
     }
 

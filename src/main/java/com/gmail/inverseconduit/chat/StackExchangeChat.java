@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -160,7 +161,7 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     @Override
     public boolean sendMessage(ChatDescriptor descriptor, String message) {
@@ -176,19 +177,25 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     private String handleMessageOversize(final SeChatDescriptor descriptor, String message) {
-        if (message.length() >= 500 && message.length() < 600) {
+        if (message.length() >= 500) {
             LOGGER.warning("Truncating message!");
-            message = PrintUtils.truncate(message);
-        }
-        else if (message.length() > 500 && message.length() < 1000) {
-            LOGGER.warning("Splitting message");
-            String continuation = "..." + message.substring(message.length() / 2);
-            message = message.substring(0, message.length() / 2) + "...";
-            this.sender.schedule(() -> sendMessage(descriptor, continuation), 2, TimeUnit.SECONDS);
-        }
-        else if (message.length() >= 1000) {
-            LOGGER.warning("Nobody sends messages this long!");
-            message = message.substring(0, 495) + "...";
+            List<String> messageTokens = PrintUtils.splitUsefully(message);
+            LOGGER.finest("Message tokens are: " + messageTokens);
+
+            StringBuilder messageBuilder = new StringBuilder();
+            for (String token : messageTokens) {
+                if (messageBuilder.length() + token.length() < 495) {
+                    messageBuilder.append(" " + token);
+                }
+                else {
+                    LOGGER.info("Message split part: " + messageBuilder.toString());
+                    sendMessage(descriptor.buildRestRootUrl(), chatMap.get(descriptor).getElementById("fkey").getAttribute("value"), messageBuilder.toString());
+                    messageBuilder = new StringBuilder(token);
+                }
+            }
+
+            if (messageBuilder.length() < 12) { return ""; }
+            return messageBuilder.toString();
         }
         return message;
     }
