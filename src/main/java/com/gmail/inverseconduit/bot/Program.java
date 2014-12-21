@@ -134,8 +134,18 @@ public class Program {
         bot.subscribe(load);
     }
 
+    private void bindAboutCommand() {
+        CommandHandle about =
+                new CommandHandle.Builder(
+                    "about",
+                    message -> {
+                        return String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername());
+                    }).build();
+        bot.subscribe(about);
+    }
+
     private void bindHelpCommand() {
-        CommandHandle help = new CommandHandle.Builder("help", s -> s.trim().matches(Pattern.quote(config.getTrigger()) + "help [^ ]++"), message -> {
+        CommandHandle help = new CommandHandle.Builder("help", message -> {
             String[] parts = message.getMessage().split(" ");
             String commandName = parts[parts.length - 1];
             Optional<String> helpText = bot.getCommands().stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
@@ -145,21 +155,8 @@ public class Program {
         bot.subscribe(help);
     }
 
-    private void bindAboutCommand() {
-        CommandHandle about =
-                new CommandHandle.Builder(
-                    "about",
-                    s -> {
-                        return s.trim().startsWith(config.getTrigger() + "about");
-                    },
-                    message -> {
-                        return String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername());
-                    }).build();
-        bot.subscribe(about);
-    }
-
     private void bindJavaDocCommand() {
-        CommandHandle javaDoc = new CommandHandle.Builder("javadoc", javadocPattern.asPredicate(), message -> {
+        CommandHandle javaDoc = new CommandHandle.Builder("javadoc", message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
             return javaDocAccessor.javadoc(message, matcher.group(1).trim());
@@ -168,9 +165,7 @@ public class Program {
     }
 
     private void bindShutdownCommand() {
-        CommandHandle shutdown = new CommandHandle.Builder("shutdown", s -> {
-            return s.trim().startsWith(config.getTrigger() + "shutdown");
-        }, message -> {
+        CommandHandle shutdown = new CommandHandle.Builder("shutdown", message -> {
             // FIXME: Require permissions for this
             chatInterface.broadcast("*~going down*");
             executor.shutdownNow();
@@ -181,7 +176,7 @@ public class Program {
     }
 
     private void bindTestCommand() {
-        CommandHandle test = new CommandHandle.Builder("test", s -> s.equals("test"), message -> {
+        CommandHandle test = new CommandHandle.Builder("test", message -> {
             return "*~response*";
         }).build();
         bot.subscribe(test);
