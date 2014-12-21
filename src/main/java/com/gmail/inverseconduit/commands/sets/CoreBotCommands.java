@@ -18,6 +18,7 @@ import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
+import com.gmail.inverseconduit.timer.TimerCommands;
 
 public final class CoreBotCommands {
 
@@ -42,6 +43,7 @@ public final class CoreBotCommands {
 
         createSummonCommands(chatInterface);
         createShutdownCommand(chatInterface);
+        createTimerCommand(chatInterface);
 
         createGroovyCommands();
         createJavaDocCommand();
@@ -56,6 +58,11 @@ public final class CoreBotCommands {
 
     public Set<CommandHandle> allCommands() {
         return Collections.unmodifiableSet(allCommands);
+    }
+
+    private void createTimerCommand(ChatInterface chatInterface) {
+        CommandHandle timers = TimerCommands.timerCommand(chatInterface);
+        allCommands.add(timers);
     }
 
     private void createSummonCommands(ChatInterface chatInterface) {

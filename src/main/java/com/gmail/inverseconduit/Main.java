@@ -22,6 +22,7 @@ import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
+import com.gmail.inverseconduit.timer.TimerKeeper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Main {
@@ -37,6 +38,7 @@ public class Main {
 
         BotConfig config = loadConfig();
         AppContext.INSTANCE.add(config);
+        AppContext.INSTANCE.add(new TimerKeeper());
 
         // Must be leaked from main thread
         StackExchangeChat seInterface = new StackExchangeChat();
