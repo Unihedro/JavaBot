@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.scripts;
+package com.gmail.inverseconduit.commands.sets;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.scripts.ScriptRunner;
 
 public final class ScriptRunnerCommands {
 

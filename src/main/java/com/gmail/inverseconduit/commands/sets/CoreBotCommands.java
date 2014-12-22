@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.commands;
+package com.gmail.inverseconduit.commands.sets;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,9 +8,8 @@ import java.util.Set;
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.chat.ChatInterface;
-import com.gmail.inverseconduit.chat.commands.ChatCommands;
+import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
-import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
 
 public final class CoreBotCommands {
 
@@ -19,10 +18,6 @@ public final class CoreBotCommands {
     final Set<CommandHandle>       allCommands = new HashSet<>();
 
     public CoreBotCommands(ChatInterface chatInterface) {
-        createCommandHandlesFor(chatInterface);
-    }
-
-    private void createCommandHandlesFor(ChatInterface chatInterface) {
         createSummonCommands(chatInterface);
         createGroovyCommands();
         createHelpCommand();

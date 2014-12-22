@@ -15,7 +15,7 @@ import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.commands.CommandHandle;
-import com.gmail.inverseconduit.commands.CoreBotCommands;
+import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;

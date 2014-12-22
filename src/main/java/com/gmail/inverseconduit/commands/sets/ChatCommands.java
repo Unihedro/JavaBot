@@ -1,10 +1,11 @@
-package com.gmail.inverseconduit.chat.commands;
+package com.gmail.inverseconduit.commands.sets;
 
 import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.commands.CommandHandle.Builder;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 public final class ChatCommands {
