@@ -1,7 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -15,12 +14,11 @@ import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
-import com.gmail.inverseconduit.chat.commands.ChatCommands;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.commands.CoreBotCommands;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
-import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
 
 /**
  * Class to contain the program, to be started from main. This class is
@@ -52,6 +50,9 @@ public class Program {
      * @throws IOException
      *         if there's a problem loading the Javadocs
      */
+    // TODO: get the chatInterface solved via Dependency Injection instead.
+    // This would greatly improve testability and ease of switching
+    // implementations
     public Program() throws IOException {
         LOGGER.finest("Instantiating Program");
         bot = new DefaultBot(chatInterface);
@@ -103,56 +104,9 @@ public class Program {
     }
 
     private void bindDefaultCommands() {
-        bindAboutCommand();
         bindShutdownCommand();
-        bindEvalCommand();
-        bindLoadCommand();
         bindJavaDocCommand();
-        bindTestCommand();
-        bindSummonCommand();
-        bindUnsummonCommand();
-        bindHelpCommand();
-    }
-
-    private void bindUnsummonCommand() {
-        CommandHandle unsummon = ChatCommands.unsummonCommand(chatInterface);
-        bot.subscribe(unsummon);
-    }
-
-    private void bindSummonCommand() {
-        CommandHandle summon = ChatCommands.summonCommand(chatInterface);
-        bot.subscribe(summon);
-    }
-
-    private void bindEvalCommand() {
-        CommandHandle eval = ScriptRunnerCommands.evalCommand(scriptRunner);
-        bot.subscribe(eval);
-    }
-
-    private void bindLoadCommand() {
-        CommandHandle load = ScriptRunnerCommands.loadCommand(scriptRunner);
-        bot.subscribe(load);
-    }
-
-    private void bindAboutCommand() {
-        CommandHandle about =
-                new CommandHandle.Builder(
-                    "about",
-                    message -> {
-                        return String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername());
-                    }).build();
-        bot.subscribe(about);
-    }
-
-    private void bindHelpCommand() {
-        CommandHandle help = new CommandHandle.Builder("help", message -> {
-            String[] parts = message.getMessage().split(" ");
-            String commandName = parts[parts.length - 1];
-            Optional<String> helpText = bot.getCommands().stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
-            if (helpText.isPresent()) { return helpText.get(); }
-            return "help command: Get additional info about a command of your choice, syntax:" + config.getTrigger() + "help [commandName]";
-        }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + config.getTrigger() + "help [commandName]").build();
-        bot.subscribe(help);
+        new CoreBotCommands(chatInterface).allCommands().forEach(bot::subscribe);
     }
 
     private void bindJavaDocCommand() {
@@ -173,12 +127,5 @@ public class Program {
             return "";
         }).build();
         bot.subscribe(shutdown);
-    }
-
-    private void bindTestCommand() {
-        CommandHandle test = new CommandHandle.Builder("test", message -> {
-            return "*~response*";
-        }).build();
-        bot.subscribe(test);
     }
 }
