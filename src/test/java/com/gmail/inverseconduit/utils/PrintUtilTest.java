@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class PrintUtilTest {
@@ -94,8 +93,6 @@ public class PrintUtilTest {
         final String testString = "testing [a very sophisticated link](https://chat.meta.stackexchange.com/rooms/89 \"with a title text\") for correct splitting";
 
         final List<String> parts = PrintUtils.splitUsefully(testString);
-
-        System.out.println(parts.toString());
 
         assertEquals("[a very sophisticated link](https://chat.meta.stackexchange.com/rooms/89 \"with a title text\")", parts.get(1));
         assertEquals(5, parts.size());

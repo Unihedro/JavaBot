@@ -18,7 +18,6 @@ import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
-import com.gmail.inverseconduit.scripts.ScriptRunner;
 
 /**
  * Class to contain the program, to be started from main. This class is
@@ -39,8 +38,6 @@ public class Program {
     private final InteractionBot                  interactionBot;
 
     private final ChatInterface                   chatInterface  = new StackExchangeChat();
-
-    private final ScriptRunner                    scriptRunner   = new ScriptRunner();
 
     private final JavaDocAccessor                 javaDocAccessor;
 

@@ -326,4 +326,12 @@ public class StackExchangeChat implements ChatInterface {
         subscribers.remove(subscriber);
     }
 
+    @Override
+    public void close() throws Exception {
+        subscribers.clear();
+        chatMap.clear();
+        sender.shutdown();
+        webClient.closeAllWindows();
+    }
+
 }

@@ -59,7 +59,7 @@ public class ScriptRunner {
             : String.format(":%d [tag:groovy]: %s", msg.getMessageId(), result.toString());
     }
 
-    public void evaluateAndCache(ChatMessage msg, String commandText) {
+    public void evaluateAndCache(String commandText) {
         LOGGER.finest("Compiling class to cache it");
 
         groovyLoader.parseClass(createCodeSource(commandText), true);

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import com.gmail.inverseconduit.datatype.CredentialsProvider;
 
 /**
@@ -76,6 +77,7 @@ public class BotConfig implements CredentialsProvider {
     /**
      * Gets the string sequence that triggers the bot.
      * 
+     * @return the string considered the trigger
      * @deprecated This constant is only here for legacy purposes. Use
      *             <tt>@ListenerProperty</tt> to specify the command invocation
      *             sequence(s).

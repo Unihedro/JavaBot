@@ -41,6 +41,7 @@ public class CommandHandle {
         private Function<ChatMessage, String> consumer;
 
         @Deprecated
+        @SuppressWarnings("unused")
         public Builder(String name, Predicate<String> matchesSyntax, Function<ChatMessage, String> consumer) {
             this.name = name;
             this.consumer = consumer;

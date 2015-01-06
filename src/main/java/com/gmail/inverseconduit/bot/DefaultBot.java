@@ -26,62 +26,55 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  *         >vincentyification@gmail.com</a>>
  * @author Vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
  */
-public class DefaultBot extends AbstractBot implements
-		Subscribable<CommandHandle> {
+public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-	private final Logger LOGGER = Logger.getLogger(DefaultBot.class.getName());
+    private final Logger               LOGGER   = Logger.getLogger(DefaultBot.class.getName());
 
-	protected final ChatInterface chatInterface;
+    protected final ChatInterface      chatInterface;
 
-	protected final Set<CommandHandle> commands = new HashSet<>();
+    protected final Set<CommandHandle> commands = new HashSet<>();
 
-	public DefaultBot(ChatInterface chatInterface) {
-		this.chatInterface = chatInterface;
-	}
+    public DefaultBot(ChatInterface chatInterface) {
+        this.chatInterface = chatInterface;
+    }
 
-	@Override
-	public void start() {
-		executor.scheduleAtFixedRate(this::processMessageQueue, 1, 500,
-				TimeUnit.MILLISECONDS);
-	}
+    @Override
+    public void start() {
+        executor.scheduleAtFixedRate(this::processMessageQueue, 1, 500, TimeUnit.MILLISECONDS);
+    }
 
-	private void processMessageQueue() {
-		while (messageQueue.peek() != null) {
-			LOGGER.finest("processing message from queue");
-			processingThread.submit(() -> processMessage(messageQueue.poll()));
-		}
-	}
+    private void processMessageQueue() {
+        while (messageQueue.peek() != null) {
+            LOGGER.finest("processing message from queue");
+            processingThread.submit(() -> processMessage(messageQueue.poll()));
+        }
+    }
 
-	private void processMessage(final ChatMessage chatMessage) {
-		final String trigger = AppContext.INSTANCE.get(BotConfig.class)
-				.getTrigger();
-		if (!chatMessage.getMessage().startsWith(trigger)) {
-			return;
-		}
+    private void processMessage(final ChatMessage chatMessage) {
+        final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
+        if ( !chatMessage.getMessage().startsWith(trigger)) { return; }
 
-		commands.stream()
-				// FIXME: make the trigger removal for call-by-name better!!
-				.filter(c -> c.getName().equalsIgnoreCase(
-						chatMessage.getMessage().replace(trigger, "")))
-				.findFirst()
-				.map(c -> c.execute(chatMessage))
-				.ifPresent(
-						result -> chatInterface.sendMessage(SeChatDescriptor
-								.buildSeChatDescriptorFrom(chatMessage), result));
-	}
+        commands.stream()
+        // FIXME: make the trigger removal for call-by-name better!!
+        .filter(c -> c.getName().equalsIgnoreCase(chatMessage.getMessage().replace(trigger, ""))).findFirst().map(c -> c.execute(chatMessage)).ifPresent(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
+    }
 
-	public Set<CommandHandle> getCommands() {
-		return Collections.unmodifiableSet(commands);
-	}
+    public Set<CommandHandle> getCommands() {
+        return Collections.unmodifiableSet(commands);
+    }
 
-	@Override
-	public void subscribe(CommandHandle subscriber) {
-		commands.add(subscriber);
-	}
+    @Override
+    public void subscribe(CommandHandle subscriber) {
+        commands.add(subscriber);
+    }
 
-	@Override
-	public void unSubscribe(CommandHandle subscriber) {
-		commands.remove(subscriber);
-	}
+    @Override
+    public void unSubscribe(CommandHandle subscriber) {
+        commands.remove(subscriber);
+    }
+
+    public void shutdown() {
+        executor.shutdown();
+    }
 
 }

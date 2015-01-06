@@ -6,6 +6,8 @@ package com.gmail.inverseconduit.chat;
  * One can subscribe and unSubscribe instances of T to recieve produced U's
  * 
  * @author Vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
+ * @param <T>
+ *        The Class of Subscriber instances, that can handle instances of U
  */
 public interface Subscribable<T> {
 
