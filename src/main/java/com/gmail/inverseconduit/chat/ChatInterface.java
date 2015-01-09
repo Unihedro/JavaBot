@@ -19,7 +19,7 @@ import com.gmail.inverseconduit.datatype.ProviderDescriptor;
  * @author Vogel612<<a href="mailto:vogel612@gmx.de">vogel612@gmx.de</a>>
  */
 @ThreadSafe
-public interface ChatInterface extends Subscribable<ChatWorker> {
+public interface ChatInterface extends Subscribable<ChatWorker>, AutoCloseable {
 
     /**
      * Queries the messages of the chat. This method is designed to be called
@@ -89,4 +89,9 @@ public interface ChatInterface extends Subscribable<ChatWorker> {
      *        the broadcast message
      */
     void broadcast(String message);
+
+    @Override
+    default void close() throws Exception {
+
+    }
 }

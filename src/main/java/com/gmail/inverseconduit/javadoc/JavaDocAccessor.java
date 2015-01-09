@@ -4,13 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.datatype.ChatMessage;
-import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 public class JavaDocAccessor {
 
-    private final ChatInterface chatInterface;
 
     private final JavadocDao    dao;
 
@@ -22,9 +19,7 @@ public class JavaDocAccessor {
      * @throws IOException
      *         if there's a problem reading a Javadoc file
      */
-    public JavaDocAccessor(ChatInterface chatInterface, Path dir) throws IOException {
-        this.chatInterface = chatInterface;
-
+    public JavaDocAccessor(Path dir) throws IOException {
         dao = new JavadocDao();
 
         Path java8Api = dir.resolve("java8.zip");
@@ -45,7 +40,7 @@ public class JavaDocAccessor {
         }
     }
 
-    public void javadoc(ChatMessage chatMessage, String commandText) {
+    public String javadoc(ChatMessage chatMessage, String commandText) {
         String response;
         try {
             response = generateResponse(commandText);
@@ -53,8 +48,7 @@ public class JavaDocAccessor {
             throw new RuntimeException("Problem getting Javadoc info.", e);
         }
 
-        response = ":" + chatMessage.getMessageId() + " " + response;
-        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), response);
+        return ":" + chatMessage.getMessageId() + " " + response;
     }
 
     private String generateResponse(String commandText) throws IOException {

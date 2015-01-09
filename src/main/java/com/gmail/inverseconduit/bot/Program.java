@@ -14,12 +14,10 @@ import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
-import com.gmail.inverseconduit.chat.commands.ChatCommands;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
-import com.gmail.inverseconduit.scripts.ScriptRunner;
-import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
 
 /**
  * Class to contain the program, to be started from main. This class is
@@ -27,167 +25,104 @@ import com.gmail.inverseconduit.scripts.ScriptRunnerCommands;
  * 
  * @author vogel612<<a href="vogel612@gmx.de">vogel612@gmx.de</a>>
  */
-@SuppressWarnings("deprecation")
 public class Program {
 
-	private static final Logger LOGGER = Logger.getLogger(Program.class
-			.getName());
+    private static final Logger                   LOGGER         = Logger.getLogger(Program.class.getName());
 
-	private static final ScheduledExecutorService executor = Executors
-			.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService executor       = Executors.newSingleThreadScheduledExecutor();
 
-	private static final BotConfig config = AppContext.INSTANCE
-			.get(BotConfig.class);
+    private static final BotConfig                config         = AppContext.INSTANCE.get(BotConfig.class);
 
-	private final DefaultBot bot;
+    private final DefaultBot                      bot;
 
-	private final ChatInterface chatInterface;
+    private final InteractionBot                  interactionBot;
 
-	private final ScriptRunner scriptRunner;
+    private final ChatInterface                   chatInterface  = new StackExchangeChat();
 
-	private final JavaDocAccessor javaDocAccessor;
+    private final JavaDocAccessor                 javaDocAccessor;
 
-	private static final Pattern javadocPattern = Pattern.compile(
-			"^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)",
-			Pattern.DOTALL);
+    private static final Pattern                  javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
-	/**
-	 * @throws IOException
-	 *             if there's a problem loading the Javadocs
-	 */
-	public Program() throws IOException {
-		LOGGER.finest("Instantiating Program");
-		chatInterface = new StackExchangeChat();
-		bot = new DefaultBot();
+    /**
+     * @throws IOException
+     *         if there's a problem loading the Javadocs
+     */
+    // TODO: get the chatInterface solved via Dependency Injection instead.
+    // This would greatly improve testability and ease of switching
+    // implementations
+    public Program() throws IOException {
+        LOGGER.finest("Instantiating Program");
+        bot = new DefaultBot(chatInterface);
+        interactionBot = new InteractionBot(chatInterface);
 
-		chatInterface.subscribe(bot);
+        //better not get ExceptionInInitializerError
+        javaDocAccessor = new JavaDocAccessor(config.getJavadocsDir());
+        chatInterface.subscribe(bot);
+        chatInterface.subscribe(interactionBot);
+        LOGGER.info("Basic component setup complete");
+    }
 
-		javaDocAccessor = new JavaDocAccessor(chatInterface,
-				config.getJavadocsDir());
-		scriptRunner = new ScriptRunner(chatInterface);
-		LOGGER.info("Basic component setup complete");
-	}
+    /**
+     * This is where the beef happens. Glue all the stuff together here
+     */
+    public void startup() {
+        LOGGER.info("Beginning startup process");
+        bindDefaultCommands();
+        login();
+        for (Integer room : config.getRooms()) {
+            chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
+        }
+        scheduleQueryingThread();
+        bot.start();
+        interactionBot.start();
+        LOGGER.info("Startup completed.");
+    }
 
-	/**
-	 * This is where the beef happens. Glue all the stuff together here
-	 */
-	public void startup() {
-		LOGGER.info("Beginning startup process");
-		bindDefaultCommands();
-		login();
-		for (Integer room : config.getRooms()) {
-			chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(
-					SESite.STACK_OVERFLOW).setRoom(() -> room).build());
-		}
-		scheduleQueryingThread();
-		bot.start();
-		LOGGER.info("Startup completed.");
-	}
+    private void scheduleQueryingThread() {
+        executor.scheduleAtFixedRate(() -> {
+            try {
+                chatInterface.queryMessages();
+            } catch(RuntimeException | Error e) {
+                Logger.getAnonymousLogger().log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
+                throw e;
+            } catch(Exception e) {
+                Logger.getAnonymousLogger().log(Level.WARNING, "Exception occured in querying thread:", e);
+            }
+        }, 5, 3, TimeUnit.SECONDS);
+        Logger.getAnonymousLogger().info("querying thread started");
+    }
 
-	private void scheduleQueryingThread() {
-		executor.scheduleAtFixedRate(
-				() -> {
-					try {
-						chatInterface.queryMessages();
-					} catch (RuntimeException | Error e) {
-						Logger.getAnonymousLogger().log(Level.SEVERE,
-								"Throwable occurred in querying thread", e);
-						throw e;
-					} catch (Exception e) {
-						Logger.getAnonymousLogger().log(Level.WARNING,
-								"Exception occured in querying thread:", e);
-					}
-				}, 5, 3, TimeUnit.SECONDS);
-		Logger.getAnonymousLogger().info("querying thread started");
-	}
+    private void login() {
+        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config);
+        if ( !loggedIn) {
+            Logger.getAnonymousLogger().severe("Login failed!");
+            System.exit(2);
+        }
+    }
 
-	private void login() {
-		boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config);
-		if (!loggedIn) {
-			Logger.getAnonymousLogger().severe("Login failed!");
-			System.exit(2);
-		}
-	}
+    private void bindDefaultCommands() {
+        bindShutdownCommand();
+        bindJavaDocCommand();
+        new CoreBotCommands(chatInterface).allCommands().forEach(bot::subscribe);
+    }
 
-	private void bindDefaultCommands() {
-		bindHelpCommand();
-		bindShutdownCommand();
-		bindEvalCommand();
-		bindLoadCommand();
-		bindJavaDocCommand();
-		bindTestCommand();
-		bindSummonCommand();
-		bindUnsummonCommand();
-	}
+    private void bindJavaDocCommand() {
+        CommandHandle javaDoc = new CommandHandle.Builder("javadoc", message -> {
+            Matcher matcher = javadocPattern.matcher(message.getMessage());
+            matcher.find();
+            return javaDocAccessor.javadoc(message, matcher.group(1).trim());
+        }).build();
+        bot.subscribe(javaDoc);
+    }
 
-	private void bindUnsummonCommand() {
-		CommandHandle unsummon = ChatCommands.unsummonCommand(chatInterface);
-		bot.subscribe(unsummon);
-	}
-
-	private void bindSummonCommand() {
-		CommandHandle summon = ChatCommands.summonCommand(chatInterface);
-		bot.subscribe(summon);
-	}
-
-	private void bindEvalCommand() {
-		CommandHandle eval = ScriptRunnerCommands.evalCommand(scriptRunner);
-		bot.subscribe(eval);
-	}
-
-	private void bindLoadCommand() {
-		CommandHandle load = ScriptRunnerCommands.loadCommand(scriptRunner);
-		bot.subscribe(load);
-	}
-
-	private void bindHelpCommand() {
-		CommandHandle help = new CommandHandle.Builder(
-				"help",
-				s -> {
-					return s.trim().startsWith(config.getTrigger() + "help");
-				},
-				message -> {
-					chatInterface.sendMessage(
-							SeChatDescriptor.buildSeChatDescriptorFrom(message),
-							String.format(
-									"@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot",
-									message.getUsername()));
-				}).build();
-		bot.subscribe(help);
-	}
-
-	private void bindJavaDocCommand() {
-		CommandHandle javaDoc = new CommandHandle.Builder("javadoc",
-				javadocPattern.asPredicate(), message -> {
-					Matcher matcher = javadocPattern.matcher(message
-							.getMessage());
-					matcher.find();
-					javaDocAccessor.javadoc(message, matcher.group(1).trim());
-				}).build();
-		bot.subscribe(javaDoc);
-	}
-
-	private void bindShutdownCommand() {
-		CommandHandle shutdown = new CommandHandle.Builder("shutdown", s -> {
-			return s.trim().startsWith(config.getTrigger() + "shutdown");
-		}, message -> {
-			// FIXME: Require permissions for this
-				chatInterface.broadcast("*~going down*");
-				executor.shutdownNow();
-				System.exit(0);
-			}).build();
-		bot.subscribe(shutdown);
-	}
-
-	private void bindTestCommand() {
-		CommandHandle test = new CommandHandle.Builder(
-				"test",
-				s -> s.equals("test"),
-				message -> {
-					chatInterface.sendMessage(
-							SeChatDescriptor.buildSeChatDescriptorFrom(message),
-							"*~response*");
-				}).build();
-		bot.subscribe(test);
-	}
+    private void bindShutdownCommand() {
+        CommandHandle shutdown = new CommandHandle.Builder("shutdown", message -> {
+            // FIXME: Require permissions for this
+            chatInterface.broadcast("*~going down*");
+            executor.shutdownNow();
+            System.exit(0);
+            return "";
+        }).build();
+        bot.subscribe(shutdown);
+    }
 }

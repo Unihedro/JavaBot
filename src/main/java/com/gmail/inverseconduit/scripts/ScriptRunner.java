@@ -7,12 +7,11 @@ import groovy.lang.GroovyShell;
 
 import java.util.logging.Logger;
 
+import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import com.gmail.inverseconduit.ScriptBase;
-import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.datatype.ChatMessage;
-import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 /**
  * Class to run chat Code. The relevant commands submit code from the chat to
@@ -34,32 +33,36 @@ public class ScriptRunner {
 
     private final GroovyClassLoader     groovyLoader;
 
-    private final ChatInterface         chatInterface;
-
-    public ScriptRunner(ChatInterface chatInterface) {
+    public ScriptRunner() {
         // Groovy
         groovyConfig = new CompilerConfiguration();
         groovyConfig.setScriptBaseClass(ScriptBase.class.getName());
-        scriptBinding.setVariable("javaBot", chatInterface);
+        // scriptBinding.setVariable("javaBot", null);
+        //FIXME: we could use JavaBot for this
         groovyLoader = new GroovyClassLoader(this.getClass().getClassLoader(), groovyConfig);
         groovyShell = new GroovyShell(this.getClass().getClassLoader(), scriptBinding, groovyConfig);
-        this.chatInterface = chatInterface;
     }
 
-    public void evaluateGroovy(ChatMessage msg, String commandText) {
-        LOGGER.finest("Evaluating Groovy Script");
-
-        Object result = groovyShell.evaluate(createCodeSource(commandText));
-        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(msg), result == null
-            ? "[tag:groovy]: no result"
-            : "[tag:groovy]: " + result.toString());
+    public String evaluateGroovy(ChatMessage msg, String commandText) {
+        LOGGER.info("Evaluating Groovy Script");
+        Object result;
+        try {
+            result = groovyShell.evaluate(createCodeSource(commandText));
+        } catch(CompilationFailedException ex) {
+            result = "compilation failed with error " + ex.getMessage();
+        } catch(Exception ex) {
+            result = "undefined execution error: " + ex.getMessage();
+        }
+        LOGGER.info("Result:" + result);
+        return result == null
+            ? String.format(":%d [tag:groovy]: no result", msg.getMessageId())
+            : String.format(":%d [tag:groovy]: %s", msg.getMessageId(), result.toString());
     }
 
-    public void evaluateAndCache(ChatMessage msg, String commandText) {
+    public void evaluateAndCache(String commandText) {
         LOGGER.finest("Compiling class to cache it");
 
         groovyLoader.parseClass(createCodeSource(commandText), true);
-        chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(msg), "Thanks, I'll remember that");
     }
 
     private GroovyCodeSource createCodeSource(String commandText) {
