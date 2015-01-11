@@ -17,16 +17,17 @@ import org.junit.Test;
  * @author Michael Angstadt
  */
 public class Java8PageParserTest {
-	@Test
-	public void getAllClasses() throws Exception {
-		Document document;
-		try (InputStream in = getClass().getResourceAsStream("java8-allclasses-frame.html")) {
-			document = Jsoup.parse(in, "UTF-8", "");
-		}
 
-		Java8PageParser parser = new Java8PageParser();
-		List<String> actual = parser.parseClassNames(document);
-		//@formatter:off
+    @Test
+    public void getAllClasses() throws Exception {
+        Document document;
+        try (InputStream in = getClass().getResourceAsStream("java8-allclasses-frame.html")) {
+            document = Jsoup.parse(in, "UTF-8", "");
+        }
+
+        Java8PageParser parser = new Java8PageParser();
+        List<String> actual = parser.parseClassNames(document);
+        //@formatter:off
 		List<String> expected = Arrays.asList(
 			"java.awt.List",
 			"java.lang.String",
@@ -34,25 +35,25 @@ public class Java8PageParserTest {
 			"java.util.Map.Entry"
 		);
 		//@formatter:on
-		assertEquals(expected, actual);
-	}
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void getClassInfo() throws Exception {
-		Document document;
-		try (InputStream in = getClass().getResourceAsStream("String.html")) {
-			document = Jsoup.parse(in, "UTF-8", "");
-		}
+    @Test
+    public void getClassInfo() throws Exception {
+        Document document;
+        try (InputStream in = getClass().getResourceAsStream("String.html")) {
+            document = Jsoup.parse(in, "UTF-8", "");
+        }
 
-		Java8PageParser parser = new Java8PageParser();
-		ClassInfo info = parser.parseClassPage(document, "java.lang.String");
-		assertEquals("java.lang.String", info.getFullName());
-		assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/lang/String.html", info.getUrl());
+        Java8PageParser parser = new Java8PageParser();
+        ClassInfo info = parser.parseClassPage(document, "java.lang.String");
+        assertEquals("java.lang.String", info.getFullName());
+        assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/lang/String.html", info.getUrl());
 
-		assertEquals(Arrays.asList("public", "final", "class"), info.getModifiers());
-		assertFalse(info.isDeprecated());
+        assertEquals(Arrays.asList("public", "final", "class"), info.getModifiers());
+        assertFalse(info.isDeprecated());
 
-		//@formatter:off
+        //@formatter:off
 		assertEquals(
 		"The `String` class represents character strings.\n" +
 		" `code` text \n" +
@@ -67,54 +68,54 @@ public class Java8PageParserTest {
 		" [Bing Search](http://www.bing.com)\n" +
 		" Because String objects are immutable they can be shared. For example: \n" +
 		"\n" +
-		"\n" +
-		"    String str = \"abc\";\n" +
+		"\r\n" +
+		"    String str = \"abc\";\r\n" +
 		"\n" +
 		"\n" +
 		" is equivalent to: \n" +
 		"\n" +
-		"\n" +
-		"    char data[] = {'a', 'b', 'c'};\n" +
-		"    String str = new String(data);\n" +
+		"\r\n" +
+		"    char data[] = {'a', 'b', 'c'};\r\n" +
+		"    String str = new String(data);\r\n" +
 		"\n" +
 		" \n" +
 		"ignore me", info.getDescription());
 		//@formatter:on
-	}
+    }
 
-	@Test
-	public void getClassInfo_annotation() throws Exception {
-		Document document;
-		try (InputStream in = getClass().getResourceAsStream("SuppressWarnings.html")) {
-			document = Jsoup.parse(in, "UTF-8", "");
-		}
+    @Test
+    public void getClassInfo_annotation() throws Exception {
+        Document document;
+        try (InputStream in = getClass().getResourceAsStream("SuppressWarnings.html")) {
+            document = Jsoup.parse(in, "UTF-8", "");
+        }
 
-		Java8PageParser parser = new Java8PageParser();
-		ClassInfo info = parser.parseClassPage(document, "java.lang.SuppressWarnings");
-		assertEquals("java.lang.SuppressWarnings", info.getFullName());
-		assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/lang/SuppressWarnings.html", info.getUrl());
+        Java8PageParser parser = new Java8PageParser();
+        ClassInfo info = parser.parseClassPage(document, "java.lang.SuppressWarnings");
+        assertEquals("java.lang.SuppressWarnings", info.getFullName());
+        assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/lang/SuppressWarnings.html", info.getUrl());
 
-		assertEquals(Arrays.asList("public", "@interface"), info.getModifiers());
-		assertFalse(info.isDeprecated());
-		assertNotNull(info.getDescription());
-	}
+        assertEquals(Arrays.asList("public", "@interface"), info.getModifiers());
+        assertFalse(info.isDeprecated());
+        assertNotNull(info.getDescription());
+    }
 
-	@Test
-	public void getClassInfo_deprecated() throws Exception {
-		Document document;
-		try (InputStream in = getClass().getResourceAsStream("StringBufferInputStream.html")) {
-			document = Jsoup.parse(in, "UTF-8", "");
-		}
+    @Test
+    public void getClassInfo_deprecated() throws Exception {
+        Document document;
+        try (InputStream in = getClass().getResourceAsStream("StringBufferInputStream.html")) {
+            document = Jsoup.parse(in, "UTF-8", "");
+        }
 
-		Java8PageParser parser = new Java8PageParser();
-		ClassInfo info = parser.parseClassPage(document, "java.io.StringBufferInputStream");
-		assertEquals("java.io.StringBufferInputStream", info.getFullName());
-		assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/io/StringBufferInputStream.html", info.getUrl());
+        Java8PageParser parser = new Java8PageParser();
+        ClassInfo info = parser.parseClassPage(document, "java.io.StringBufferInputStream");
+        assertEquals("java.io.StringBufferInputStream", info.getFullName());
+        assertEquals("https://docs.oracle.com/javase/8/docs/api/?java/io/StringBufferInputStream.html", info.getUrl());
 
-		assertEquals(Arrays.asList("public", "class"), info.getModifiers());
-		assertTrue(info.isDeprecated());
-		System.out.println((int)info.getDescription().charAt(12));
-		System.out.println((int)info.getDescription().charAt(13));
-		assertNotNull(info.getDescription());
-	}
+        assertEquals(Arrays.asList("public", "class"), info.getModifiers());
+        assertTrue(info.isDeprecated());
+        System.out.println((int) info.getDescription().charAt(12));
+        System.out.println((int) info.getDescription().charAt(13));
+        assertNotNull(info.getDescription());
+    }
 }
