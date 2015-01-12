@@ -103,7 +103,7 @@ public class Program {
     private void bindDefaultCommands() {
         bindShutdownCommand();
         bindJavaDocCommand();
-        new CoreBotCommands(chatInterface).allCommands().forEach(bot::subscribe);
+        new CoreBotCommands(chatInterface, bot).allCommands().forEach(bot::subscribe);
     }
 
     private void bindJavaDocCommand() {

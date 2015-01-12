@@ -55,9 +55,8 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
         final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
         if ( !chatMessage.getMessage().startsWith(trigger)) { return; }
 
-        commands.stream()
-        // FIXME: make the trigger removal for call-by-name better!!
-        .filter(c -> c.getName().equalsIgnoreCase(chatMessage.getMessage().replace(trigger, ""))).findFirst().map(c -> c.execute(chatMessage)).ifPresent(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
+        commands.stream().filter(c -> chatMessage.getMessage().replace(trigger, "").startsWith(c.getName())).findFirst().map(c -> c.execute(chatMessage))
+                .ifPresent(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
     }
 
     public Set<CommandHandle> getCommands() {
