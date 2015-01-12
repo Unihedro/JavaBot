@@ -1,5 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -75,6 +76,11 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
 
     public void shutdown() {
         executor.shutdown();
+    }
+
+    @Override
+    public Collection<CommandHandle> getSubscriptions() {
+        return Collections.unmodifiableCollection(commands);
     }
 
 }
