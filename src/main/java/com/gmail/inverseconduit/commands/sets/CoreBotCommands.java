@@ -8,6 +8,7 @@ import java.util.Set;
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.chat.ChatInterface;
+import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
 
@@ -17,10 +18,11 @@ public final class CoreBotCommands {
 
     final Set<CommandHandle>       allCommands = new HashSet<>();
 
-    public CoreBotCommands(ChatInterface chatInterface) {
+    public CoreBotCommands(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
         createSummonCommands(chatInterface);
         createGroovyCommands();
-        createHelpCommand();
+        createHelpCommand(commandOwner);
+        createListCommands(commandOwner);
         createAboutCommand();
         createTestCommand();
     }
@@ -42,23 +44,32 @@ public final class CoreBotCommands {
 
     private void createAboutCommand() {
         CommandHandle about =
-                new CommandHandle.Builder(
-                    "about",
-                    message -> {
-                        return String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot", message.getUsername());
-                    }).build();
+                new CommandHandle.Builder("about", message -> {
+                    return String.format("@%s I am JavaBot, maintained by Uni, Vogel, and a few others. You can find me on http://github.com/Vincentyification/JavaBot",
+                            message.getUsername());
+                }).build();
         allCommands.add(about);
     }
 
-    private void createHelpCommand() {
+    private void createHelpCommand(final Subscribable<CommandHandle> commandOwner) {
         CommandHandle help = new CommandHandle.Builder("help", message -> {
             String[] parts = message.getMessage().split(" ");
             String commandName = parts[parts.length - 1];
-            Optional<String> helpText = allCommands.stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
+
+            Optional<String> helpText = commandOwner.getSubscriptions().stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
             if (helpText.isPresent()) { return helpText.get(); }
             return "help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]";
         }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]").build();
         allCommands.add(help);
+    }
+
+    private void createListCommands(final Subscribable<CommandHandle> commandOwner) {
+        CommandHandle listCommand = new CommandHandle.Builder("listCommands", message -> {
+            StringBuilder commandList = new StringBuilder("> Supported commands:\r\n");
+            commandOwner.getSubscriptions().stream().map(handle -> String.format("- %s: %s\r\n", handle.getName(), handle.getInfoText())).forEach(commandList::append);
+            return commandList.toString();
+        }).setHelpText("listCommands: lists all available commands").build();
+        allCommands.add(listCommand);
     }
 
     // FIXME: Javadoc accessor needs configuration

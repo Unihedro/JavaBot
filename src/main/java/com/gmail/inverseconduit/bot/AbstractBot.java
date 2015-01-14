@@ -12,26 +12,23 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
 
 public abstract class AbstractBot implements ChatWorker {
 
-	protected final ScheduledExecutorService executor = Executors
-			.newSingleThreadScheduledExecutor();
+    protected final ScheduledExecutorService   executor         = Executors.newSingleThreadScheduledExecutor();
 
-	protected final ExecutorService processingThread = Executors
-			.newSingleThreadExecutor();
+    protected final ExecutorService            processingThread = Executors.newSingleThreadExecutor();
 
-	protected final BlockingQueue<ChatMessage> messageQueue = new LinkedBlockingQueue<>();
+    protected final BlockingQueue<ChatMessage> messageQueue     = new LinkedBlockingQueue<>();
 
-	@Override
-	public final synchronized boolean enqueueMessage(ChatMessage chatMessage)
-			throws InterruptedException {
-		return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
-	}
+    @Override
+    public final synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
+        return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
+    }
 
-	@Override
-	public abstract void start();
+    @Override
+    public abstract void start();
 
-	@Override
-	protected void finalize() {
-		executor.shutdownNow();
-	}
+    @Override
+    protected void finalize() {
+        executor.shutdownNow();
+    }
 
 }
