@@ -1,5 +1,11 @@
 package com.gmail.inverseconduit.chat;
 
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -7,14 +13,30 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import com.gargoylesoftware.htmlunit.*;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.HttpMethod;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebRequest;
+import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
+import com.gargoylesoftware.htmlunit.util.UrlUtils;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
 import com.gmail.inverseconduit.SESite;
-import com.gmail.inverseconduit.datatype.*;
+import com.gmail.inverseconduit.datatype.ChatDescriptor;
+import com.gmail.inverseconduit.datatype.ChatEventType;
+import com.gmail.inverseconduit.datatype.ChatMessage;
+import com.gmail.inverseconduit.datatype.CredentialsProvider;
+import com.gmail.inverseconduit.datatype.JSONChatEvents;
+import com.gmail.inverseconduit.datatype.ProviderDescriptor;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.utils.PrintUtils;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
 public class StackExchangeChat implements ChatInterface {
@@ -52,17 +74,94 @@ public class StackExchangeChat implements ChatInterface {
      */
     @Override
     public boolean login(ProviderDescriptor descriptor, CredentialsProvider credentials) {
-        HtmlPage loginPage = getLoginPage(descriptor);
-        if (null == loginPage) { return false; }
+        if (descriptor.getDescription().toString().matches("(?!.*?(?:stackoverflow|meta)).+"))
+            loggedIn = openIdLogin(credentials.getIdentificator(), credentials.getAuthenticator());
+        else {
+            HtmlPage loginPage = getLoginPage(descriptor);
+            if (null == loginPage) { return false; }
 
-        HtmlForm loginForm = processLoginPage(credentials.getIdentificator(), credentials.getAuthenticator(), loginPage);
+            HtmlForm loginForm = processLoginPage(credentials.getIdentificator(), credentials.getAuthenticator(), loginPage);
 
-        WebResponse response = submitLoginForm(loginForm);
-        if (null == response) { return false; }
+            WebResponse response = submitLoginForm(loginForm);
+            if (null == response) { return false; }
 
-        loggedIn = (response.getStatusCode() == 200);
-        logLoginMessage(descriptor.getDescription().toString(), credentials.getIdentificator(), response);
+            loggedIn = (response.getStatusCode() == 200);
+            logLoginMessage(descriptor.getDescription().toString(), credentials.getIdentificator(), response);
+        }
         return loggedIn;
+    }
+
+    public boolean openIdLogin(String email, String password) {
+        try {
+            final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            { // Log into Stack Exchange.
+                WebResponse getRes = webClient.loadWebResponse(new WebRequest(
+                    UrlUtils.toUrlUnsafe("https://openid.stackexchange.com/account/login"),
+                    HttpMethod.GET
+                ));
+                if (getRes == null)
+                    // throw new IllegalArgumentException("Could not get OpenID fkey.");
+                    return false;
+                String response = getRes.getContentAsString();
+                LOGGER.info("Got response from fetching fkey of OpenID login:" + response);
+
+                WebRequest post = new WebRequest(
+                    UrlUtils.toUrlUnsafe("https://openid.stackexchange.com/account/login/submit"),
+                    HttpMethod.POST
+                );
+                try {
+                    post.setRequestParameters(ImmutableList.of(
+                        new NameValuePair("email", email),
+                        new NameValuePair("password", password),
+                        new NameValuePair("fkey",
+                            builder.parse(getRes.getContentAsStream())
+                                .getElementById("fkey")
+                                .getAttribute("value")
+                        )
+                    ));
+                } catch(SAXException die) {
+                    // throw new IllegalStateException("Parsing response text as DOM has caused a parse exception.", die);
+                    return false;
+                }
+                WebResponse postRes = webClient.loadWebResponse(post);
+                if (null == postRes || !Strings.isNullOrEmpty(postRes.getResponseHeaderValue("p3p")))
+                    // throw new IllegalArgumentException("Could not post to submit of OpenID.");
+                    return false;
+            }
+
+            { // Log into Stack Exchange Chat.
+                WebResponse getRes = webClient.loadWebResponse(new WebRequest(
+                    UrlUtils.toUrlUnsafe("http://stackexchange.com/users/chat-login"),
+                    HttpMethod.GET
+                ));
+                WebRequest post = new WebRequest(
+                    UrlUtils.toUrlUnsafe("http://chat.stackexchange.com/users/login/global"),
+                    HttpMethod.POST
+                );
+                try {
+                    Document dom = builder.parse(getRes.getContentAsStream());
+                    post.setRequestParameters(ImmutableList.of(
+                        new NameValuePair("authToken", dom.getElementById("authToken").getAttribute("value")),
+                        new NameValuePair("nonce", dom.getElementById("nonce").getAttribute("value"))
+                    ));
+                } catch(SAXException die) {
+                    // throw new IllegalStateException("Parsing response text as DOM has caused a parse exception.", die);
+                    return false;
+                }
+                post.setAdditionalHeaders(ImmutableMap.of(
+                    "Origin", "http://chat.stackexchange.com",
+                    "Referer", "http://chat.stackexchange.com"
+                ));
+                WebResponse postRes = webClient.loadWebResponse(post);
+                String response = postRes.getContentAsString();
+                return response.contains("Welcome");
+            }
+        } catch (ParserConfigurationException e) {
+            // Ignore - virtually impossible.
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private WebResponse submitLoginForm(HtmlForm loginForm) {
@@ -180,7 +279,7 @@ public class StackExchangeChat implements ChatInterface {
             StringBuilder messageBuilder = new StringBuilder();
             for (String token : messageTokens) {
                 if (messageBuilder.length() + token.length() < 495) {
-                    messageBuilder.append(" " + token);
+                    messageBuilder.append(' ').append(token);
                 }
                 else {
                     LOGGER.info("Message split part: " + messageBuilder.toString());
@@ -227,7 +326,7 @@ public class StackExchangeChat implements ChatInterface {
      * Queries the 5 latest messages for all chatrooms and enqueues them to
      * the subscribed {@link ChatWorker Workers}, respecting the already handled
      * timestamps as maintained internally.
-     * 
+     *
      * @see ChatInterface#queryMessages()
      */
     @Override
