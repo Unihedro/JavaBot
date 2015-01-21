@@ -102,15 +102,30 @@ public class Program {
 
     private void bindDefaultCommands() {
         bindShutdownCommand();
+        bindNumberCommand();
         bindJavaDocCommand();
         new CoreBotCommands(chatInterface, bot).allCommands().forEach(bot::subscribe);
+    }
+    
+    private void bindNumberCommand() {
+    	final Pattern p = Pattern.compile("^\\d+$");
+    	CommandHandle javaDoc = new CommandHandle.Builder(null, message -> {
+            Matcher matcher = p.matcher(message.getMessage());
+            if (!matcher.find()){
+            	return null;
+            }
+            
+            int choice = Integer.parseInt(matcher.group(0));
+            return javaDocAccessor.showChoice(message, choice);
+        }).build();
+        bot.subscribe(javaDoc);
     }
 
     private void bindJavaDocCommand() {
         CommandHandle javaDoc = new CommandHandle.Builder("javadoc", message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
-            return javaDocAccessor.javadoc(message, matcher.group(1).trim());
+            return javaDocAccessor.javadoc(message, matcher.group(1));
         }).build();
         bot.subscribe(javaDoc);
     }
