@@ -4,9 +4,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
+import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
@@ -20,6 +23,7 @@ public final class CoreBotCommands {
 
     public CoreBotCommands(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
         createSummonCommands(chatInterface);
+        createShutdownCommand(chatInterface);
         createGroovyCommands();
         createHelpCommand(commandOwner);
         createListCommands(commandOwner);
@@ -73,21 +77,25 @@ public final class CoreBotCommands {
     }
 
     // FIXME: Javadoc accessor needs configuration
-    /*
-     * private void bindJavaDocCommand() { CommandHandle javaDoc = new
-     * CommandHandle.Builder("javadoc", message -> { Matcher matcher =
-     * javadocPattern.matcher(message .getMessage()); matcher.find(); return
-     * javaDocAccessor.javadoc(message, matcher.group(1) .trim()); }).build();
-     * allCommands.add(javaDoc); }
-     */
 
-    /*
-     * private void bindShutdownCommand() { CommandHandle shutdown = new
-     * CommandHandle.Builder("shutdown", message -> { // FIXME: Require
-     * permissions for this chatInterface.broadcast("*~going down*"); // FIXME:
-     * needs to be solved differently executor.shutdownNow(); System.exit(0);
-     * return ""; }).build(); allCommands.add(shutdown); }
-     */
+    private void createShutdownCommand(ChatInterface chatInterface) {
+        CommandHandle shutdown =
+                new CommandHandle.Builder("shutdown", message -> {
+                    chatInterface.broadcast("*~going down*");
+                    chatInterface.getSubscriptions().forEach(s -> {
+                        try {
+                            s.enqueueMessage(Program.POISON_PILL);
+                        } catch(Exception e) {
+                            Logger.getAnonymousLogger().log(Level.WARNING, "Could not enqueue Poison Pill.", e);
+                        }
+                    });
+                    Program.getQueryingThread().shutdown();
+                    Logger.getAnonymousLogger().log(Level.INFO, "Sent poison pill to all subscribers, shut down the querying thread");
+                    return "";
+                }).setInfoText("Shuts down the bot")
+                        .setHelpText("This command requires owner privileges (or rather will do so). It shuts down the complete JavaBot instance in all chatRooms").build();
+        allCommands.add(shutdown);
+    }
 
     private void createTestCommand() {
         CommandHandle test = new CommandHandle.Builder("test", message -> {

@@ -13,9 +13,8 @@ import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
-import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.commands.CommandHandle;
-import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
+import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 
@@ -37,26 +36,36 @@ public class Program {
 
     private final InteractionBot                  interactionBot;
 
-    private final ChatInterface                   chatInterface  = new StackExchangeChat();
+    private final ChatInterface                   chatInterface;
 
     private final JavaDocAccessor                 javaDocAccessor;
 
     private static final Pattern                  javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
+    public static final ChatMessage               POISON_PILL    = new ChatMessage(null, -1, "", "", -1, "", -1);
+
     /**
+     * @param chatInterface
+     *        The ChatInterface to use as main interface to wire bots to
      * @throws IOException
      *         if there's a problem loading the Javadocs
      */
-    // TODO: get the chatInterface solved via Dependency Injection instead.
-    // This would greatly improve testability and ease of switching
-    // implementations
-    public Program() throws IOException {
+    public Program(ChatInterface chatInterface) throws IOException {
         LOGGER.finest("Instantiating Program");
-        bot = new DefaultBot(chatInterface);
-        interactionBot = new InteractionBot(chatInterface);
+        this.chatInterface = chatInterface;
+        this.bot = new DefaultBot(chatInterface);
+        this.interactionBot = new InteractionBot(chatInterface);
 
+        JavaDocAccessor tmp;
         //better not get ExceptionInInitializerError
-        javaDocAccessor = new JavaDocAccessor(config.getJavadocsDir());
+        try {
+            tmp = new JavaDocAccessor(config.getJavadocsDir());
+        } catch(IOException ex) {
+            LOGGER.log(Level.WARNING, "Couldn't initialize Javadoc accessor.", ex);
+            tmp = null;
+        }
+        this.javaDocAccessor = tmp;
+
         chatInterface.subscribe(bot);
         chatInterface.subscribe(interactionBot);
         LOGGER.info("Basic component setup complete");
@@ -67,9 +76,10 @@ public class Program {
      */
     public void startup() {
         LOGGER.info("Beginning startup process");
-        bindDefaultCommands();
+        bindJavaDocCommand();
         login();
         for (Integer room : config.getRooms()) {
+            // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
         scheduleQueryingThread();
@@ -78,34 +88,30 @@ public class Program {
         LOGGER.info("Startup completed.");
     }
 
+    //FIXME: should be somewhere else!
     private void scheduleQueryingThread() {
         executor.scheduleAtFixedRate(() -> {
             try {
                 chatInterface.queryMessages();
             } catch(RuntimeException | Error e) {
-                Logger.getAnonymousLogger().log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
+                LOGGER.log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
                 throw e;
             } catch(Exception e) {
-                Logger.getAnonymousLogger().log(Level.WARNING, "Exception occured in querying thread:", e);
+                LOGGER.log(Level.WARNING, "Exception occured in querying thread:", e);
             }
         }, 5, 3, TimeUnit.SECONDS);
-        Logger.getAnonymousLogger().info("querying thread started");
+        LOGGER.info("querying thread started");
     }
 
     private void login() {
         boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config);
         if ( !loggedIn) {
-            Logger.getAnonymousLogger().severe("Login failed!");
-            System.exit(2);
+            LOGGER.severe("Login failed!");
+            throw new RuntimeException("Login failure"); // should terminate the application
         }
     }
 
-    private void bindDefaultCommands() {
-        bindShutdownCommand();
-        bindJavaDocCommand();
-        new CoreBotCommands(chatInterface, bot).allCommands().forEach(bot::subscribe);
-    }
-
+    //FIXME: move this to the CoreBotCommands
     private void bindJavaDocCommand() {
         CommandHandle javaDoc = new CommandHandle.Builder("javadoc", message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
@@ -115,14 +121,11 @@ public class Program {
         bot.subscribe(javaDoc);
     }
 
-    private void bindShutdownCommand() {
-        CommandHandle shutdown = new CommandHandle.Builder("shutdown", message -> {
-            // FIXME: Require permissions for this
-            chatInterface.broadcast("*~going down*");
-            executor.shutdownNow();
-            System.exit(0);
-            return "";
-        }).build();
-        bot.subscribe(shutdown);
+    public DefaultBot getBot() {
+        return bot;
+    }
+
+    public static ScheduledExecutorService getQueryingThread() {
+        return executor;
     }
 }

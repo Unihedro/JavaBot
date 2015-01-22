@@ -29,7 +29,7 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  */
 public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-    private final Logger               LOGGER   = Logger.getLogger(DefaultBot.class.getName());
+    private static final Logger        LOGGER   = Logger.getLogger(DefaultBot.class.getName());
 
     protected final ChatInterface      chatInterface;
 

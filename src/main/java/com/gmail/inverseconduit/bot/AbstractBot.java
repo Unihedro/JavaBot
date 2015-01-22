@@ -20,6 +20,11 @@ public abstract class AbstractBot implements ChatWorker {
 
     @Override
     public final synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
+        if (chatMessage == Program.POISON_PILL) {
+            executor.shutdown();
+            processingThread.shutdown();
+            return true;
+        }
         return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }
 
@@ -29,6 +34,7 @@ public abstract class AbstractBot implements ChatWorker {
     @Override
     protected void finalize() {
         executor.shutdownNow();
+        processingThread.shutdownNow();
     }
 
 }
