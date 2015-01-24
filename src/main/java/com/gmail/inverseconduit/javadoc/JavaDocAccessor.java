@@ -289,31 +289,7 @@ public class JavaDocAccessor {
 		prevChoices = new ArrayList<>();
 		prevChoicesPinged = System.currentTimeMillis();
 		ChatBuilder cb = new ChatBuilder();
-		if (matchingMethods.size() == 1) {
-			if (methodParams == null) {
-				cb.append("Did you mean this one? (type the number)");
-			} else {
-				if (methodParams.isEmpty()) {
-					cb.append("I couldn't find a zero-arg signature for that method.");
-				} else {
-					cb.append("I couldn't find a signature with ");
-					cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
-				}
-				cb.append(" Did you mean this one? (type the number)");
-			}
-		} else {
-			if (methodParams == null) {
-				cb.append("Which one do you mean? (type the number)");
-			} else {
-				if (methodParams.isEmpty()) {
-					cb.append("I couldn't find a zero-arg signature for that method.");
-				} else {
-					cb.append("I couldn't find a signature with ");
-					cb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
-				}
-				cb.append(" Did you mean one of these? (type the number)");
-			}
-		}
+		cb.append(buildMethodChoiceQuestion(matchingMethods, methodParams));
 
 		int count = 1;
 		for (Map.Entry<ClassInfo, MethodInfo> entry : matchingMethods.entries()) {
@@ -339,6 +315,39 @@ public class JavaDocAccessor {
 			count++;
 		}
 		return cb.toString();
+	}
+
+	private String buildMethodChoiceQuestion(Multimap<ClassInfo, MethodInfo> matchingMethods, List<String> methodParams) {
+		if (matchingMethods.size() == 1) {
+			if (methodParams == null) {
+				return "Did you mean this one? (type the number)";
+			}
+
+			if (methodParams.isEmpty()) {
+				return "I couldn't find a zero-arg signature for that method.";
+			}
+
+			//@formatter:off
+			return
+			"I couldn't find a signature with " +
+			((methodParams.size() == 1) ? "that parameter." : "those parameters.") + 
+			" Did you mean this one? (type the number)";
+			//@formatter:on
+		}
+
+		if (methodParams == null) {
+			return "Which one do you mean? (type the number)";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		if (methodParams.isEmpty()) {
+			sb.append("I couldn't find a zero-arg signature for that method.");
+		} else {
+			sb.append("I couldn't find a signature with ");
+			sb.append((methodParams.size() == 1) ? "that parameter." : "those parameters.");
+		}
+		sb.append(" Did you mean one of these? (type the number)");
+		return sb.toString();
 	}
 
 	/**
