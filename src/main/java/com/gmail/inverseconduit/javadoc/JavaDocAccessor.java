@@ -447,11 +447,11 @@ public class JavaDocAccessor {
 		Set<String> matchingNameSignatures = new HashSet<>();
 
 		//search the class, all its parent classes, and all its interfaces and the interfaces of its super classes
-		LinkedList<ClassInfo> stack = new LinkedList<>();
-		stack.add(info);
+		LinkedList<ClassInfo> typeStack = new LinkedList<>();
+		typeStack.add(info);
 
-		while (!stack.isEmpty()) {
-			ClassInfo curInfo = stack.removeLast();
+		while (!typeStack.isEmpty()) {
+			ClassInfo curInfo = typeStack.removeLast();
 			for (MethodInfo curMethod : curInfo.getMethods()) {
 				if (!curMethod.getName().equalsIgnoreCase(methodName)) {
 					//name doesn't match
@@ -502,7 +502,7 @@ public class JavaDocAccessor {
 			if (superClass != null) {
 				ClassInfo superClassInfo = dao.getClassInfo(superClass.getFullQualified());
 				if (superClassInfo != null) {
-					stack.add(superClassInfo);
+					typeStack.add(superClassInfo);
 				}
 			}
 
@@ -510,7 +510,7 @@ public class JavaDocAccessor {
 			for (ClassName interfaceName : curInfo.getInterfaces()) {
 				ClassInfo interfaceInfo = dao.getClassInfo(interfaceName.getFullQualified());
 				if (interfaceInfo != null) {
-					stack.add(interfaceInfo);
+					typeStack.add(interfaceInfo);
 				}
 			}
 		}
