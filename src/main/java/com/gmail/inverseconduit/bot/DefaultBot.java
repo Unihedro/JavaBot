@@ -53,12 +53,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     }
 
     private void processMessage(final ChatMessage chatMessage) {
-    	for (final CommandHandle listener : listeners){
-    		final String response = listener.execute(chatMessage);
-    		if (response != null){
-    			chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), response);
-    		}
-    	}
+    	listeners.stream().map(l -> l.execute(chatMessage)).filter(l -> null != l).forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
     	
         final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
         if ( !chatMessage.getMessage().startsWith(trigger)) { return; }
