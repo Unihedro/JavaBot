@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.utils.ChatBuilder;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
@@ -34,28 +35,23 @@ public class JavaDocAccessor {
 
 	/**
 	 * The class modifiers to print in italics when outputting a class to the
-	 * chat.
+	 * chat (order matters).
 	 */
-	private final Set<String> classModifiersItalic;
+	private final List<String> classModifiers;
 	{
-		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
-		b.add("abstract");
-		b.add("final");
-		classModifiersItalic = b.build();
+		ImmutableList.Builder<String> b = new ImmutableList.Builder<>();
+		b.add("abstract", "final");
+		classModifiers = b.build();
 	}
 
 	/**
-	 * The class modifiers to print when outputting a class to the chat.
+	 * The list of possible "class types".
 	 */
-	private final Set<String> classModifiers;
+	private final Set<String> classTypes;
 	{
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
-		b.add("annotation");
-		b.add("class");
-		b.add("enum");
-		b.add("exception");
-		b.add("interface");
-		classModifiers = b.build();
+		b.add("annotation", "class", "enum", "exception", "interface");
+		classTypes = b.build();
 	}
 
 	/**
@@ -389,17 +385,29 @@ public class JavaDocAccessor {
 
 			//print modifiers
 			boolean deprecated = info.isDeprecated();
-			for (String modifier : info.getModifiers()) {
-				boolean italic = classModifiersItalic.contains(modifier);
-				if (!italic && !classModifiers.contains(modifier)) {
+			Collection<String> infoModifiers = info.getModifiers();
+
+			//add class modifiers (order matters)
+			for (String classModifier : classModifiers) {
+				if (!infoModifiers.contains(classModifier)) {
 					continue;
 				}
 
-				if (italic) cb.italic();
+				cb.italic();
+				if (deprecated) cb.strike();
+				cb.tag(classModifier);
+				if (deprecated) cb.strike();
+				cb.italic();
+				cb.append(' ');
+			}
+
+			Collection<String> classType = new HashSet<>(infoModifiers);
+			classType.retainAll(classTypes);
+			//there should be only one remaining element in the collection, but use a foreach loop just incase
+			for (String modifier : classType) {
 				if (deprecated) cb.strike();
 				cb.tag(modifier);
 				if (deprecated) cb.strike();
-				if (italic) cb.italic();
 				cb.append(' ');
 			}
 
