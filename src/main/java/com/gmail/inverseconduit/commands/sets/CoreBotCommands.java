@@ -89,7 +89,6 @@ public final class CoreBotCommands {
                             Logger.getAnonymousLogger().log(Level.WARNING, "Could not enqueue Poison Pill.", e);
                         }
                     });
-                    Program.getQueryingThread().shutdown();
                     Logger.getAnonymousLogger().log(Level.INFO, "Sent poison pill to all subscribers, shut down the querying thread");
                     return "";
                 }).setInfoText("Shuts down the bot")

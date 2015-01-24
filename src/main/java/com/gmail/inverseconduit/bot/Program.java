@@ -1,9 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -26,23 +23,21 @@ import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
  */
 public class Program {
 
-    private static final Logger                   LOGGER         = Logger.getLogger(Program.class.getName());
+    private static final Logger     LOGGER         = Logger.getLogger(Program.class.getName());
 
-    private static final ScheduledExecutorService executor       = Executors.newSingleThreadScheduledExecutor();
+    private static final BotConfig  config         = AppContext.INSTANCE.get(BotConfig.class);
 
-    private static final BotConfig                config         = AppContext.INSTANCE.get(BotConfig.class);
+    private final DefaultBot        bot;
 
-    private final DefaultBot                      bot;
+    private final InteractionBot    interactionBot;
 
-    private final InteractionBot                  interactionBot;
+    private final ChatInterface     chatInterface;
 
-    private final ChatInterface                   chatInterface;
+    private final JavaDocAccessor   javaDocAccessor;
 
-    private final JavaDocAccessor                 javaDocAccessor;
+    private static final Pattern    javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
-    private static final Pattern                  javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
-
-    public static final ChatMessage               POISON_PILL    = new ChatMessage(null, -1, "", "", -1, "", -1);
+    public static final ChatMessage POISON_PILL    = new ChatMessage(null, -1, "", "", -1, "", -1);
 
     /**
      * @param chatInterface
@@ -82,25 +77,9 @@ public class Program {
             // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
-        scheduleQueryingThread();
         bot.start();
         interactionBot.start();
         LOGGER.info("Startup completed.");
-    }
-
-    //FIXME: should be somewhere else!
-    private void scheduleQueryingThread() {
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                chatInterface.queryMessages();
-            } catch(RuntimeException | Error e) {
-                LOGGER.log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
-                throw e;
-            } catch(Exception e) {
-                LOGGER.log(Level.WARNING, "Exception occured in querying thread:", e);
-            }
-        }, 5, 3, TimeUnit.SECONDS);
-        LOGGER.info("querying thread started");
     }
 
     private void login() {
@@ -123,9 +102,5 @@ public class Program {
 
     public DefaultBot getBot() {
         return bot;
-    }
-
-    public static ScheduledExecutorService getQueryingThread() {
-        return executor;
     }
 }

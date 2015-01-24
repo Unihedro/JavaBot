@@ -8,8 +8,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Policy;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Filter;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
@@ -18,8 +22,11 @@ import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Main {
+
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) throws Exception {
         setupLogging();
@@ -38,6 +45,17 @@ public class Main {
         new CoreBotCommands(seInterface, p.getBot()).allCommands().forEach(p.getBot()::subscribe);
 
         p.startup();
+        ThreadFactory factory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("message-query-thread-%d").build();
+        Executors.newSingleThreadScheduledExecutor(factory).scheduleAtFixedRate(() -> {
+            try {
+                seInterface.queryMessages();
+            } catch(RuntimeException | Error e) {
+                LOGGER.log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
+                throw e;
+            } catch(Exception e) {
+                LOGGER.log(Level.WARNING, "Exception occured in querying thread:", e);
+            }
+        }, 5, 3, TimeUnit.SECONDS);
     }
 
     private static void setupLogging() {
