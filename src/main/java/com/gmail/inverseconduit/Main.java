@@ -7,12 +7,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Policy;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Filter;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -75,16 +75,12 @@ public class Main {
             public boolean isLoggable(LogRecord record) {
                 //only log messages from this app
                 String name = record.getLoggerName();
-                return (name == null)
-                    ? false
-                    : name.startsWith(packageName);
+                return name != null && name.startsWith(packageName);
             }
         };
 
         Logger global = Logger.getLogger("");
-        for (Handler handler : global.getHandlers()) {
-            handler.setFilter(filter);
-        }
+        Arrays.stream(global.getHandlers()).forEach(h -> h.setFilter(filter));
     }
 
     private static BotConfig loadConfig() throws IOException {
