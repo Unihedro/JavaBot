@@ -75,7 +75,7 @@ public class JavadocDao {
 		synchronized (this) {
 			while (it.hasNext()) {
 				ClassName className = it.next();
-				String fullName = className.getFull();
+				String fullName = className.getFullQualified();
 				String simpleName = className.getSimple();
 
 				aliases.put(simpleName.toLowerCase(), fullName);
