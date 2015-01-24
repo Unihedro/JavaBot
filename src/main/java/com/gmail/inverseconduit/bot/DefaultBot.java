@@ -73,13 +73,14 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
         commands.remove(subscriber);
     }
 
-    public void shutdown() {
-        executor.shutdown();
-    }
-
     @Override
     public Collection<CommandHandle> getSubscriptions() {
         return Collections.unmodifiableCollection(commands);
+    }
+
+    @Override
+    protected void shutdown() {
+        // nothing to do here!
     }
 
 }
