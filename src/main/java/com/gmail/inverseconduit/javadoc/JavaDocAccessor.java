@@ -31,6 +31,9 @@ import com.google.common.collect.Multimap;
 public class JavaDocAccessor {
 	private final JavadocDao dao;
 
+	/**
+	 * 
+	 */
 	private List<String> prevChoices = new ArrayList<>();
 	private long prevChoicesPinged = 0;
 	private final long choiceTimeout = TimeUnit.SECONDS.toMillis(30);
@@ -65,9 +68,7 @@ public class JavaDocAccessor {
 	private static final Set<String> methodModifiersToIgnore;
 	static {
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
-		b.add("private");
-		b.add("protected");
-		b.add("public");
+		b.add("private", "protected", "public");
 		methodModifiersToIgnore = b.build();
 	}
 
