@@ -299,7 +299,7 @@ public class JavaDocAccessor {
 			String signature;
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append(classInfo.getName().getFullQualified()).append("#").append(methodInfo.getName());
+				sb.append(classInfo.getName().getFullyQualified()).append("#").append(methodInfo.getName());
 
 				List<String> paramList = new ArrayList<>();
 				for (ParameterInfo param : methodInfo.getParameters()) {
@@ -423,7 +423,7 @@ public class JavaDocAccessor {
 
 			//print class name
 			if (deprecated) cb.strike();
-			String fullName = info.getName().getFullQualified();
+			String fullName = info.getName().getFullyQualified();
 			String url = info.getFrameUrl();
 			if (url == null) {
 				cb.bold().code(fullName).bold();
@@ -509,7 +509,7 @@ public class JavaDocAccessor {
 			//add parent class to the stack
 			ClassName superClass = curInfo.getSuperClass();
 			if (superClass != null) {
-				ClassInfo superClassInfo = dao.getClassInfo(superClass.getFullQualified());
+				ClassInfo superClassInfo = dao.getClassInfo(superClass.getFullyQualified());
 				if (superClassInfo != null) {
 					typeStack.add(superClassInfo);
 				}
@@ -517,7 +517,7 @@ public class JavaDocAccessor {
 
 			//add interfaces to the stack
 			for (ClassName interfaceName : curInfo.getInterfaces()) {
-				ClassInfo interfaceInfo = dao.getClassInfo(interfaceName.getFullQualified());
+				ClassInfo interfaceInfo = dao.getClassInfo(interfaceName.getFullyQualified());
 				if (interfaceInfo != null) {
 					typeStack.add(interfaceInfo);
 				}

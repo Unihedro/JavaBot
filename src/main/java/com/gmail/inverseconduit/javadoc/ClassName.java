@@ -33,7 +33,7 @@ public class ClassName {
 	 * Gets the fully-qualified class name
 	 * @return the fully-qualified class name (e.g. "java.lang.String")
 	 */
-	public String getFullQualified() {
+	public String getFullyQualified() {
 		return fullyQualified;
 	}
 
