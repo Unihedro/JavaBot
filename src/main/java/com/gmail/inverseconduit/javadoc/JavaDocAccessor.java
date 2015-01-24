@@ -24,7 +24,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 /**
- * Handles "javadoc" commands.
+ * Generates chat message responses to the "javadoc" command. Also generates
+ * responses to numeric chat messages that users enter when the javadoc command
+ * presents them with a list of choices.
  */
 public class JavaDocAccessor {
 	private final JavadocDao dao;
@@ -34,8 +36,9 @@ public class JavaDocAccessor {
 	private final long choiceTimeout = TimeUnit.SECONDS.toMillis(30);
 
 	/**
-	 * The class modifiers to print in italics when outputting a class to the
-	 * chat (order matters).
+	 * "Flags" that a class can have. They are defined in a List because, if a
+	 * class has multiple modifiers, I want them to be displayed in a consistent
+	 * order.
 	 */
 	private final List<String> classModifiers;
 	{
@@ -45,7 +48,9 @@ public class JavaDocAccessor {
 	}
 
 	/**
-	 * The list of possible "class types".
+	 * The list of possible "class types". Each class *should* have exactly one
+	 * type, but there's no explicit check for this (things shouldn't break if a
+	 * class does not have exactly one).
 	 */
 	private final Set<String> classTypes;
 	{
@@ -243,11 +248,9 @@ public class JavaDocAccessor {
 
 			//print modifiers
 			boolean deprecated = methodInfo.isDeprecated();
-			for (String modifier : methodInfo.getModifiers()) {
-				if (methodModifiersToIgnore.contains(modifier)) {
-					continue;
-				}
-
+			Collection<String> modifiersToPrint = new ArrayList<String>(methodInfo.getModifiers());
+			modifiersToPrint.removeAll(methodModifiersToIgnore);
+			for (String modifier : modifiersToPrint) {
 				if (deprecated) cb.strike();
 				cb.tag(modifier);
 				if (deprecated) cb.strike();
@@ -386,13 +389,11 @@ public class JavaDocAccessor {
 			//print modifiers
 			boolean deprecated = info.isDeprecated();
 			Collection<String> infoModifiers = info.getModifiers();
+			List<String> modifiersToPrint = new ArrayList<>(classModifiers);
+			modifiersToPrint.retainAll(infoModifiers);
 
-			//add class modifiers (order matters)
-			for (String classModifier : classModifiers) {
-				if (!infoModifiers.contains(classModifier)) {
-					continue;
-				}
-
+			//add class modifiers
+			for (String classModifier : modifiersToPrint) {
 				cb.italic();
 				if (deprecated) cb.strike();
 				cb.tag(classModifier);
@@ -401,8 +402,8 @@ public class JavaDocAccessor {
 				cb.append(' ');
 			}
 
-			Collection<String> classType = new HashSet<>(infoModifiers);
-			classType.retainAll(classTypes);
+			Collection<String> classType = new HashSet<>(classTypes);
+			classType.retainAll(infoModifiers);
 			//there should be only one remaining element in the collection, but use a foreach loop just incase
 			for (String modifier : classType) {
 				if (deprecated) cb.strike();
