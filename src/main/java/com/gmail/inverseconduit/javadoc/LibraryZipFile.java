@@ -24,8 +24,8 @@ import com.gmail.inverseconduit.utils.DocumentWrapper;
  * @author Michael Angstadt
  */
 public class LibraryZipFile {
-	private static final String extension = ".xml";
-	private static final String infoFileName = "info" + extension;
+	private static final String EXTENSION = ".xml";
+	private static final String INFO_FILENAME = "info" + EXTENSION;
 
 	private final Path file;
 	private final String baseUrl;
@@ -37,7 +37,7 @@ public class LibraryZipFile {
 		this.file = file.toRealPath();
 
 		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
-			Path info = fs.getPath("/" + infoFileName);
+			Path info = fs.getPath("/" + INFO_FILENAME);
 			if (!Files.exists(info)) {
 				baseUrl = name = version = projectUrl = null;
 				return;
@@ -111,11 +111,11 @@ public class LibraryZipFile {
 		final FileSystem fs = FileSystems.newFileSystem(file, null);
 		final DirectoryStream<Path> stream = Files.newDirectoryStream(fs.getPath("/"), entry -> {
 			String name = entry.getFileName().toString();
-			if (!name.endsWith(extension)) {
+			if (!name.endsWith(EXTENSION)) {
 				return false;
 			}
 
-			return !name.equals(infoFileName);
+			return !name.equals(INFO_FILENAME);
 		});
 
 		final Iterator<Path> it = stream.iterator();
@@ -143,7 +143,7 @@ public class LibraryZipFile {
 			public ClassName next() {
 				Path file = it.next();
 				String fileName = file.getFileName().toString();
-				String fullName = fileName.substring(0, fileName.length() - extension.length());
+				String fullName = fileName.substring(0, fileName.length() - EXTENSION.length());
 				return new ClassName(fullName);
 			}
 		};
@@ -158,7 +158,7 @@ public class LibraryZipFile {
 	 */
 	public ClassInfo getClassInfo(String fullName) throws IOException {
 		try (FileSystem fs = FileSystems.newFileSystem(file, null)) {
-			Path path = fs.getPath(fullName + extension);
+			Path path = fs.getPath(fullName + EXTENSION);
 			if (!Files.exists(path)) {
 				return null;
 			}
