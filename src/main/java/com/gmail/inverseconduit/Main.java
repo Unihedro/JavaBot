@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
-import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -45,9 +44,6 @@ public class Main {
             }
 
             Program p = new Program(seInterface);
-
-            // Binds all core commands to the Bot (move to Bot instantiation??)
-            new CoreBotCommands(seInterface, p.getBot()).allCommands().forEach(p.getBot()::subscribe);
 
             p.startup();
             ThreadFactory factory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("message-query-thread-%d").build();

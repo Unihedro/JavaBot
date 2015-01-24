@@ -12,6 +12,7 @@ import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
@@ -38,6 +39,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
 
     public DefaultBot(ChatInterface chatInterface) {
         this.chatInterface = chatInterface;
+        new CoreBotCommands(chatInterface, this).allCommands().forEach(this::subscribe);
     }
 
     @Override
