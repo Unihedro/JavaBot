@@ -41,7 +41,10 @@ public class Program {
 
     /**
      * @param chatInterface
-     *        The ChatInterface to use as main interface to wire bots to
+     *        The ChatInterface to use as main interface to wire bots to. It is
+     *        assumed that the ChatInterface's
+     *        {@link ChatInterface#login(com.gmail.inverseconduit.datatype.ProviderDescriptor, com.gmail.inverseconduit.datatype.CredentialsProvider)
+     *        login()} has been called already
      * @throws IOException
      *         if there's a problem loading the Javadocs
      */
@@ -72,7 +75,6 @@ public class Program {
     public void startup() {
         LOGGER.info("Beginning startup process");
         bindJavaDocCommand();
-        login();
         for (Integer room : config.getRooms()) {
             // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
@@ -80,14 +82,6 @@ public class Program {
         bot.start();
         interactionBot.start();
         LOGGER.info("Startup completed.");
-    }
-
-    private void login() {
-        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config);
-        if ( !loggedIn) {
-            LOGGER.severe("Login failed!");
-            throw new RuntimeException("Login failure"); // should terminate the application
-        }
     }
 
     //FIXME: move this to the CoreBotCommands

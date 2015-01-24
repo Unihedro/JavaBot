@@ -38,24 +38,32 @@ public class Main {
         BotConfig config = loadConfig();
         AppContext.INSTANCE.add(config);
 
-        StackExchangeChat seInterface = new StackExchangeChat();
-        Program p = new Program(seInterface);
-
-        // Binds all core commands to the Bot (move to Bot instantiation??)
-        new CoreBotCommands(seInterface, p.getBot()).allCommands().forEach(p.getBot()::subscribe);
-
-        p.startup();
-        ThreadFactory factory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("message-query-thread-%d").build();
-        Executors.newSingleThreadScheduledExecutor(factory).scheduleAtFixedRate(() -> {
-            try {
-                seInterface.queryMessages();
-            } catch(RuntimeException | Error e) {
-                LOGGER.log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
-                throw e;
-            } catch(Exception e) {
-                LOGGER.log(Level.WARNING, "Exception occured in querying thread:", e);
+        try (StackExchangeChat seInterface = new StackExchangeChat()) {
+            if ( !seInterface.login(SESite.STACK_OVERFLOW, config)) {
+                LOGGER.severe("Login failed!");
+                throw new RuntimeException("Login failure");
             }
-        }, 5, 3, TimeUnit.SECONDS);
+
+            Program p = new Program(seInterface);
+
+            // Binds all core commands to the Bot (move to Bot instantiation??)
+            new CoreBotCommands(seInterface, p.getBot()).allCommands().forEach(p.getBot()::subscribe);
+
+            p.startup();
+            ThreadFactory factory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("message-query-thread-%d").build();
+            Executors.newSingleThreadScheduledExecutor(factory).scheduleAtFixedRate(() -> queryMessagesFor(seInterface), 5, 3, TimeUnit.SECONDS);
+        }
+    }
+
+    private static void queryMessagesFor(StackExchangeChat seInterface) {
+        try {
+            seInterface.queryMessages();
+        } catch(RuntimeException | Error e) {
+            LOGGER.log(Level.SEVERE, "Runtime Exception or Error occurred:", e);
+            throw e;
+        } catch(Exception e) {
+            LOGGER.log(Level.WARNING, "Exception occured:", e);
+        }
     }
 
     private static void setupLogging() {
