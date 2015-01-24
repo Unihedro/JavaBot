@@ -40,8 +40,8 @@ public class JavaDocAccessor {
 	 * class has multiple modifiers, I want them to be displayed in a consistent
 	 * order.
 	 */
-	private final List<String> classModifiers;
-	{
+	private static final List<String> classModifiers;
+	static {
 		ImmutableList.Builder<String> b = new ImmutableList.Builder<>();
 		b.add("abstract", "final");
 		classModifiers = b.build();
@@ -52,8 +52,8 @@ public class JavaDocAccessor {
 	 * type, but there's no explicit check for this (things shouldn't break if a
 	 * class does not have exactly one).
 	 */
-	private final Set<String> classTypes;
-	{
+	private static final Set<String> classTypes;
+	static {
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
 		b.add("annotation", "class", "enum", "exception", "interface");
 		classTypes = b.build();
@@ -62,8 +62,8 @@ public class JavaDocAccessor {
 	/**
 	 * The method modifiers to ignore when outputting a method to the chat.
 	 */
-	private final Set<String> methodModifiersToIgnore;
-	{
+	private static final Set<String> methodModifiersToIgnore;
+	static {
 		ImmutableSet.Builder<String> b = new ImmutableSet.Builder<>();
 		b.add("private");
 		b.add("protected");
