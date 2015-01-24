@@ -13,7 +13,8 @@ import com.google.common.collect.Multimap;
  * @author Michael Angstadt
  */
 public class ClassInfo {
-	private final ClassName name, superClass;
+	private final ClassName name;
+	private final ClassName superClass;
 	private final String description;
 	private final Set<String> modifiers;
 	private final Set<ClassName> interfaces;
@@ -125,7 +126,8 @@ public class ClassInfo {
 	 * Builds new instances of {@link ClassInfo}.
 	 */
 	public static class Builder {
-		private ClassName name, superClass;
+		private ClassName name;
+		private ClassName superClass;
 		private String description;
 		private ImmutableSet.Builder<String> modifiers = ImmutableSet.builder();
 		private ImmutableSet.Builder<ClassName> interfaces = ImmutableSet.builder();

@@ -5,7 +5,8 @@ package com.gmail.inverseconduit.javadoc;
  * @author Michael Angstadt
  */
 public class ClassName {
-	private final String fullyQualified, simple;
+	private final String fullyQualified;
+	private final String simple;
 
 	/**
 	 * @param fullyQualified the fully-qualified class name (e.g.

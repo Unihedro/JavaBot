@@ -13,7 +13,9 @@ import com.google.common.collect.ImmutableSet;
  * @author Michael Angstadt
  */
 public class MethodInfo {
-	private final String name, description, urlAnchor;
+	private final String name;
+	private final String description;
+	private final String urlAnchor;
 	private final Set<String> modifiers;
 	private final List<ParameterInfo> parameters;
 	private final ClassName returnValue;

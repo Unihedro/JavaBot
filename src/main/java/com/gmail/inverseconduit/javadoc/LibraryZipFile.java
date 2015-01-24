@@ -28,7 +28,10 @@ public class LibraryZipFile {
 	private static final String infoFileName = "info" + extension;
 
 	private final Path file;
-	private final String baseUrl, name, version, projectUrl;
+	private final String baseUrl;
+	private final String name;
+	private final String version;
+	private final String projectUrl;
 
 	public LibraryZipFile(Path file) throws IOException {
 		this.file = file.toRealPath();
