@@ -1,6 +1,8 @@
 package com.gmail.inverseconduit.bot;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -10,6 +12,7 @@ import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
+import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
@@ -27,9 +30,7 @@ public class Program {
 
     private static final BotConfig  config         = AppContext.INSTANCE.get(BotConfig.class);
 
-    private final DefaultBot        bot;
-
-    private final InteractionBot    interactionBot;
+    private final Set<ChatWorker>   bots           = new HashSet<>();
 
     private final ChatInterface     chatInterface;
 
@@ -51,8 +52,8 @@ public class Program {
     public Program(ChatInterface chatInterface) throws IOException {
         LOGGER.finest("Instantiating Program");
         this.chatInterface = chatInterface;
-        this.bot = new DefaultBot(chatInterface);
-        this.interactionBot = new InteractionBot(chatInterface);
+        bots.add(new DefaultBot(chatInterface));
+        bots.add(new InteractionBot(chatInterface));
 
         JavaDocAccessor tmp;
         //better not get ExceptionInInitializerError
@@ -64,13 +65,14 @@ public class Program {
         }
         this.javaDocAccessor = tmp;
 
-        chatInterface.subscribe(bot);
-        chatInterface.subscribe(interactionBot);
+        bots.forEach(chatInterface::subscribe);
         LOGGER.info("Basic component setup complete");
     }
 
     /**
-     * This is where the beef happens. Glue all the stuff together here
+     * Here the injected chatInterface is used to join the rooms specified in
+     * bot.properties.
+     * Additionally all bots that were created on startup are started.
      */
     public void startup() {
         LOGGER.info("Beginning startup process");
@@ -79,8 +81,7 @@ public class Program {
             // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
-        bot.start();
-        interactionBot.start();
+        bots.forEach(ChatWorker::start);
         LOGGER.info("Startup completed.");
     }
 
@@ -107,10 +108,10 @@ public class Program {
             matcher.find();
             return javaDocAccessor.javadoc(message, matcher.group(1));
         }).build();
-        bot.subscribe(javaDoc);
+        bots.stream().filter(worker -> worker instanceof DefaultBot).findFirst().ifPresent(bot -> ((DefaultBot) bot).subscribe(javaDoc));
     }
 
-    public DefaultBot getBot() {
-        return bot;
+    public Set<ChatWorker> getBots() {
+        return bots;
     }
 }
