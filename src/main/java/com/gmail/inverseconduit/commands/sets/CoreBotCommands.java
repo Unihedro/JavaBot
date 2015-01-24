@@ -1,11 +1,14 @@
 package com.gmail.inverseconduit.commands.sets;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
@@ -13,20 +16,40 @@ import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
 
 public final class CoreBotCommands {
 
-    private static final BotConfig BOT_CONFIG  = AppContext.INSTANCE.get(BotConfig.class);
+    private static final BotConfig   BOT_CONFIG     = AppContext.INSTANCE.get(BotConfig.class);
 
-    final Set<CommandHandle>       allCommands = new HashSet<>();
+    private static final Pattern     javadocPattern = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
+
+    private final JavaDocAccessor    javaDocAccessor;
+
+    private final Set<CommandHandle> allCommands    = new HashSet<>();
 
     public CoreBotCommands(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
+        JavaDocAccessor tmp;
+        //better not get ExceptionInInitializerError
+        try {
+            tmp = new JavaDocAccessor(BOT_CONFIG.getJavadocsDir());
+        } catch(IOException ex) {
+            Logger.getAnonymousLogger().log(Level.WARNING, "Couldn't initialize Javadoc accessor.", ex);
+            tmp = null;
+        }
+        this.javaDocAccessor = tmp;
+
         createSummonCommands(chatInterface);
         createShutdownCommand(chatInterface);
+
         createGroovyCommands();
+        createJavaDocCommand();
+        createNumberCommand();
+
         createHelpCommand(commandOwner);
         createListCommands(commandOwner);
+
         createAboutCommand();
         createTestCommand();
     }
@@ -76,7 +99,26 @@ public final class CoreBotCommands {
         allCommands.add(listCommand);
     }
 
-    // FIXME: Javadoc accessor needs configuration
+    private void createJavaDocCommand() {
+        CommandHandle javaDoc = new CommandHandle.Builder("javadoc", message -> {
+            Matcher matcher = javadocPattern.matcher(message.getMessage());
+            matcher.find();
+            return javaDocAccessor.javadoc(message, matcher.group(1).trim());
+        }).build();
+        allCommands.add(javaDoc);
+    }
+
+    private void createNumberCommand() {
+        final Pattern p = Pattern.compile("^\\d+$");
+        CommandHandle javaDoc = new CommandHandle.Builder(null, message -> {
+            Matcher matcher = p.matcher(message.getMessage());
+            if ( !matcher.find()) { return null; }
+
+            int choice = Integer.parseInt(matcher.group(0));
+            return javaDocAccessor.showChoice(message, choice);
+        }).build();
+        allCommands.add(javaDoc);
+    }
 
     private void createShutdownCommand(ChatInterface chatInterface) {
         CommandHandle shutdown =
