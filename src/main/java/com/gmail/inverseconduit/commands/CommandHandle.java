@@ -107,7 +107,10 @@ public class CommandHandle {
     @Deprecated
     public boolean matchesSyntax(String commandCall) {
         // FIXME: Interimsimplementation. To be removed!
-        return commandCall.contains(name);
+    	if (commandCall != null && name != null){
+    		return commandCall.contains(name);
+    	}
+        return false;
     }
 
     public String getHelpText() {

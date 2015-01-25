@@ -34,6 +34,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     protected final ChatInterface      chatInterface;
 
     protected final Set<CommandHandle> commands = new HashSet<>();
+    protected final Set<CommandHandle> listeners = new HashSet<>();
 
     public DefaultBot(ChatInterface chatInterface) {
         this.chatInterface = chatInterface;
@@ -52,6 +53,8 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     }
 
     private void processMessage(final ChatMessage chatMessage) {
+    	listeners.stream().map(l -> l.execute(chatMessage)).filter(l -> null != l).forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
+    	
         final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
         if ( !chatMessage.getMessage().startsWith(trigger)) { return; }
 
@@ -62,14 +65,23 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     public Set<CommandHandle> getCommands() {
         return Collections.unmodifiableSet(commands);
     }
+    
+    public Set<CommandHandle> getListeners(){
+    	return Collections.unmodifiableSet(listeners);
+    }
 
     @Override
     public void subscribe(CommandHandle subscriber) {
-        commands.add(subscriber);
+    	if (subscriber.getName() == null){
+    		listeners.add(subscriber);
+    	} else {
+    		commands.add(subscriber);
+    	}
     }
 
     @Override
     public void unSubscribe(CommandHandle subscriber) {
+    	listeners.remove(subscriber);
         commands.remove(subscriber);
     }
 
@@ -79,7 +91,9 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
 
     @Override
     public Collection<CommandHandle> getSubscriptions() {
-        return Collections.unmodifiableCollection(commands);
+    	Set<CommandHandle> set = new HashSet<CommandHandle>(commands);
+    	set.addAll(listeners);
+        return set;
     }
 
 }
