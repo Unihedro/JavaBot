@@ -74,7 +74,7 @@ public class Program {
      */
     public void startup() {
         LOGGER.info("Beginning startup process");
-        bindJavaDocCommand();
+        bindDefaultCommands();
         for (Integer room : config.getRooms()) {
             // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
@@ -84,12 +84,28 @@ public class Program {
         LOGGER.info("Startup completed.");
     }
 
-    //FIXME: move this to the CoreBotCommands
+    private void bindDefaultCommands() {
+        bindNumberCommand();
+        bindJavaDocCommand();
+    }
+
+    private void bindNumberCommand() {
+        final Pattern p = Pattern.compile("^\\d+$");
+        CommandHandle javaDoc = new CommandHandle.Builder(null, message -> {
+            Matcher matcher = p.matcher(message.getMessage());
+            if ( !matcher.find()) { return null; }
+
+            int choice = Integer.parseInt(matcher.group(0));
+            return javaDocAccessor.showChoice(message, choice);
+        }).build();
+        bot.subscribe(javaDoc);
+    }
+
     private void bindJavaDocCommand() {
         CommandHandle javaDoc = new CommandHandle.Builder("javadoc", message -> {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
-            return javaDocAccessor.javadoc(message, matcher.group(1).trim());
+            return javaDocAccessor.javadoc(message, matcher.group(1));
         }).build();
         bot.subscribe(javaDoc);
     }
