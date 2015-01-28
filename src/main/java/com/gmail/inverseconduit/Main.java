@@ -18,6 +18,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.bot.Program;
+import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.security.ScriptSecurityManager;
 import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
@@ -51,7 +52,7 @@ public class Main {
         }
     }
 
-    private static void queryMessagesFor(StackExchangeChat seInterface) {
+    private static void queryMessagesFor(ChatInterface seInterface) {
         try {
             seInterface.queryMessages();
         } catch(RuntimeException | Error e) {
