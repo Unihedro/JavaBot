@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.gmail.inverseconduit.datatype.ChatMessage;
+
 public class PrintUtils {
 
     private static final String  linkTokenRegex          = "(\\[[^]]++\\]\\(https?+:\\/\\/[^\\s\"]++(\\h++\"[^\"]++\")?\\))";
@@ -51,5 +53,9 @@ public class PrintUtils {
             }
         }
         return tokens;
+    }
+
+    public static String asReply(String result, ChatMessage chatMessage) {
+        return String.format(":%d %s", chatMessage.getMessageId(), result);
     }
 }

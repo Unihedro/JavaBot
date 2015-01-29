@@ -15,6 +15,7 @@ import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
+import com.gmail.inverseconduit.utils.PrintUtils;
 
 /**
  * Defines bot core functionality. A bot manages {@link CommandHandle
@@ -63,7 +64,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
         final String commandName = chatMessage.getMessage().replace(trigger, "").split(" ")[0];
 
         commands.stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findFirst().map(c -> c.execute(chatMessage))
-        // replying could be implemented here! .map(prepend reply)
+                .map(result -> PrintUtils.asReply(result, chatMessage))
                 .ifPresent(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
     }
 
