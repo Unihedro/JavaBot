@@ -79,14 +79,16 @@ public final class CoreBotCommands {
     }
 
     private void createHelpCommand(final Subscribable<CommandHandle> commandOwner) {
-        CommandHandle help = new CommandHandle.Builder("help", message -> {
-            String[] parts = message.getMessage().split(" ");
-            String commandName = parts[parts.length - 1];
+        CommandHandle help =
+                new CommandHandle.Builder("help", message -> {
+                    String[] parts = message.getMessage().split(" ");
+                    String commandName = parts[parts.length - 1];
 
-            Optional<String> helpText = commandOwner.getSubscriptions().stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
-            if (helpText.isPresent()) { return helpText.get(); }
-            return "help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]";
-        }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]").build();
+                    Optional<String> helpText = commandOwner.getSubscriptions().stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
+                    if (helpText.isPresent()) { return helpText.get(); }
+                    return "help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]";
+                }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]")
+                        .setInfoText("Get help for a specific command").build();
         allCommands.add(help);
     }
 
@@ -95,7 +97,7 @@ public final class CoreBotCommands {
             StringBuilder commandList = new StringBuilder("> Supported commands:\r\n");
             commandOwner.getSubscriptions().stream().map(handle -> String.format("- %s: %s\r\n", handle.getName(), handle.getInfoText())).forEach(commandList::append);
             return commandList.toString();
-        }).setHelpText("listCommands: lists all available commands").build();
+        }).setHelpText("listCommands: lists all available commands").setInfoText("show this command listing").build();
         allCommands.add(listCommand);
     }
 
@@ -104,7 +106,7 @@ public final class CoreBotCommands {
             Matcher matcher = javadocPattern.matcher(message.getMessage());
             matcher.find();
             return javaDocAccessor.javadoc(message, matcher.group(1).trim());
-        }).build();
+        }).setInfoText("search javadocs for a specific Type or Method").build();
         allCommands.add(javaDoc);
     }
 
