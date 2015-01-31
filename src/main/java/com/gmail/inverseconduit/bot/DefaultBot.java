@@ -31,11 +31,12 @@ import com.gmail.inverseconduit.utils.PrintUtils;
  */
 public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-    private static final Logger        LOGGER   = Logger.getLogger(DefaultBot.class.getName());
+    private static final Logger        LOGGER    = Logger.getLogger(DefaultBot.class.getName());
 
     protected final ChatInterface      chatInterface;
 
-    protected final Set<CommandHandle> commands = new HashSet<>();
+    protected final Set<CommandHandle> commands  = new HashSet<>();
+
     protected final Set<CommandHandle> listeners = new HashSet<>();
 
     public DefaultBot(ChatInterface chatInterface) {
@@ -56,12 +57,13 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     }
 
     private void processMessage(final ChatMessage chatMessage) {
-    	listeners.stream().map(l -> l.execute(chatMessage)).filter(l -> null != l).forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
-    	
+        listeners.stream().map(l -> l.execute(chatMessage)).filter(l -> null != l)
+                .forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
+
         final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
         if ( !chatMessage.getMessage().startsWith(trigger)) { return; }
 
-        final String commandName = chatMessage.getMessage().replace(trigger, "").split(" ")[0];
+        final String commandName = chatMessage.getMessage().replaceFirst(trigger, "").split(" ")[0];
 
         commands.stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findFirst().map(c -> c.execute(chatMessage))
                 .map(result -> PrintUtils.asReply(result, chatMessage))
@@ -71,30 +73,31 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     public Set<CommandHandle> getCommands() {
         return Collections.unmodifiableSet(commands);
     }
-    
-    public Set<CommandHandle> getListeners(){
-    	return Collections.unmodifiableSet(listeners);
+
+    public Set<CommandHandle> getListeners() {
+        return Collections.unmodifiableSet(listeners);
     }
 
     @Override
     public void subscribe(CommandHandle subscriber) {
-    	if (subscriber.getName() == null){
-    		listeners.add(subscriber);
-    	} else {
-    		commands.add(subscriber);
-    	}
+        if (subscriber.getName() == null) {
+            listeners.add(subscriber);
+        }
+        else {
+            commands.add(subscriber);
+        }
     }
 
     @Override
     public void unSubscribe(CommandHandle subscriber) {
-    	listeners.remove(subscriber);
+        listeners.remove(subscriber);
         commands.remove(subscriber);
     }
 
     @Override
     public Collection<CommandHandle> getSubscriptions() {
-    	Set<CommandHandle> set = new HashSet<CommandHandle>(commands);
-    	set.addAll(listeners);
+        Set<CommandHandle> set = new HashSet<CommandHandle>(commands);
+        set.addAll(listeners);
         return set;
     }
 
