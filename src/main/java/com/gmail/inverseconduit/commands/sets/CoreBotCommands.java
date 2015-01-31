@@ -23,7 +23,7 @@ public final class CoreBotCommands {
 
     private static final BotConfig   BOT_CONFIG     = AppContext.INSTANCE.get(BotConfig.class);
 
-    private static final Pattern     javadocPattern = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
+    private static final Pattern     javadocPattern = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "javadoc (.*)", Pattern.DOTALL);
 
     private final JavaDocAccessor    javaDocAccessor;
 
