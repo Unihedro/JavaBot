@@ -40,9 +40,14 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
 
     protected final Set<CommandHandle> listeners = new HashSet<>();
 
-    public DefaultBot(ChatInterface chatInterface) {
+    private DefaultBot(ChatInterface chatInterface) {
         this.chatInterface = chatInterface;
-        new CoreBotCommands(chatInterface, this).allCommands().forEach(this::subscribe);
+    }
+
+    public static DefaultBot create(ChatInterface chatInterface) {
+        DefaultBot bot = new DefaultBot(chatInterface);
+        new CoreBotCommands(chatInterface, bot).allCommands().forEach(bot::subscribe);
+        return bot;
     }
 
     @Override

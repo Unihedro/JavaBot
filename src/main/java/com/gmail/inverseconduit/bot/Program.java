@@ -43,7 +43,7 @@ public class Program {
     public Program(ChatInterface chatInterface) throws IOException {
         LOGGER.finest("Instantiating Program");
         this.chatInterface = chatInterface;
-        bots.add(new DefaultBot(chatInterface));
+        bots.add(DefaultBot.create(chatInterface));
         bots.add(new InteractionBot(chatInterface));
         bots.forEach(chatInterface::subscribe);
         LOGGER.info("Basic component setup complete");
