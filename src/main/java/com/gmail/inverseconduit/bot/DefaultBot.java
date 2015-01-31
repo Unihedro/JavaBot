@@ -29,7 +29,7 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  */
 public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-    private final Logger               LOGGER   = Logger.getLogger(DefaultBot.class.getName());
+    private static final Logger        LOGGER   = Logger.getLogger(DefaultBot.class.getName());
 
     protected final ChatInterface      chatInterface;
 
@@ -85,15 +85,16 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
         commands.remove(subscriber);
     }
 
-    public void shutdown() {
-        executor.shutdown();
-    }
-
     @Override
     public Collection<CommandHandle> getSubscriptions() {
     	Set<CommandHandle> set = new HashSet<CommandHandle>(commands);
     	set.addAll(listeners);
         return set;
+    }
+
+    @Override
+    protected void shutdown() {
+        // nothing to do here!
     }
 
 }

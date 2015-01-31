@@ -1,9 +1,6 @@
 package com.gmail.inverseconduit.bot;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -13,9 +10,8 @@ import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
-import com.gmail.inverseconduit.chat.StackExchangeChat;
 import com.gmail.inverseconduit.commands.CommandHandle;
-import com.gmail.inverseconduit.commands.sets.CoreBotCommands;
+import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 
@@ -27,36 +23,47 @@ import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
  */
 public class Program {
 
-    private static final Logger                   LOGGER         = Logger.getLogger(Program.class.getName());
+    private static final Logger     LOGGER         = Logger.getLogger(Program.class.getName());
 
-    private static final ScheduledExecutorService executor       = Executors.newSingleThreadScheduledExecutor();
+    private static final BotConfig  config         = AppContext.INSTANCE.get(BotConfig.class);
 
-    private static final BotConfig                config         = AppContext.INSTANCE.get(BotConfig.class);
+    private final DefaultBot        bot;
 
-    private final DefaultBot                      bot;
+    private final InteractionBot    interactionBot;
 
-    private final InteractionBot                  interactionBot;
+    private final ChatInterface     chatInterface;
 
-    private final ChatInterface                   chatInterface  = new StackExchangeChat();
+    private final JavaDocAccessor   javaDocAccessor;
 
-    private final JavaDocAccessor                 javaDocAccessor;
+    private static final Pattern    javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
 
-    private static final Pattern                  javadocPattern = Pattern.compile("^" + Pattern.quote(config.getTrigger()) + "javadoc:(.*)", Pattern.DOTALL);
+    public static final ChatMessage POISON_PILL    = new ChatMessage(null, -1, "", "", -1, "", -1);
 
     /**
+     * @param chatInterface
+     *        The ChatInterface to use as main interface to wire bots to. It is
+     *        assumed that the ChatInterface's
+     *        {@link ChatInterface#login(com.gmail.inverseconduit.datatype.ProviderDescriptor, com.gmail.inverseconduit.datatype.CredentialsProvider)
+     *        login()} has been called already
      * @throws IOException
      *         if there's a problem loading the Javadocs
      */
-    // TODO: get the chatInterface solved via Dependency Injection instead.
-    // This would greatly improve testability and ease of switching
-    // implementations
-    public Program() throws IOException {
+    public Program(ChatInterface chatInterface) throws IOException {
         LOGGER.finest("Instantiating Program");
-        bot = new DefaultBot(chatInterface);
-        interactionBot = new InteractionBot(chatInterface);
+        this.chatInterface = chatInterface;
+        this.bot = new DefaultBot(chatInterface);
+        this.interactionBot = new InteractionBot(chatInterface);
 
+        JavaDocAccessor tmp;
         //better not get ExceptionInInitializerError
-        javaDocAccessor = new JavaDocAccessor(config.getJavadocsDir());
+        try {
+            tmp = new JavaDocAccessor(config.getJavadocsDir());
+        } catch(IOException ex) {
+            LOGGER.log(Level.WARNING, "Couldn't initialize Javadoc accessor.", ex);
+            tmp = null;
+        }
+        this.javaDocAccessor = tmp;
+
         chatInterface.subscribe(bot);
         chatInterface.subscribe(interactionBot);
         LOGGER.info("Basic component setup complete");
@@ -68,53 +75,26 @@ public class Program {
     public void startup() {
         LOGGER.info("Beginning startup process");
         bindDefaultCommands();
-        login();
         for (Integer room : config.getRooms()) {
+            // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
-        scheduleQueryingThread();
         bot.start();
         interactionBot.start();
         LOGGER.info("Startup completed.");
     }
 
-    private void scheduleQueryingThread() {
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                chatInterface.queryMessages();
-            } catch(RuntimeException | Error e) {
-                Logger.getAnonymousLogger().log(Level.SEVERE, "Runtime Exception or Error occurred in querying thread", e);
-                throw e;
-            } catch(Exception e) {
-                Logger.getAnonymousLogger().log(Level.WARNING, "Exception occured in querying thread:", e);
-            }
-        }, 5, 3, TimeUnit.SECONDS);
-        Logger.getAnonymousLogger().info("querying thread started");
-    }
-
-    private void login() {
-        boolean loggedIn = chatInterface.login(SESite.STACK_OVERFLOW, config);
-        if ( !loggedIn) {
-            Logger.getAnonymousLogger().severe("Login failed!");
-            System.exit(2);
-        }
-    }
-
     private void bindDefaultCommands() {
-        bindShutdownCommand();
         bindNumberCommand();
         bindJavaDocCommand();
-        new CoreBotCommands(chatInterface, bot).allCommands().forEach(bot::subscribe);
     }
-    
+
     private void bindNumberCommand() {
-    	final Pattern p = Pattern.compile("^\\d+$");
-    	CommandHandle javaDoc = new CommandHandle.Builder(null, message -> {
+        final Pattern p = Pattern.compile("^\\d+$");
+        CommandHandle javaDoc = new CommandHandle.Builder(null, message -> {
             Matcher matcher = p.matcher(message.getMessage());
-            if (!matcher.find()){
-            	return null;
-            }
-            
+            if ( !matcher.find()) { return null; }
+
             int choice = Integer.parseInt(matcher.group(0));
             return javaDocAccessor.showChoice(message, choice);
         }).build();
@@ -130,14 +110,7 @@ public class Program {
         bot.subscribe(javaDoc);
     }
 
-    private void bindShutdownCommand() {
-        CommandHandle shutdown = new CommandHandle.Builder("shutdown", message -> {
-            // FIXME: Require permissions for this
-            chatInterface.broadcast("*~going down*");
-            executor.shutdownNow();
-            System.exit(0);
-            return "";
-        }).build();
-        bot.subscribe(shutdown);
+    public DefaultBot getBot() {
+        return bot;
     }
 }

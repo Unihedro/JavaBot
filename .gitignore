@@ -14,3 +14,10 @@
 
 #Configuration
 bot.properties
+
+#javadocs
+/javadocs/biweekly-0.4.0.zip
+/javadocs/ez-vcard-0.9.6.zip
+/javadocs/guava-18.0.zip
+/javadocs/java8.zip
+/javadocs/javafx.zip
