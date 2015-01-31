@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
@@ -63,7 +64,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
         final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
         if ( !chatMessage.getMessage().startsWith(trigger)) { return; }
 
-        final String commandName = chatMessage.getMessage().replaceFirst(trigger, "").split(" ")[0];
+        final String commandName = chatMessage.getMessage().replaceFirst(Pattern.quote(trigger), "").split(" ")[0];
 
         commands.stream().filter(c -> c.getName().equalsIgnoreCase(commandName)).findFirst().map(c -> c.execute(chatMessage))
                 .map(result -> PrintUtils.asReply(result, chatMessage))
