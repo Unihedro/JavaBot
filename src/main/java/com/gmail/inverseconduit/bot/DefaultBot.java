@@ -3,6 +3,7 @@ package com.gmail.inverseconduit.bot;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -63,7 +64,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     }
 
     private void processMessage(final ChatMessage chatMessage) {
-        listeners.stream().map(l -> l.execute(chatMessage)).filter(l -> null != l)
+        listeners.stream().map(listener -> listener.execute(chatMessage)).filter(Objects::nonNull)
                 .forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
 
         final String trigger = AppContext.INSTANCE.get(BotConfig.class).getTrigger();
