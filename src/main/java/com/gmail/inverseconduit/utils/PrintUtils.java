@@ -5,26 +5,28 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.gmail.inverseconduit.datatype.ChatMessage;
+
 public class PrintUtils {
 
-    private static final String  linkTokenRegex          = "(\\[[^]]++\\]\\(https?+:\\/\\/[^\\s\"]++(\\h++\"[^\"]++\")?\\))";
+    private static final String  LINK_TOKEN_REGEX          = "(\\[[^]]++\\]\\(https?+:\\/\\/[^\\s\"]++(\\h++\"[^\"]++\")?\\))";
 
-    private static final String  tagTokenRegex           = "(\\[(meta)?+tag:[^\\]]++\\])";
+    private static final String  TAG_TOKEN_REGEX           = "(\\[(meta)?+tag:[^\\]]++\\])";
 
-    private static final String  strikethroughTokenRegex = "(---.*?---)";
+    private static final String  STRIKETHROUGH_TOKEN_REGEX = "(---.*?---)";
 
-    private static final String  codeTokenRegex          = "(\\`[^\\`]++\\`)";
+    private static final String  CODE_TOKEN_REGEX          = "(\\`[^\\`]++\\`)";
 
-    private static final String  markdownTokenRegex      = "([*_]{1,3}.*?[*_]{1,3})";
+    private static final String  MARKDOWN_TOKEN_REGEX      = "([*_]{1,3}.*?[*_]{1,3})";
 
-    private static final String  wordTokenRegex          = "([^\\s]++)";
+    private static final String  WORD_TOKEN_REGEX          = "([^\\s]++)";
 
-    private static final String  messageTokenRegex       = "(" + linkTokenRegex + "|" + tagTokenRegex + "|" + markdownTokenRegex + "|" + strikethroughTokenRegex + "|"
-                                                             + codeTokenRegex + "|" + wordTokenRegex + ")*";
+    private static final String  MESSAGE_TOKEN_REGEX       = "(" + LINK_TOKEN_REGEX + "|" + TAG_TOKEN_REGEX + "|" + MARKDOWN_TOKEN_REGEX + "|" + STRIKETHROUGH_TOKEN_REGEX + "|"
+                                                             + CODE_TOKEN_REGEX + "|" + WORD_TOKEN_REGEX + ")*";
 
-    private static final Pattern markdownTokenizer       = Pattern.compile(messageTokenRegex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.UNICODE_CASE);
+    private static final Pattern MARKDOWN_TOKENIZER       = Pattern.compile(MESSAGE_TOKEN_REGEX, Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.UNICODE_CASE);
 
-    public static String FixedFont(String msg) {
+    public static String fixedFont(String msg) {
         if (msg.isEmpty())
             return msg;
         StringBuilder builder = new StringBuilder();
@@ -42,7 +44,7 @@ public class PrintUtils {
     }
 
     public static List<String> splitUsefully(String message) {
-        Matcher m = markdownTokenizer.matcher(message);
+        Matcher m = MARKDOWN_TOKENIZER.matcher(message);
         List<String> tokens = new ArrayList<>();
         while (m.find()) {
             String match = m.group(0);
@@ -51,5 +53,9 @@ public class PrintUtils {
             }
         }
         return tokens;
+    }
+
+    public static String asReply(String result, ChatMessage chatMessage) {
+        return String.format(":%d %s", chatMessage.getMessageId(), result);
     }
 }
