@@ -38,18 +38,18 @@ public class Main {
         BotConfig config = loadConfig();
         AppContext.INSTANCE.add(config);
 
-        try (StackExchangeChat seInterface = new StackExchangeChat()) {
-            if ( !seInterface.login(SESite.STACK_OVERFLOW, config)) {
-                LOGGER.severe("Login failed!");
-                throw new RuntimeException("Login failure");
-            }
-
-            Program p = new Program(seInterface);
-
-            p.startup();
-            ThreadFactory factory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("message-query-thread-%d").build();
-            Executors.newSingleThreadScheduledExecutor(factory).scheduleAtFixedRate(() -> queryMessagesFor(seInterface), 5, 3, TimeUnit.SECONDS);
+        // Must be leaked from main thread
+        StackExchangeChat seInterface = new StackExchangeChat();
+        if ( !seInterface.login(SESite.STACK_OVERFLOW, config)) {
+            LOGGER.severe("Login failed!");
+            throw new RuntimeException("Login failure");
         }
+
+        Program p = new Program(seInterface);
+
+        p.startup();
+        ThreadFactory factory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("message-query-thread-%d").build();
+        Executors.newSingleThreadScheduledExecutor(factory).scheduleAtFixedRate(() -> queryMessagesFor(seInterface), 5, 3, TimeUnit.SECONDS);
     }
 
     private static void queryMessagesFor(ChatInterface seInterface) {

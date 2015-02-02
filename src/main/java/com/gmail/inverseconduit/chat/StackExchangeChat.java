@@ -33,7 +33,6 @@ public class StackExchangeChat implements ChatInterface {
 
     private final Set<ChatWorker>                 subscribers     = new HashSet<>();
 
-    //TODO: Change that from timestamp-handling to id-based handling or move it to the ChatWorker
     private final Set<Long>                       handledMessages = new HashSet<>();
 
     private final ScheduledThreadPoolExecutor     sender          = new ScheduledThreadPoolExecutor(1);
