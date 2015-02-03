@@ -21,25 +21,25 @@ import com.google.gson.Gson;
 
 public class StackExchangeChat implements ChatInterface {
 
-    private static final int MINIMUM_MESSAGE_LENGTH = 12;
+    private static final int                      MINIMUM_MESSAGE_LENGTH = 12;
 
-    private static final Logger                   LOGGER          = Logger.getLogger(StackExchangeChat.class.getName());
+    private static final Logger                   LOGGER                 = Logger.getLogger(StackExchangeChat.class.getName());
 
-    private static final int                      MESSAGE_COUNT   = 5;
+    private static final int                      MESSAGE_COUNT          = 5;
 
-    private static final Gson                     GSON            = new Gson();
+    private static final Gson                     GSON                   = new Gson();
 
-    private final Map<SeChatDescriptor, HtmlPage> chatMap         = new TreeMap<>();
+    private final Map<SeChatDescriptor, HtmlPage> chatMap                = new TreeMap<>();
 
-    private boolean                               loggedIn        = true;
+    private boolean                               loggedIn               = false;
 
     private final WebClient                       webClient;
 
-    private final Set<ChatWorker>                 subscribers     = new HashSet<>();
+    private final Set<ChatWorker>                 subscribers            = new HashSet<>();
 
-    private final Set<Long>                       handledMessages = new HashSet<>();
+    private final Set<Long>                       handledMessages        = new HashSet<>();
 
-    private final ScheduledThreadPoolExecutor     sender          = new ScheduledThreadPoolExecutor(1);
+    private final ScheduledThreadPoolExecutor     sender                 = new ScheduledThreadPoolExecutor(1);
 
     private final Random                          rnd;
 
