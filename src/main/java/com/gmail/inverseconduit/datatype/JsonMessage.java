@@ -1,6 +1,6 @@
 package com.gmail.inverseconduit.datatype;
 
-public class JSONChatEvent {
+public class JsonMessage {
 
     private int    event_type;
 

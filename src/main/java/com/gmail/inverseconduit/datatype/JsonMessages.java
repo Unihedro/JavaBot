@@ -5,13 +5,13 @@ import java.util.List;
 
 import com.gmail.inverseconduit.SESite;
 
-public class JSONChatEvents {
+public class JsonMessages {
 
-    private JSONChatEvent[] events;
+    private JsonMessage[] events;
 
     SESite                  site;
 
-    public List<JSONChatEvent> getEvents() {
+    public List<JsonMessage> getEvents() {
         return Arrays.asList(events);
     }
 
