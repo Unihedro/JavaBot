@@ -3,6 +3,7 @@ package com.gmail.inverseconduit.bot;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.AppContext;
@@ -41,12 +42,12 @@ public class Program {
      *         if there's a problem loading the Javadocs
      */
     public Program(ChatInterface chatInterface) throws IOException {
-        LOGGER.finest("Instantiating Program");
+        LOGGER.log(Level.FINEST, "Instantiating Program");
         this.chatInterface = chatInterface;
         bots.add(DefaultBot.create(chatInterface));
         bots.add(new InteractionBot(chatInterface));
         bots.forEach(chatInterface::subscribe);
-        LOGGER.info("Basic component setup complete");
+        LOGGER.log(Level.FINE, "Basic component setup complete");
     }
 
     /**
@@ -55,13 +56,13 @@ public class Program {
      * Additionally all bots that were created on startup are started.
      */
     public void startup() {
-        LOGGER.info("Beginning startup process");
+        LOGGER.log(Level.FINER, "Beginning startup process");
         for (Integer room : config.getRooms()) {
             // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
         }
         bots.forEach(ChatWorker::start);
-        LOGGER.info("Startup completed.");
+        LOGGER.log(Level.FINER, "Startup completed.");
     }
 
     public Set<ChatWorker> getBots() {

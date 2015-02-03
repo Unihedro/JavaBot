@@ -43,7 +43,7 @@ public class Main {
         // Must be leaked from main thread
         StackExchangeChat seInterface = new StackExchangeChat();
         if ( !seInterface.login(SESite.STACK_OVERFLOW, config)) {
-            LOGGER.severe("Login failed!");
+            LOGGER.log(Level.SEVERE, "Login failed!");
             throw new RuntimeException("Login failure");
         }
 
