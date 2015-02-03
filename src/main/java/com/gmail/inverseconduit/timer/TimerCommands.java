@@ -24,7 +24,7 @@ public final class TimerCommands {
         String[] arguments = message.getMessage().split(" ");
         if (2 > arguments.length || 3 < arguments.length) { return "Command does not match the syntax: timer delay(in minutes) (optional message). You can also abort timers by calling timer abort timernumber"; }
 
-        if (arguments[1].equalsIgnoreCase("abort") && 3 == arguments.length) { return handleCancelRequest(message, chatInterface, arguments); }
+        if (arguments[1].equalsIgnoreCase("abort") && 3 == arguments.length) { return handleCancelRequest(arguments); }
         int requestedDelay;
         try {
             requestedDelay = Integer.parseInt(arguments[1]);
@@ -47,7 +47,7 @@ public final class TimerCommands {
         return result;
     }
 
-    private static String handleCancelRequest(ChatMessage message, ChatInterface chatInterface, String[] arguments) {
+    private static String handleCancelRequest(String[] arguments) {
         int timerToCancel;
         try {
             timerToCancel = Integer.parseInt(arguments[2]);
