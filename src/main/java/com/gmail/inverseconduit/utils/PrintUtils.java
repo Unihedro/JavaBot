@@ -22,9 +22,9 @@ public class PrintUtils {
     private static final String  WORD_TOKEN_REGEX          = "([^\\s]++)";
 
     private static final String  MESSAGE_TOKEN_REGEX       = "(" + LINK_TOKEN_REGEX + "|" + TAG_TOKEN_REGEX + "|" + MARKDOWN_TOKEN_REGEX + "|" + STRIKETHROUGH_TOKEN_REGEX + "|"
-                                                             + CODE_TOKEN_REGEX + "|" + WORD_TOKEN_REGEX + ")*";
+                                                               + CODE_TOKEN_REGEX + "|" + WORD_TOKEN_REGEX + ")*";
 
-    private static final Pattern MARKDOWN_TOKENIZER       = Pattern.compile(MESSAGE_TOKEN_REGEX, Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.UNICODE_CASE);
+    private static final Pattern MARKDOWN_TOKENIZER        = Pattern.compile(MESSAGE_TOKEN_REGEX, Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.UNICODE_CASE);
 
     public static String fixedFont(String msg) {
         if (msg.isEmpty())
@@ -33,14 +33,6 @@ public class PrintUtils {
         for (String segment : msg.split("\n"))
             builder.append("    ").append(segment);
         return builder.toString();
-    }
-
-    public static String truncate(String message) {
-        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) { return message.substring(0, message.lastIndexOf(".")); }
-        message = message.substring(0, 495);
-        //this one can cut quite a lot of stuff..
-        if (message.lastIndexOf(".") < 500 && message.lastIndexOf(".") != -1) { return message.substring(0, message.lastIndexOf(".")); }
-        return message + "...";
     }
 
     public static List<String> splitUsefully(String message) {

@@ -4,6 +4,7 @@ import com.gmail.inverseconduit.SESite;
 
 public class ChatMessage {
 
+    // FIXME: Why is this a long, when Json has an int?
     private final long   messageId;
 
     private final String username;
@@ -28,7 +29,7 @@ public class ChatMessage {
         this.messageId = messageId;
     }
 
-    public static ChatMessage fromJsonChatEvent(final JSONChatEvent event, final SESite site) {
+    public static ChatMessage fromJsonChatEvent(final JsonMessage event, final SESite site) {
         return new ChatMessage(site, event.getRoom_id(), event.getRoom_name(), event.getUser_name(), event.getUser_id(), event.getContent(), event.getMessage_id());
     }
 
