@@ -102,7 +102,14 @@ public final class CoreBotCommands {
                     Stream<CommandHandle> possibleCommands = commandOwner.getSubscriptions().stream().filter(c -> c != null && commandName.equalsIgnoreCase(c.getName()));
 
                     Optional<String> helpText = possibleCommands.findFirst().map(c -> c.getHelpText());
-                    if (helpText.isPresent()) { return helpText.get(); }
+                    if (helpText.isPresent()) {
+                        if ("".equals(helpText.get())) {
+                            return "There was no help given on command: " + commandName;
+                        }
+                        else {
+                            return helpText.get();
+                        }
+                    }
                     return "Could not find command with the name: " + commandName;
                 }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]")
                         .setInfoText("Get help for a specific command").build();
