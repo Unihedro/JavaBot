@@ -103,12 +103,8 @@ public final class CoreBotCommands {
 
                     Optional<String> helpText = possibleCommands.findFirst().map(c -> c.getHelpText());
                     if (helpText.isPresent()) {
-                        if ("".equals(helpText.get())) {
-                            return "There was no help given on command: " + commandName;
-                        }
-                        else {
-                            return helpText.get();
-                        }
+                        if (helpText.get().isEmpty()) { return "There was no help given on command: " + commandName; }
+                        return helpText.get();
                     }
                     return "Could not find command with the name: " + commandName;
                 }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]")
