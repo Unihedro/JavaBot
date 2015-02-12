@@ -1,14 +1,17 @@
 package com.gmail.inverseconduit.commands.sets;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
@@ -16,6 +19,8 @@ import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.datatype.ChatMessage;
+import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.scripts.ScriptRunner;
 import com.gmail.inverseconduit.timer.TimerCommands;
@@ -89,11 +94,19 @@ public final class CoreBotCommands {
         CommandHandle help =
                 new CommandHandle.Builder("help", message -> {
                     String[] parts = message.getMessage().split(" ");
-                    String commandName = parts[parts.length - 1];
+                    if (parts.length == 1) { // direct invocation
+                        return "help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]";
+                    }
+                    final String commandName = parts[parts.length - 1];
+                    // should be only a single one (or none)
+                    Stream<CommandHandle> possibleCommands = commandOwner.getSubscriptions().stream().filter(c -> c != null && commandName.equalsIgnoreCase(c.getName()));
 
-                    Optional<String> helpText = commandOwner.getSubscriptions().stream().filter(c -> c.getName().equals(commandName)).findFirst().map(c -> c.getHelpText());
-                    if (helpText.isPresent()) { return helpText.get(); }
-                    return "help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]";
+                    Optional<String> helpText = possibleCommands.findFirst().map(c -> c.getHelpText());
+                    if (helpText.isPresent()) {
+                        if (helpText.get().isEmpty()) { return "There was no help given on command: " + commandName; }
+                        return helpText.get();
+                    }
+                    return "Could not find command with the name: " + commandName;
                 }).setHelpText("help command: Get additional info about a command of your choice, syntax:" + BOT_CONFIG.getTrigger() + "help [commandName]")
                         .setInfoText("Get help for a specific command").build();
         allCommands.add(help);
