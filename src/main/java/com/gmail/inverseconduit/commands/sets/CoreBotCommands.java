@@ -31,7 +31,7 @@ public final class CoreBotCommands {
 
     private static final Pattern     javadocPattern = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "javadoc (.*)", Pattern.DOTALL);
 
-    private static final Pattern     TELL_PATTERN   = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "tell (.*?) (.*)$");
+    private static final Pattern     TELL_PATTERN   = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "tell +([^ ]+) +(.*)$");
 
     private final JavaDocAccessor    javaDocAccessor;
 
