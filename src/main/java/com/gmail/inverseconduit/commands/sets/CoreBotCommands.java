@@ -68,8 +68,7 @@ public final class CoreBotCommands {
         Function<ChatMessage, String> tell = (message) -> {
             final String msgText = message.getMessage();
             Matcher m = TELL_PATTERN.matcher(msgText);
-            m.find();
-            if (m.groupCount() != 2) { return "Syntax mismatch. Please provide a Username and a invokable command or bare string"; }
+            if ( !m.find()) { return "Syntax mismatch. Please provide a Username and a invokable command or bare string"; }
 
             final String targetUser = m.group(1);
             final String command = m.group(2);
