@@ -48,6 +48,7 @@ public class PrintUtils {
     }
 
     public static String asReply(String result, ChatMessage chatMessage) {
+        if (result.isEmpty()) { return ""; } // no meaning in replying with an empty message
         return String.format(":%d %s", chatMessage.getMessageId(), result);
     }
 }

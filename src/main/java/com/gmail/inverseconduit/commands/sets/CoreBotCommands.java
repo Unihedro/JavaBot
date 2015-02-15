@@ -31,6 +31,8 @@ public final class CoreBotCommands {
 
     private static final Pattern     javadocPattern = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "javadoc (.*)", Pattern.DOTALL);
 
+    private static final Pattern     TELL_PATTERN   = Pattern.compile("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "tell +([^ ]+) +(.*)$");
+
     private final JavaDocAccessor    javaDocAccessor;
 
     private final Set<CommandHandle> allCommands    = new HashSet<>();
@@ -56,9 +58,41 @@ public final class CoreBotCommands {
 
         createHelpCommand(commandOwner);
         createListCommands(commandOwner);
+        createTellCommand(chatInterface, commandOwner);
 
         createAboutCommand();
         createTestCommand();
+    }
+
+    private void createTellCommand(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
+        Function<ChatMessage, String> tell = (message) -> {
+            final String msgText = message.getMessage();
+            Matcher m = TELL_PATTERN.matcher(msgText);
+            if ( !m.find()) { return "Syntax mismatch. Please provide a Username and a invokable command or bare string"; }
+
+            final String targetUser = m.group(1);
+            final String command = m.group(2);
+
+            String[] commandTokens = command.split(" ");
+
+            final Collection<CommandHandle> availableCommands = commandOwner.getSubscriptions();
+            Optional<CommandHandle> matchingCommand = availableCommands.stream().filter(handle -> commandTokens[0].equalsIgnoreCase(handle.getName())).findFirst();
+            String result;
+            if (matchingCommand.isPresent()) {
+                result = matchingCommand.get().execute(new ChatMessage(null, -1, "", message.getUsername(), message.getUserId(), command, -1));
+            }
+            else {
+                result = command;
+            }
+
+            chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), String.format("@%s %s", targetUser, result));
+            return ""; //successful invocation doesn't require a response
+            };
+
+        CommandHandle tellCommand =
+                new CommandHandle.Builder("tell", tell).setInfoText("tell another user something or invoke a command")
+                        .setHelpText("Syntax: tell [username] [command invocation / message]").build();
+        allCommands.add(tellCommand);
     }
 
     public Set<CommandHandle> allCommands() {
