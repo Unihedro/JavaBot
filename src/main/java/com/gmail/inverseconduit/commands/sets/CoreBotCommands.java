@@ -179,7 +179,11 @@ public final class CoreBotCommands {
     private void createShutdownCommand(ChatInterface chatInterface) {
         CommandHandle shutdown =
                 new CommandHandle.Builder("shutdown", message -> {
-                    chatInterface.broadcast("*~going down*");
+                    final String bcMessage = message.getMessage().replaceFirst("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "shutdown", "");
+
+                    chatInterface.broadcast(bcMessage.isEmpty()
+                        ? "*~going down*"
+                        : String.format("*~going down:*%s", bcMessage));
                     chatInterface.getSubscriptions().forEach(s -> {
                         try {
                             s.enqueueMessage(Program.POISON_PILL);
