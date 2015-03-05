@@ -99,6 +99,16 @@ public class PrintUtilTest {
     }
 
     @Test
+    public void overlyStrangeLink() {
+        final String testString = "testing [an \\[overly strange\\] link](https://chat.stackexchange.com) for correct splitting";
+
+        final List<String> parts = PrintUtils.splitUsefully(testString);
+
+        assertEquals("[an \\[overly strange\\] link](https://chat.stackexchange.com)", parts.get(1));
+        assertEquals(5, parts.size());
+    }
+
+    @Test
     public void italicMarkdown() {
         final String testString = "testing *italic markdown* for correct splitting";
 
