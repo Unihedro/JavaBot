@@ -2,6 +2,9 @@ package com.gmail.inverseconduit.timer;
 
 import static com.gmail.inverseconduit.AppContext.INSTANCE;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.commands.CommandHandle;
 import com.gmail.inverseconduit.datatype.ChatMessage;
@@ -15,14 +18,14 @@ public final class TimerCommands {
         CommandHandle handle =
                 new CommandHandle.Builder("timer", message -> TimerCommands.processChatMessage(message, chatInterface))
                         .setHelpText(
-                                "Schedule Timers for your personal use. Syntax: timer delay(in minutes) (optional message). You can also abort timers by calling timer abort timernumber")
+                                "Schedule Timers for your personal use. Syntax: timer (delay in minutes) (optional message). You can also abort timers by calling timer abort timernumber")
                         .setInfoText("Schedule Timers for your personal use.").build();
         return handle;
     }
 
     private static String processChatMessage(ChatMessage message, ChatInterface chatInterface) {
         String[] arguments = message.getMessage().split(" ");
-        if (2 > arguments.length || 3 < arguments.length) { return "Command does not match the syntax: timer delay(in minutes) (optional message). You can also abort timers by calling timer abort timernumber"; }
+        if (2 > arguments.length) { return "Command does not match the syntax: timer (delay in minutes) (optional message). You can also abort timers by calling timer abort timernumber"; }
 
         if (arguments[1].equalsIgnoreCase("abort") && 3 == arguments.length) { return handleCancelRequest(arguments); }
         int requestedDelay;
@@ -33,9 +36,11 @@ public final class TimerCommands {
         }
 
         final int timernumber;
-        if (3 == arguments.length) { // includes a custom message
+        if (3 <= arguments.length) { // includes a custom message
             timernumber = INSTANCE.get(TimerKeeper.class).addTimer(() -> {
-                chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), String.format("@%s %s", message.getUsername(), arguments[2]));
+                final String userMessage = Arrays.stream(arguments, 2, arguments.length).collect(Collectors.joining(" "));
+
+                chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(message), String.format("@%s %s", message.getUsername(), userMessage));
             }, requestedDelay);
         }
         else {
