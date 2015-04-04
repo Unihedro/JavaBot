@@ -54,4 +54,9 @@ public class InteractionBot extends AbstractBot implements Subscribable<Interact
     public Collection<Interaction> getSubscriptions() {
         return Collections.unmodifiableCollection(interactions);
     }
+
+    @Override
+    protected void shutdown() {
+        // nothing to do here
+    }
 }

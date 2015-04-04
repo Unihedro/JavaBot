@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/Vincentyification/JavaBot.png?label=ready&title=Ready)](https://waffle.io/Vincentyification/JavaBot)
 <h1>What this is:</h1>
 
 Well it's relatively simple.. A bot. For the Stack Exchange chat.
