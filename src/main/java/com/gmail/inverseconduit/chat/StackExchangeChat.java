@@ -92,9 +92,11 @@ public class StackExchangeChat implements ChatInterface {
             final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             { // Log into Stack Exchange.
                 WebResponse getRes = webClient.loadWebResponse(new WebRequest(UrlUtils.toUrlUnsafe("https://openid.stackexchange.com/account/login"), HttpMethod.GET));
-                if (getRes == null)
-                    // throw new IllegalArgumentException("Could not get OpenID fkey.");
+                if (getRes == null) {
+                    LOGGER.log(Level.SEVERE, "Could not get OpenID fkey.");
                     return false;
+                }
+
                 String response = getRes.getContentAsString();
                 LOGGER.info("Got response from fetching fkey of OpenID login:" + response);
 
@@ -103,13 +105,14 @@ public class StackExchangeChat implements ChatInterface {
                     post.setRequestParameters(ImmutableList.of(new NameValuePair("email", email), new NameValuePair("password", password),
                             new NameValuePair("fkey", builder.parse(getRes.getContentAsStream()).getElementById("fkey").getAttribute("value"))));
                 } catch(SAXException die) {
-                    // throw new IllegalStateException("Parsing response text as DOM has caused a parse exception.", die);
+                    LOGGER.log(Level.SEVERE, "Parsing response text as DOM has caused a parse exception.", die);
                     return false;
                 }
                 WebResponse postRes = webClient.loadWebResponse(post);
-                if (null == postRes || !Strings.isNullOrEmpty(postRes.getResponseHeaderValue("p3p")))
-                    // throw new IllegalArgumentException("Could not post to submit of OpenID.");
+                if (null == postRes || !Strings.isNullOrEmpty(postRes.getResponseHeaderValue("p3p"))) {
+                    LOGGER.log(Level.SEVERE, "Could not post to submit of OpenID.");
                     return false;
+                }
             }
 
             { // Log into Stack Exchange Chat.
@@ -120,7 +123,7 @@ public class StackExchangeChat implements ChatInterface {
                     post.setRequestParameters(ImmutableList.of(new NameValuePair("authToken", dom.getElementById("authToken").getAttribute("value")), new NameValuePair("nonce",
                         dom.getElementById("nonce").getAttribute("value"))));
                 } catch(SAXException die) {
-                    // throw new IllegalStateException("Parsing response text as DOM has caused a parse exception.", die);
+                    LOGGER.log(Level.SEVERE, "Parsing response text as DOM has caused a parse exception.", die);
                     return false;
                 }
                 post.setAdditionalHeaders(ImmutableMap.of("Origin", "http://chat.stackexchange.com", "Referer", "http://chat.stackexchange.com"));
@@ -131,7 +134,7 @@ public class StackExchangeChat implements ChatInterface {
         } catch(ParserConfigurationException e) {
             // Ignore - virtually impossible.
         } catch(IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Encountered IO-Exception when trying to login: ", e);
         }
         return false;
     }
