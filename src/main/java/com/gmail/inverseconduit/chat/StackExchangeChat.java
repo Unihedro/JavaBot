@@ -230,7 +230,11 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     /**
-     * {@inheritDoc}
+     * Queries the 5 latest messages for all chatrooms and enqueues them to
+     * the subscribed {@link ChatWorker Workers}, respecting the already handled
+     * timestamps as maintained internally.
+     *
+     * @see ChatInterface#queryMessages()
      */
     @Override
     public void broadcast(final String message) {
