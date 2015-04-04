@@ -55,8 +55,8 @@ public class ScriptRunner {
         }
         LOGGER.info("Result:" + result);
         return result == null
-            ? String.format(":%d [tag:groovy]: no result", msg.getMessageId())
-            : String.format(":%d [tag:groovy]: %s", msg.getMessageId(), result.toString());
+            ? "[tag:groovy]: no result"
+            : String.format("[tag:groovy]: %s", result.toString());
     }
 
     public void evaluateAndCache(String commandText) {
