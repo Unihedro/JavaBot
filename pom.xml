@@ -35,6 +35,15 @@
 					</descriptorRefs>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.3.2</version>
+				<configuration>
+					<mainClass>com.gmail.inverseconduit.Main</mainClass>
+					<cleanupDaemonThreads>false</cleanupDaemonThreads>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
