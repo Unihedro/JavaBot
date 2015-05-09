@@ -20,6 +20,8 @@ public class BotConfig implements CredentialsProvider {
 
     private final String        loginEmail, password, trigger;
 
+    private final SESite        site;
+
     private final Path          javadocs;
 
     private final List<Integer> rooms;
@@ -30,17 +32,17 @@ public class BotConfig implements CredentialsProvider {
      */
     public BotConfig(Properties properties) {
         loginEmail = properties.getProperty("LOGIN-EMAIL");
-        LOGGER.info("Setting loginEmail to " + loginEmail);
+        LOGGER.log(Level.CONFIG, "Setting loginEmail to " + loginEmail);
 
         password = properties.getProperty("PASSWORD");
-        LOGGER.info("Setting password");
+        LOGGER.log(Level.CONFIG, "Setting password");
 
         trigger = properties.getProperty("TRIGGER", "!!");
-        LOGGER.info("Setting trigger to " + trigger);
+        LOGGER.log(Level.CONFIG, "Setting trigger to " + trigger);
 
         String value = properties.getProperty("JAVADOCS", "javadocs");
         javadocs = Paths.get(value);
-        LOGGER.info("Setting javadocs dir to " + javadocs);
+        LOGGER.log(Level.CONFIG, "Setting javadocs dir to " + javadocs);
 
         value = properties.getProperty("ROOMS", "1"); //default to "Sandbox"
         List<Integer> rooms = new ArrayList<>();
@@ -49,11 +51,15 @@ public class BotConfig implements CredentialsProvider {
                 Integer room = Integer.valueOf(v);
                 rooms.add(room);
             } catch(NumberFormatException e) {
-                LOGGER.log(Level.WARNING, "Skipping unparsable room ID.", e);
+                LOGGER.log(Level.CONFIG, "Skipping unparsable room ID.");
+                LOGGER.log(Level.FINEST, "", e);
             }
         }
         this.rooms = Collections.unmodifiableList(rooms);
-        LOGGER.info("Setting rooms to " + rooms);
+        LOGGER.log(Level.CONFIG, "Setting rooms to " + rooms);
+
+        this.site = SESite.fromUrl(properties.getProperty("SITE", "stackoverflow").toLowerCase());
+        LOGGER.log(Level.CONFIG, "Setting site to " + site);
     }
 
     /**
@@ -114,5 +120,15 @@ public class BotConfig implements CredentialsProvider {
     @Override
     public String getAuthenticator() {
         return password;
+    }
+
+    /**
+     * Gets the Site configured as chathost and account host
+     * 
+     * @return the {@link SESite} considered as host. Defaults to
+     *         {@link SESite#STACK_OVERFLOW STACK_OVERFLOW}
+     */
+    public SESite getSite() {
+        return site;
     }
 }

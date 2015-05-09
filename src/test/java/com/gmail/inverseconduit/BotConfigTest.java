@@ -23,6 +23,7 @@ public class BotConfigTest {
         assertEquals("!!", config.getTrigger());
         assertEquals(Paths.get("javadocs"), config.getJavadocsDir());
         assertEquals(Arrays.asList(1), config.getRooms());
+        assertEquals(SESite.STACK_OVERFLOW, config.getSite());
     }
 
     @Test
@@ -33,6 +34,7 @@ public class BotConfigTest {
         props.setProperty("TRIGGER", "**");
         props.setProperty("JAVADOCS", "dir");
         props.setProperty("ROOMS", "1,2 , 3");
+        props.setProperty("SITE", "meta.stackexchange");
 
         BotConfig config = new BotConfig(props);
         assertEquals("email", config.getLoginEmail());
@@ -40,16 +42,27 @@ public class BotConfigTest {
         assertEquals("**", config.getTrigger());
         assertEquals(Paths.get("dir"), config.getJavadocsDir());
         assertEquals(Arrays.asList(1, 2, 3), config.getRooms());
+        assertEquals(SESite.META_STACK_EXCHANGE, config.getSite());
     }
 
     @Test()
     public void invalid_room_gets_ignored() {
         Properties props = new Properties();
-        props.setProperty("ROOMS", "1,foo");
+        props.setProperty("ROOMS", "1,foo,#123");
 
         BotConfig config = new BotConfig(props);
 
         assertEquals(1, config.getRooms().size());
         assertEquals((Integer) 1, config.getRooms().get(0));
+    }
+
+    @Test
+    public void site_ignores_casing() {
+        Properties props = new Properties();
+        props.setProperty("SITE", "STACKEXCHANGE");
+
+        BotConfig config = new BotConfig(props);
+
+        assertEquals(SESite.STACK_EXCHANGE, config.getSite());
     }
 }
