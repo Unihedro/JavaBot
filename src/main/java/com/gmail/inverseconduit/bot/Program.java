@@ -47,7 +47,7 @@ public class Program {
         bots.add(DefaultBot.create(chatInterface));
         bots.add(new InteractionBot(chatInterface));
         bots.forEach(chatInterface::subscribe);
-        LOGGER.log(Level.FINE, "Basic component setup complete");
+        LOGGER.log(Level.INFO, "Basic component setup complete");
     }
 
     /**
@@ -56,7 +56,7 @@ public class Program {
      * Additionally all bots that were created on startup are started.
      */
     public void startup() {
-        LOGGER.log(Level.FINER, "Beginning startup process");
+        LOGGER.log(Level.INFO, "Beginning startup process");
         for (Integer room : config.getRooms()) {
             // FIXME: isn't always Stackoverflow
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
