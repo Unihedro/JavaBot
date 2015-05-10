@@ -46,7 +46,7 @@ public enum SESite implements ProviderDescriptor {
 
     public static SESite fromUrl(URL url) {
         for (SESite site : SESite.values()) {
-            if (url.toString().contains(site.dir))
+            if (url.getHost().equals(site.dir))
                 return site;
         }
         return null;
@@ -58,7 +58,7 @@ public enum SESite implements ProviderDescriptor {
 
     public static SESite fromUrl(String value) {
         for (SESite site : SESite.values()) {
-            if (value.contains(site.dir)) { return site; }
+            if (site.dir.equals(value)) { return site; }
         }
         return null;
     }

@@ -1,0 +1,5 @@
+LOGIN-EMAIL=example@host.com
+PASSWORD=password
+ROOMS=1
+TRIGGER=**
+SITE=stackoverflow
