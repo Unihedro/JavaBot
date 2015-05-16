@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.scripts;
+package com.gmail.inverseconduit.commands.providers.scripts;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;

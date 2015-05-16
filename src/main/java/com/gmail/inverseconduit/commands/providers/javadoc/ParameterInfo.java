@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.javadoc;
+package com.gmail.inverseconduit.commands.providers.javadoc;
 
 /**
  * Contains information on a method parameter.

@@ -19,11 +19,11 @@ import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.commands.providers.javadoc.JavaDocAccessor;
+import com.gmail.inverseconduit.commands.providers.scripts.ScriptRunner;
+import com.gmail.inverseconduit.commands.providers.timer.TimerCommands;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
-import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
-import com.gmail.inverseconduit.scripts.ScriptRunner;
-import com.gmail.inverseconduit.timer.TimerCommands;
 
 public final class CoreBotCommands {
 

@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.javadoc;
+package com.gmail.inverseconduit.commands.providers.javadoc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.gmail.inverseconduit.javadoc.JavaDocAccessor.CommandTextParser;
+import com.gmail.inverseconduit.commands.providers.javadoc.JavaDocAccessor.CommandTextParser;
 
 /**
  * @author Michael Angstadt

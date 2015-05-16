@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.security;
+package com.gmail.inverseconduit.commands.providers.scripts.security;
 
 import java.security.Permission;
 

@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.javadoc;
+package com.gmail.inverseconduit.commands.providers.javadoc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -21,6 +21,10 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import com.gmail.inverseconduit.commands.providers.javadoc.ClassInfo;
+import com.gmail.inverseconduit.commands.providers.javadoc.JavadocDao;
+import com.gmail.inverseconduit.commands.providers.javadoc.MultipleClassesFoundException;
 
 /**
  * @author Michael Angstadt

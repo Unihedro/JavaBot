@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.timer;
+package com.gmail.inverseconduit.commands.providers.timer;
 
 import java.util.Iterator;
 import java.util.Map;
