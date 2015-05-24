@@ -4,24 +4,54 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 
+/**
+ * Abstract Class that implements default ChatWorker behavior.
+ * Internally this class exposes the protected fields: {@link #messageQueue} and
+ * {@link #processingThread}. </br>
+ * This class implements thread-safe behavior to
+ * enqueue messages to {@link #messageQueue}.
+ * </br></br>If the {@link ChatWorker#POISON_PILL POISON_PILL} is enqueued,
+ * {@link #shutdown()} will be called to notify implementing classes of the
+ * shutdown request.
+ * Also the {@link #processingThread}'s {@link ExecutorService#shutdown()
+ * shutdown}-method will be called. It is accordingly not usable after this.
+ * 
+ * @author Vogel612<<a href="mailto:vogel612@gmx.de"
+ *         >vogel612@gmx.de</a>>
+ */
 public abstract class AbstractBot implements ChatWorker {
 
-    protected final ScheduledExecutorService   executor         = Executors.newSingleThreadScheduledExecutor();
+    protected final ExecutorService            processingThread        = Executors.newFixedThreadPool(2);
 
-    protected final ExecutorService            processingThread = Executors.newSingleThreadExecutor();
+    protected final BlockingQueue<ChatMessage> messageQueue            = new LinkedBlockingQueue<>();
 
-    protected final BlockingQueue<ChatMessage> messageQueue     = new LinkedBlockingQueue<>();
+    protected Supplier<ChatMessage>            blockingMessageSupplier = () -> {
+                                                                           while (true) {
+                                                                               ChatMessage headMessage = null;
+                                                                               try {
+                                                                                   headMessage = messageQueue.poll(10, TimeUnit.MINUTES);
+                                                                               } catch(InterruptedException e) {
+                                                                                   Logger.getLogger(this.getClass().getName()).log(Level.FINE,
+                                                                                           "Didn't get a message over the course of 10 minutes... something might be wrong", e);
+                                                                               }
+                                                                               if (headMessage != null) {
+                                                                                   Logger.getLogger(this.getClass().getName()).finest("processing message from queue");
+                                                                                   return headMessage;
+                                                                               }
+                                                                           }
+                                                                       };
 
     @Override
     public final synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
-        if (chatMessage == Program.POISON_PILL) {
-            executor.shutdown();
+        if (chatMessage == ChatWorker.POISON_PILL) {
             processingThread.shutdown();
             this.shutdown();
             return true;
@@ -36,7 +66,7 @@ public abstract class AbstractBot implements ChatWorker {
      * Intended for shutting down any other Threads or executors declared in
      * extending classes.
      * This method will be called when the ChatWorker recieves a Shutdown
-     * request via {@link Program.POISON_PILL}
+     * request via {@link ChatWorker#POISON_PILL}
      */
     protected abstract void shutdown();
 }

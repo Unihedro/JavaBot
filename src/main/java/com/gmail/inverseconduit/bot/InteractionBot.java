@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import com.gmail.inverseconduit.bot.interactions.Interaction;
 import com.gmail.inverseconduit.bot.interactions.Interactions;
@@ -26,13 +26,12 @@ public class InteractionBot extends AbstractBot implements Subscribable<Interact
 
     @Override
     public void start() {
-        executor.scheduleAtFixedRate(this::processInteractions, 200, 700, TimeUnit.MILLISECONDS);
+        // asynchronously enqueue the processing by blocking supplier
+        processingThread.submit(this::processInteractions);
     }
 
     private void processInteractions() {
-        if (messageQueue.peek() != null) {
-            processingThread.submit(() -> interact(messageQueue.poll()));
-        }
+        Stream.generate(blockingMessageSupplier).forEach(message -> processingThread.submit(() -> this.interact(message)));
     }
 
     private void interact(ChatMessage message) {
