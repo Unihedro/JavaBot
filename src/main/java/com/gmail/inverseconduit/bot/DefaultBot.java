@@ -33,13 +33,13 @@ import com.gmail.inverseconduit.utils.PrintUtils;
  */
 public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-    static final Logger        LOGGER                  = Logger.getLogger(DefaultBot.class.getName());
+    static final Logger                LOGGER    = Logger.getLogger(DefaultBot.class.getName());
 
     protected final ChatInterface      chatInterface;
 
-    protected final Set<CommandHandle> commands                = new HashSet<>();
+    protected final Set<CommandHandle> commands  = new HashSet<>();
 
-    protected final Set<CommandHandle> listeners               = new HashSet<>();
+    protected final Set<CommandHandle> listeners = new HashSet<>();
 
     private DefaultBot(ChatInterface chatInterface) {
         this.chatInterface = chatInterface;

@@ -29,12 +29,14 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  */
 public abstract class AbstractBot implements ChatWorker {
 
+    private static ThreadLocal<Boolean>        shutdown                = ThreadLocal.withInitial(() -> false);
+
     protected final ExecutorService            processingThread        = Executors.newFixedThreadPool(2);
 
     protected final BlockingQueue<ChatMessage> messageQueue            = new LinkedBlockingQueue<>();
 
     protected Supplier<ChatMessage>            blockingMessageSupplier = () -> {
-                                                                           while (true) {
+                                                                           while ( !shutdown.get()) {
                                                                                ChatMessage headMessage = null;
                                                                                try {
                                                                                    headMessage = messageQueue.poll(10, TimeUnit.MINUTES);
@@ -47,11 +49,14 @@ public abstract class AbstractBot implements ChatWorker {
                                                                                    return headMessage;
                                                                                }
                                                                            }
-                                                                       };
+                                                                           // at this point, users of the supplier will have been shutdown, so it's moot
+                                                                               return null;
+                                                                           };
 
     @Override
     public final synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
         if (chatMessage == ChatWorker.POISON_PILL) {
+            shutdown.set(true);
             processingThread.shutdown();
             this.shutdown();
             return true;
