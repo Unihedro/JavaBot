@@ -251,7 +251,7 @@ public class StackExchangeChat implements ChatInterface {
         JsonMessages messages = queryMessages(descriptor, fkey);
         if (null == messages) { return; }
 
-        messages.setSite(SESite.fromUrl(descriptor.getProvider().getDescription().toString()));
+        messages.setSite((SESite) descriptor.getProvider());
         handleChatEvents(messages);
     }
 
