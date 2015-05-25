@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
@@ -52,16 +51,7 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
     }
 
     @Override
-    public void start() {
-        // asynchronously enqueue the processing by blocking supplier
-        processingThread.submit(this::processMessageQueue);
-    }
-
-    private void processMessageQueue() {
-        Stream.generate(blockingMessageSupplier).forEach(headMessage -> processingThread.submit(() -> processMessage(headMessage)));
-    }
-
-    private void processMessage(final ChatMessage chatMessage) {
+    protected void processMessage(final ChatMessage chatMessage) {
         listeners.stream().map(listener -> listener.execute(chatMessage)).filter(Objects::nonNull)
                 .forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
 

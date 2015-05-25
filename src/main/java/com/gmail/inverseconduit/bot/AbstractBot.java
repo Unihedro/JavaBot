@@ -8,12 +8,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 
 /**
- * Abstract Class that implements default ChatWorker behavior.
+ * Abstract Class that implements default {@link ChatWorker} behavior.
  * Internally this class exposes the protected fields: {@link #messageQueue} and
  * {@link #processingThread}. </br>
  * This class implements thread-safe behavior to
@@ -23,35 +24,24 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
  * shutdown request.
  * Also the {@link #processingThread}'s {@link ExecutorService#shutdown()
  * shutdown}-method will be called. It is accordingly not usable after this.
+ * </br></br>
+ * There is a default implementation for the {@link #start()} method, which will
+ * delegate all messages to {@link #processMessage(ChatMessage)} as soon as they
+ * become available.
+ * This method is required to be implemented by subclasses.
  * 
  * @author Vogel612<<a href="mailto:vogel612@gmx.de"
  *         >vogel612@gmx.de</a>>
  */
 public abstract class AbstractBot implements ChatWorker {
 
-    private static ThreadLocal<Boolean>        shutdown                = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean>  shutdown                = ThreadLocal.withInitial(() -> false);
 
     protected final ExecutorService            processingThread        = Executors.newFixedThreadPool(2);
 
     protected final BlockingQueue<ChatMessage> messageQueue            = new LinkedBlockingQueue<>();
 
-    protected Supplier<ChatMessage>            blockingMessageSupplier = () -> {
-                                                                           while ( !shutdown.get()) {
-                                                                               ChatMessage headMessage = null;
-                                                                               try {
-                                                                                   headMessage = messageQueue.poll(10, TimeUnit.MINUTES);
-                                                                               } catch(InterruptedException e) {
-                                                                                   Logger.getLogger(this.getClass().getName()).log(Level.FINE,
-                                                                                           "Didn't get a message over the course of 10 minutes... something might be wrong", e);
-                                                                               }
-                                                                               if (headMessage != null) {
-                                                                                   Logger.getLogger(this.getClass().getName()).finest("processing message from queue");
-                                                                                   return headMessage;
-                                                                               }
-                                                                           }
-                                                                           // at this point, users of the supplier will have been shutdown, so it's moot
-                                                                               return null;
-                                                                           };
+    protected Supplier<ChatMessage>            blockingMessageSupplier = this::blockingFetchMessage;
 
     @Override
     public final synchronized boolean enqueueMessage(ChatMessage chatMessage) throws InterruptedException {
@@ -64,8 +54,42 @@ public abstract class AbstractBot implements ChatWorker {
         return messageQueue.offer(chatMessage, 200, TimeUnit.MILLISECONDS);
     }
 
+    private ChatMessage blockingFetchMessage() {
+        while ( !shutdown.get()) {
+            ChatMessage headMessage = null;
+            try {
+                headMessage = messageQueue.take();
+            } catch(InterruptedException e) {
+                Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Was interrupted when waiting for a message to become available", e);
+            }
+            if (headMessage != null) {
+                Logger.getLogger(this.getClass().getName()).finest("processing message from queue");
+                return headMessage;
+            }
+        }
+        // at this point, users of the supplier will have been shutdown, so it's moot
+        return null;
+    }
+
     @Override
-    public abstract void start();
+    public void start() {
+        processingThread.submit(this::processMessageQueue);
+    }
+
+    private void processMessageQueue() {
+        Stream.generate(blockingMessageSupplier).forEach(headMessage -> processingThread.submit(() -> processMessage(headMessage)));
+    }
+
+    /**
+     * processes a single {@link ChatMessage}. This method will be called for
+     * every
+     * message enqueued and is intended to be overridden by extending classes to
+     * provide the actual behavior
+     * 
+     * @param message
+     *        the message to be processed
+     */
+    protected abstract void processMessage(final ChatMessage message);
 
     /**
      * Intended for shutting down any other Threads or executors declared in
