@@ -15,23 +15,28 @@ import com.gmail.inverseconduit.datatype.ChatMessage;
 
 /**
  * Abstract Class that implements default {@link ChatWorker} behavior.
- * Internally this class exposes the protected fields: {@link #messageQueue} and
- * {@link #processingThread}. </br>
- * This class implements thread-safe behavior to
- * enqueue messages to {@link #messageQueue}.
- * </br></br>If the {@link ChatWorker#POISON_PILL POISON_PILL} is enqueued,
- * {@link #shutdown()} will be called to notify implementing classes of the
- * shutdown request.
- * Also the {@link #processingThread}'s {@link ExecutorService#shutdown()
- * shutdown}-method will be called. It is accordingly not usable after this.
- * </br></br>
- * There is a default implementation for the {@link #start()} method, which will
- * delegate all messages to {@link #processMessage(ChatMessage)} as soon as they
- * become available.
- * This method is required to be implemented by subclasses.
  * 
- * @author Vogel612<<a href="mailto:vogel612@gmx.de"
- *         >vogel612@gmx.de</a>>
+ * @implSpec Internally this class exposes the protected fields:
+ *           {@link #messageQueue} and {@link #processingThread}.
+ *           This class implements thread-safe behavior to
+ *           enqueue messages to {@link #messageQueue}.
+ *           <p>
+ *           If the {@link ChatWorker#POISON_PILL POISON_PILL} is enqueued,
+ *           {@link #shutdown()} will be called to notify implementing classes
+ *           of the shutdown request.
+ *           </p>
+ *           <p>
+ *           Also the {@link #processingThread}'s
+ *           {@link ExecutorService#shutdown()
+ *           shutdown}-method will be called. It is accordingly not usable after
+ *           this.
+ *           </p>
+ * @implNote There is a default implementation for the {@link #start()} method,
+ *           which will delegate all messages to
+ *           {@link #processMessage(ChatMessage)} as soon as they become
+ *           available. This method is required to be implemented by subclasses.
+ * @author Vogel612&lt;<a href="mailto:vogel612@gmx.de"
+ *         >vogel612@gmx.de</a>&gt;
  */
 public abstract class AbstractBot implements ChatWorker {
 
@@ -82,20 +87,21 @@ public abstract class AbstractBot implements ChatWorker {
 
     /**
      * processes a single {@link ChatMessage}. This method will be called for
-     * every
-     * message enqueued and is intended to be overridden by extending classes to
-     * provide the actual behavior
+     * every message enqueued
      * 
+     * @apiNote It is intended to be overridden by extending classes to
+     *          provide the actual behavior
      * @param message
      *        the message to be processed
      */
     protected abstract void processMessage(final ChatMessage message);
 
     /**
-     * Intended for shutting down any other Threads or executors declared in
-     * extending classes.
      * This method will be called when the ChatWorker recieves a Shutdown
      * request via {@link ChatWorker#POISON_PILL}
+     * 
+     * @apiNote Intended for shutting down any other Threads or executors
+     *          declared in extending classes.
      */
     protected abstract void shutdown();
 }

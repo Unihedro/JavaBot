@@ -20,20 +20,21 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  */
 public class Program {
 
-    private static final Logger     LOGGER      = Logger.getLogger(Program.class.getName());
+    private static final Logger    LOGGER = Logger.getLogger(Program.class.getName());
 
-    private static final BotConfig  config      = AppContext.INSTANCE.get(BotConfig.class);
+    private static final BotConfig config = AppContext.INSTANCE.get(BotConfig.class);
 
-    private final Set<ChatWorker>   bots        = new HashSet<>();
+    private final Set<ChatWorker>  bots   = new HashSet<>();
 
-    private final ChatInterface     chatInterface;
+    private final ChatInterface    chatInterface;
 
     /**
      * @param chatInterface
-     *        The ChatInterface to use as main interface to wire bots to. It is
-     *        assumed that the ChatInterface's
-     *        {@link ChatInterface#login(com.gmail.inverseconduit.datatype.ProviderDescriptor, com.gmail.inverseconduit.datatype.CredentialsProvider)
-     *        login()} has been called already
+     *        The ChatInterface to use as main interface to wire bots to.
+     * @implNote It is
+     *           assumed that the ChatInterface's
+     *           {@link ChatInterface#login(com.gmail.inverseconduit.datatype.ProviderDescriptor, com.gmail.inverseconduit.datatype.CredentialsProvider)
+     *           login()} has been called already
      * @throws IOException
      *         if there's a problem loading the Javadocs
      */
