@@ -19,7 +19,6 @@ import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
-import com.gmail.inverseconduit.commands.providers.canned_comments.CannedComments;
 import com.gmail.inverseconduit.commands.providers.javadoc.JavaDocAccessor;
 import com.gmail.inverseconduit.commands.providers.scripts.ScriptRunner;
 import com.gmail.inverseconduit.commands.providers.timer.TimerCommands;
