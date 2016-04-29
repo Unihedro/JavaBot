@@ -108,7 +108,7 @@ public class StackExchangeChat implements ChatInterface {
     }
 
     private HtmlForm extractLoginForm(final String email, final String password, HtmlPage loginPage) {
-        HtmlForm loginForm = loginPage.getFirstByXPath("//*[@id=\"se-login-form\"]");
+        HtmlForm loginForm = loginPage.getFirstByXPath("//*[@id=\"login-form\"]");
         loginForm.getInputByName("email").setValueAttribute(email);
         loginForm.getInputByName("password").setValueAttribute(password);
         return loginForm;
