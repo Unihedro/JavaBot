@@ -9,10 +9,11 @@ import com.gmail.inverseconduit.datatype.ProviderDescriptor;
 /**
  * Interface specifying least common methods for a class that acts as interface
  * to a chat.
- * The Instances of this class are supposed to be threadsafe.
- * A ChatInterface currently produces
+ * <p>
+ * A {@link ChatInterface} "produces"
  * {@link com.gmail.inverseconduit.datatype.ChatMessage ChatMessages},
  * subscribers must implement {@link ChatWorker}
+ * </p>
  * 
  * @author Unihedron<<a href="mailto:vincentyification@gmail.com"
  *         >vincentyification@gmail.com</a>>
@@ -22,16 +23,19 @@ import com.gmail.inverseconduit.datatype.ProviderDescriptor;
 public interface ChatInterface extends Subscribable<ChatWorker>, AutoCloseable {
 
     /**
-     * Queries the messages of the chat. This method is designed to be called
-     * repetitively and enqueues Messages to the subscribers as maintained
-     * internally per the contract of {@link Subscribable}
+     * Queries the messages of the chat and enqueues messages that have changed
+     * since last calling this method to subscribers.
+     * 
+     * @apiNote This method is designed to be called
+     *          repetitively
      */
     void queryMessages();
 
     /**
-     * Sends a message to a given chatroom. This method obeys external
-     * requirements such as message length, throttling and encodings.
+     * Sends a message to a given chatroom.
      * 
+     * @implNote This method obeys external
+     *           requirements such as message length, throttling and encoding.
      * @param descriptor
      *        The chat-room to send the message to
      * @param message
@@ -41,9 +45,11 @@ public interface ChatInterface extends Subscribable<ChatWorker>, AutoCloseable {
     boolean sendMessage(ChatDescriptor descriptor, String message);
 
     /**
-     * Joins a Chat as described in the descriptor given. Only joined chats will
-     * be queried when calling {@link #queryMessages()}
+     * Joins the "Chat" described in the {@link ChatDescriptor Descriptor}
+     * given.
      * 
+     * @implNote Only joined chats will (and can)
+     *           be queried when calling {@link #queryMessages()}
      * @param descriptor
      *        The chat-room to add to the internal collection of rooms to query
      * @return a boolean indicating success or failure to join the specified
@@ -52,11 +58,17 @@ public interface ChatInterface extends Subscribable<ChatWorker>, AutoCloseable {
     boolean joinChat(ChatDescriptor descriptor);
 
     /**
-     * leaves a Chat as described in the descriptor given. Removes the chat from
-     * the list of rooms to query when calling {@link #queryMessages()}. Any
-     * messages / commands called from the given chat will be ignored until the
-     * chat is joined again
+     * Leaves the "Chat" described in the {@link ChatDescriptor Descriptor}
+     * given.
+     * <p>
+     * The "Chat" will no more be queried when {@link #queryMessages()} is
+     * called. Accordingly all conversations in that "Chat" will not be
+     * processed anymore.
+     * </p>
      * 
+     * @implNote Calling {@link #joinChat(ChatDescriptor)} for the same "Chat"
+     *           later does not guarantee to redeem all Conversations since the
+     *           chat was left.
      * @param descriptor
      *        the chat-room to remove from the internal collection of rooms to
      *        query
@@ -66,30 +78,41 @@ public interface ChatInterface extends Subscribable<ChatWorker>, AutoCloseable {
     boolean leaveChat(ChatDescriptor descriptor);
 
     /**
-     * logs in the ChatInterface against a provider using the given credentials.
+     * Logs in the {@link ChatInterface} against a {@link ProviderDescriptor
+     * Provider} using the given
+     * credentials.
      * 
      * @param descriptor
-     *        The Provider as to be used in later
+     *        The {@link ProviderDescriptor Provider} as to be used in later
      *        {@link ChatDescriptor#getProvider()} calls.
      * @param credentials
-     *        The Credentials to allow identification and authentication using
-     *        {@link CredentialsProvider#getIdentificator()} and
-     *        {@link CredentialsProvider#getAuthenticator()}
+     *        The {@CredentialsProvider Credentials} to
+     *        allow identification and authentication.
      * @return a boolean indicating success or failure to authenticate against
      *         the given Provider
+     * @apiNote This method makes no guarantees about the transmission of given
+     *          credentials over possibly insecure networks.
+     * @implNote Implementing classes should strive to allow for timely garbage
+     *           collection of the Credentials and not log any part of the
+     *           Credentials.
      */
     boolean login(ProviderDescriptor descriptor, CredentialsProvider credentials);
 
     /**
-     * Broadcasts a given message to all currently joined chat-rooms as
-     * maintained in the internal collection like used in
-     * {@link #queryMessages()}
+     * Broadcasts a given message to all currently joined chat-rooms
      * 
      * @param message
      *        the broadcast message
      */
     void broadcast(String message);
 
+    /**
+     * Closes the {@link ChatInterface}. Any calls to public API may result in
+     * undefined behavior after this method was called.
+     * 
+     * @implNote This method is overriden with a "NO-OP" implementation to allow
+     *           slim implementations.
+     */
     @Override
     default void close() throws Exception {
 

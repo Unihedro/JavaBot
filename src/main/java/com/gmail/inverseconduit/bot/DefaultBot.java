@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -33,7 +32,7 @@ import com.gmail.inverseconduit.utils.PrintUtils;
  */
 public class DefaultBot extends AbstractBot implements Subscribable<CommandHandle> {
 
-    private static final Logger        LOGGER    = Logger.getLogger(DefaultBot.class.getName());
+    static final Logger                LOGGER    = Logger.getLogger(DefaultBot.class.getName());
 
     protected final ChatInterface      chatInterface;
 
@@ -45,25 +44,14 @@ public class DefaultBot extends AbstractBot implements Subscribable<CommandHandl
         this.chatInterface = chatInterface;
     }
 
-    public static DefaultBot create(ChatInterface chatInterface) {
+    public static AbstractBot create(ChatInterface chatInterface) {
         DefaultBot bot = new DefaultBot(chatInterface);
         new CoreBotCommands(chatInterface, bot).allCommands().forEach(bot::subscribe);
         return bot;
     }
 
     @Override
-    public void start() {
-        executor.scheduleAtFixedRate(this::processMessageQueue, 1, 500, TimeUnit.MILLISECONDS);
-    }
-
-    private void processMessageQueue() {
-        while (messageQueue.peek() != null) {
-            LOGGER.finest("processing message from queue");
-            processingThread.submit(() -> processMessage(messageQueue.poll()));
-        }
-    }
-
-    private void processMessage(final ChatMessage chatMessage) {
+    protected void processMessage(final ChatMessage chatMessage) {
         listeners.stream().map(listener -> listener.execute(chatMessage)).filter(Objects::nonNull)
                 .forEach(result -> chatInterface.sendMessage(SeChatDescriptor.buildSeChatDescriptorFrom(chatMessage), result));
 

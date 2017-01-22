@@ -44,6 +44,5 @@ public final class SeChatDescriptor extends ChatDescriptor implements Comparable
         if ( !provider.getDescription().equals(other.getProvider().getDescription())) { return -1; }
         if ( !room.getRoomDescription().equals(other.getRoom().getRoomDescription())) { return 1; }
         return 0;
-
     }
 }

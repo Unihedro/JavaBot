@@ -5,7 +5,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -216,7 +215,8 @@ public class StackExchangeChat implements ChatInterface {
             if (response.getStatusCode() != 200) {
                 LOGGER.log(Level.WARNING, String.format("Could not send message. Response(%d): %s", response.getStatusCode(), response.getStatusMessage()));
                 LOGGER.log(Level.WARNING, "Posted against URL: " + newMessageUrl + System.lineSeparator() + "Fkey used: " + fkey);
-                this.sender.schedule(() -> sendMessage(restRootUrl, fkey, message), rnd.nextInt(10), TimeUnit.SECONDS);
+                // FIXME: enable reenqueueing without preventing a correct shutdown
+                // this.sender.schedule(() -> sendMessage(restRootUrl, fkey, message), rnd.nextInt(10), TimeUnit.SECONDS);
                 return false;
             }
             //TODO: "You must log in to post also returns HTTP 200
@@ -229,13 +229,6 @@ public class StackExchangeChat implements ChatInterface {
         }
     }
 
-    /**
-     * Queries the 5 latest messages for all chatrooms and enqueues them to
-     * the subscribed {@link ChatWorker Workers}, respecting the already handled
-     * timestamps as maintained internally.
-     *
-     * @see ChatInterface#queryMessages()
-     */
     @Override
     public void broadcast(final String message) {
         chatMap.keySet().forEach((descriptor) -> sendMessage(descriptor, message));
@@ -258,7 +251,7 @@ public class StackExchangeChat implements ChatInterface {
         JsonMessages messages = queryMessages(descriptor, fkey);
         if (null == messages) { return; }
 
-        messages.setSite(SESite.fromUrl(descriptor.getProvider().getDescription().toString()));
+        messages.setSite((SESite) descriptor.getProvider());
         handleChatEvents(messages);
     }
 

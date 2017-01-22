@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.javadoc;
+package com.gmail.inverseconduit.commands.providers.javadoc;
 
 import java.util.ArrayList;
 import java.util.Collection;

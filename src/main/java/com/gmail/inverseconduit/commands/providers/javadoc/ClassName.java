@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.javadoc;
+package com.gmail.inverseconduit.commands.providers.javadoc;
 
 /**
  * Represents the name of a class.

@@ -20,9 +20,9 @@ import java.util.logging.Logger;
 import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.StackExchangeChat;
-import com.gmail.inverseconduit.security.ScriptSecurityManager;
-import com.gmail.inverseconduit.security.ScriptSecurityPolicy;
-import com.gmail.inverseconduit.timer.TimerKeeper;
+import com.gmail.inverseconduit.commands.providers.scripts.security.ScriptSecurityManager;
+import com.gmail.inverseconduit.commands.providers.scripts.security.ScriptSecurityPolicy;
+import com.gmail.inverseconduit.commands.providers.timer.TimerKeeper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Main {

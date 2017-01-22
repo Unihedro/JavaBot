@@ -8,10 +8,8 @@ import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
-import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.ChatWorker;
-import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 /**
@@ -22,22 +20,21 @@ import com.gmail.inverseconduit.datatype.SeChatDescriptor;
  */
 public class Program {
 
-    private static final Logger     LOGGER      = Logger.getLogger(Program.class.getName());
+    private static final Logger    LOGGER = Logger.getLogger(Program.class.getName());
 
-    private static final BotConfig  config      = AppContext.INSTANCE.get(BotConfig.class);
+    private static final BotConfig config = AppContext.INSTANCE.get(BotConfig.class);
 
-    private final Set<ChatWorker>   bots        = new HashSet<>();
+    private final Set<ChatWorker>  bots   = new HashSet<>();
 
-    private final ChatInterface     chatInterface;
-
-    public static final ChatMessage POISON_PILL = new ChatMessage(null, -1, "", "", -1, "", -1);
+    private final ChatInterface    chatInterface;
 
     /**
      * @param chatInterface
-     *        The ChatInterface to use as main interface to wire bots to. It is
-     *        assumed that the ChatInterface's
-     *        {@link ChatInterface#login(com.gmail.inverseconduit.datatype.ProviderDescriptor, com.gmail.inverseconduit.datatype.CredentialsProvider)
-     *        login()} has been called already
+     *        The ChatInterface to use as main interface to wire bots to.
+     * @implNote It is
+     *           assumed that the ChatInterface's
+     *           {@link ChatInterface#login(com.gmail.inverseconduit.datatype.ProviderDescriptor, com.gmail.inverseconduit.datatype.CredentialsProvider)
+     *           login()} has been called already
      * @throws IOException
      *         if there's a problem loading the Javadocs
      */
@@ -58,8 +55,7 @@ public class Program {
     public void startup() {
         LOGGER.log(Level.FINER, "Beginning startup process");
         for (Integer room : config.getRooms()) {
-            // FIXME: isn't always Stackoverflow
-            chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(SESite.STACK_OVERFLOW).setRoom(() -> room).build());
+            chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(config.getSite()).setRoom(() -> room).build());
         }
         bots.forEach(ChatWorker::start);
         LOGGER.log(Level.FINER, "Startup completed.");

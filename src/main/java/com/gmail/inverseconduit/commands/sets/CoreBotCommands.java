@@ -15,15 +15,15 @@ import java.util.stream.Stream;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
-import com.gmail.inverseconduit.bot.Program;
 import com.gmail.inverseconduit.chat.ChatInterface;
+import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.chat.Subscribable;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.commands.providers.javadoc.JavaDocAccessor;
+import com.gmail.inverseconduit.commands.providers.scripts.ScriptRunner;
+import com.gmail.inverseconduit.commands.providers.timer.TimerCommands;
 import com.gmail.inverseconduit.datatype.ChatMessage;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
-import com.gmail.inverseconduit.javadoc.JavaDocAccessor;
-import com.gmail.inverseconduit.scripts.ScriptRunner;
-import com.gmail.inverseconduit.timer.TimerCommands;
 
 public final class CoreBotCommands {
 
@@ -186,7 +186,7 @@ public final class CoreBotCommands {
                         : String.format("*~going down:*%s", bcMessage));
                     chatInterface.getSubscriptions().forEach(s -> {
                         try {
-                            s.enqueueMessage(Program.POISON_PILL);
+                            s.enqueueMessage(ChatWorker.POISON_PILL);
                         } catch(Exception e) {
                             Logger.getAnonymousLogger().log(Level.WARNING, "Could not enqueue Poison Pill.", e);
                         }

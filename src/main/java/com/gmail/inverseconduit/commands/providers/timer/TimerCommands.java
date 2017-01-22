@@ -1,4 +1,4 @@
-package com.gmail.inverseconduit.timer;
+package com.gmail.inverseconduit.commands.providers.timer;
 
 import static com.gmail.inverseconduit.AppContext.INSTANCE;
 
