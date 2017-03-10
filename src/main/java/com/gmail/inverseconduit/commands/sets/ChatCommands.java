@@ -50,7 +50,7 @@ public final class ChatCommands {
 					return "Could not determine roomnumber.";
 				}
 			}
-			return "I am afraid, I cannot let you do that!";
+			return "I am afraid, I cannot let you do that! And this is because of reasons...";
 		}).build();
 	}
 
