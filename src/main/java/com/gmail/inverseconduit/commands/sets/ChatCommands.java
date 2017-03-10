@@ -16,7 +16,7 @@ public final class ChatCommands {
 				SeChatDescriptor descriptor = SeChatDescriptor.buildSeChatDescriptorFrom(message);
 				chatInterface.leaveChat(descriptor);
 				return "*~bye, bye*";
-			} return "I am afraid, I cannot let you do that!";
+			} return "I am afraid, I cannot let you do that!!";
 		}).build();
 	}
 
@@ -50,7 +50,7 @@ public final class ChatCommands {
 					return "Could not determine roomnumber.";
 				}
 			}
-			return "I am afraid, I cannot let you do that!";
+			return "I am afraid, I cannot let you do that!!";
 		}).build();
 	}
 
