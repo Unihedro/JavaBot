@@ -25,6 +25,11 @@ public class BotConfig implements CredentialsProvider {
     private final Path          javadocs;
 
     private final List<Integer> rooms;
+    
+    /**
+     * List of userids with elevated privileges
+     */
+    private final List<Integer> admins;
 
     /**
      * @param properties
@@ -57,6 +62,21 @@ public class BotConfig implements CredentialsProvider {
         }
         this.rooms = Collections.unmodifiableList(rooms);
         LOGGER.log(Level.CONFIG, "Setting rooms to " + rooms);
+        
+      //---------------------------------------
+        value = properties.getProperty("ADMINS");
+        List<Integer> users = new ArrayList<>();
+        for (String v : value.split("\\s*,\\s*")) {
+        	try {
+        		Integer user = Integer.valueOf(v);
+        		users.add(user);
+        	} catch (NumberFormatException e) {
+        	    LOGGER.log(Level.CONFIG, "Skipping unparsable user ID.");
+                LOGGER.log(Level.FINEST, "", e);
+         	}
+        }
+        this.admins = Collections.unmodifiableList(users);
+        //---------------------------------------
 
         this.site = SESite.fromUrl(properties.getProperty("SITE", "stackoverflow").toLowerCase());
         LOGGER.log(Level.CONFIG, "Setting site to " + site);
@@ -103,6 +123,10 @@ public class BotConfig implements CredentialsProvider {
         return javadocs;
     }
 
+    public List<Integer> getAdmins() {
+    	return admins;
+    }
+    
     /**
      * Gets the IDs of the rooms to join.
      * 
