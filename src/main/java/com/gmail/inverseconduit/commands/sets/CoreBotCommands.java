@@ -66,6 +66,7 @@ public final class CoreBotCommands {
 		createTestCommand();
 		
 		createAddCommand();
+		createRemoveCommand();
 	}
 
 	private void createTellCommand(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
@@ -230,4 +231,7 @@ public final class CoreBotCommands {
 		allCommands.add(AdminCommands.addAdminCommand(BOT_CONFIG));
 	}
 	
+	private void createRemoveCommand(){
+		allCommands.add(AdminCommands.removeAdminCommand(BOT_CONFIG));
+	}
 }
