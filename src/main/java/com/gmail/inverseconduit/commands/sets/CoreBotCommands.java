@@ -64,6 +64,8 @@ public final class CoreBotCommands {
 
 		createAboutCommand();
 		createTestCommand();
+		
+		createAddCommand();
 	}
 
 	private void createTellCommand(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
@@ -192,7 +194,7 @@ public final class CoreBotCommands {
 
 	private void createShutdownCommand(ChatInterface chatInterface) {
 		CommandHandle shutdown = new CommandHandle.Builder("shutdown", message -> {
-			if (ChatCommands.isElevatedUser(message.getUserId(), BOT_CONFIG)) {
+			if (AdminCommands.isElevatedUser(message.getUserId(), BOT_CONFIG)) {
 
 				final String bcMessage = message.getMessage()
 						.replaceFirst("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "shutdown", "");
@@ -223,4 +225,9 @@ public final class CoreBotCommands {
 		}).build();
 		allCommands.add(test);
 	}
+	
+	private void createAddCommand(){
+		allCommands.add(AdminCommands.addAdminCommand(BOT_CONFIG));
+	}
+	
 }

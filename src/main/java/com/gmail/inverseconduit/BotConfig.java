@@ -75,7 +75,7 @@ public class BotConfig implements CredentialsProvider {
                 LOGGER.log(Level.FINEST, "", e);
          	}
         }
-        this.admins = Collections.unmodifiableList(users);
+        this.admins = users;
         //---------------------------------------
 
         this.site = SESite.fromUrl(properties.getProperty("SITE", "stackoverflow").toLowerCase());

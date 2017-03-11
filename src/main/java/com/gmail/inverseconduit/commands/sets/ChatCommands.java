@@ -12,7 +12,7 @@ public final class ChatCommands {
 
 	public static CommandHandle unsummonCommand(ChatInterface chatInterface, BotConfig bc) {
 		return new CommandHandle.Builder("unsummon", message -> {
-			if (isElevatedUser(message.getUserId(), bc)) {
+			if (AdminCommands.isElevatedUser(message.getUserId(), bc)) {
 				SeChatDescriptor descriptor = SeChatDescriptor.buildSeChatDescriptorFrom(message);
 				chatInterface.leaveChat(descriptor);
 				return "*~bye, bye*";
@@ -22,7 +22,7 @@ public final class ChatCommands {
 
 	public static CommandHandle summonCommand(ChatInterface chatInterface, BotConfig bc) {
 		return new CommandHandle.Builder("summon", message -> {
-			if (isElevatedUser(message.getUserId(), bc)) {
+			if (AdminCommands.isElevatedUser(message.getUserId(), bc)) {
 				Logger.getAnonymousLogger().info("Actually invoking summon command");
 				String[] args = message.getMessage().trim().split(" ");
 				final SESite targetSite;
@@ -54,24 +54,5 @@ public final class ChatCommands {
 		}).build();
 	}
 
-	/**
-	 * Iterates over the list of admins given by the current BotConfig to check
-	 * if a user is elevated
-	 * 
-	 * @param uID
-	 *            userID to check
-	 * @param bc
-	 *            BotConfig
-	 * @return true if elevated; false if not
-	 */
-	public static boolean isElevatedUser(Integer uID, BotConfig bc) {
-		boolean elevatedUser = false;
-		System.out.println(uID);
-		for (Integer adID : bc.getAdmins()) {
-			System.out.println(adID);
-			elevatedUser = adID.equals(uID) ? true : elevatedUser;
-		}
-		return elevatedUser;
-	}
 
 }
