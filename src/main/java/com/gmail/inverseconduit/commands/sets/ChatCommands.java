@@ -12,7 +12,7 @@ public final class ChatCommands {
 
 	public static CommandHandle unsummonCommand(ChatInterface chatInterface, BotConfig bc) {
 		return new CommandHandle.Builder("unsummon", message -> {
-			if (AdminCommands.isElevatedUser(message.getUserId(), bc)) {
+			if (AdminCommands.isElevatedUser((long) message.getUserId(), bc)) {
 				SeChatDescriptor descriptor = SeChatDescriptor.buildSeChatDescriptorFrom(message);
 				chatInterface.leaveChat(descriptor);
 				return "*~bye, bye*";
@@ -22,7 +22,7 @@ public final class ChatCommands {
 
 	public static CommandHandle summonCommand(ChatInterface chatInterface, BotConfig bc) {
 		return new CommandHandle.Builder("summon", message -> {
-			if (AdminCommands.isElevatedUser(message.getUserId(), bc)) {
+			if (AdminCommands.isElevatedUser((long) message.getUserId(), bc)) {
 				Logger.getAnonymousLogger().info("Actually invoking summon command");
 				String[] args = message.getMessage().trim().split(" ");
 				final SESite targetSite;
@@ -41,6 +41,7 @@ public final class ChatCommands {
 				}
 				try {
 					final int targetRoom = Integer.parseInt(args[2]);
+					
 					if (!chatInterface.joinChat(
 							new SeChatDescriptor.DescriptorBuilder(targetSite).setRoom(() -> targetRoom).build())) {
 						return "Could not join room.";

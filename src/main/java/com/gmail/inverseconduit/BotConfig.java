@@ -29,7 +29,7 @@ public class BotConfig implements CredentialsProvider {
     /**
      * List of userids with elevated privileges
      */
-    private final List<Integer> admins;
+    private final List<Long> admins;
 
     /**
      * @param properties
@@ -65,10 +65,10 @@ public class BotConfig implements CredentialsProvider {
         
       //---------------------------------------
         value = properties.getProperty("ADMINS");
-        List<Integer> users = new ArrayList<>();
+        List<Long> users = new ArrayList<>();
         for (String v : value.split("\\s*,\\s*")) {
         	try {
-        		Integer user = Integer.valueOf(v);
+        		Long user = Long.valueOf(v);
         		users.add(user);
         	} catch (NumberFormatException e) {
         	    LOGGER.log(Level.CONFIG, "Skipping unparsable user ID.");
@@ -123,7 +123,7 @@ public class BotConfig implements CredentialsProvider {
         return javadocs;
     }
 
-    public List<Integer> getAdmins() {
+    public List<Long> getAdmins() {
     	return admins;
     }
     

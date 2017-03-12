@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.BotConfig;
 import com.gmail.inverseconduit.commands.CommandHandle;
@@ -17,50 +19,53 @@ public class AdminCommands {
 	public static CommandHandle addAdminCommand(BotConfig bc) {
 		return new CommandHandle.Builder("addAdmin", message -> {
 
-			if (isElevatedUser(message.getUserId(), bc)) {
-				String[] args = message.getMessage().trim().split(" ");
-				try {
-					Integer newUserId = Integer.parseInt(args[1]);
-					if (!bc.getAdmins().contains(newUserId))
-						bc.getAdmins().add(newUserId);
-					else return "User already has elevated privileges!";
-					Path file = Paths.get("bot.properties");
-					addAdminToFile(file, newUserId);
-					return "Added userID " + newUserId + " successful!";
-				} catch (NumberFormatException e) {
-					return "Could not understand userID!";
-				}
+			if (! isElevatedUser((long) message.getUserId(), bc)) {
+				return "I am afraid, I cannot let you do that";
 			}
-			return "I am afraid, I cannot let you do that";
-
+		
+			String[] args = message.getMessage().trim().split(" ");
+			try {
+				Long newUserId = Long.parseLong(args[1]);
+				if (!bc.getAdmins().contains(newUserId))
+					bc.getAdmins().add(newUserId);
+				else {
+					return "User already has elevated privileges!";
+				}
+				Path file = Paths.get("bot.properties");
+				addAdminToFile(file, (long) newUserId);
+				return "Added userID " + newUserId + " successful!";
+			} catch (NumberFormatException e) {
+				return "Could not understand userID!";
+			}
+			
 		}).build();
 	}
 
 	public static CommandHandle removeAdminCommand(BotConfig bc) {
 		return new CommandHandle.Builder("removeAdmin", message -> {
 
-			if (isElevatedUser(message.getUserId(), bc)) {
-
-				String[] args = message.getMessage().trim().split(" ");
-				try {
-					Integer remID = Integer.parseInt(args[1]);
-					if (!bc.getAdmins().contains(remID)) 
-						return "This user does not have elevated privileges!";
-					
-					bc.getAdmins().remove((Object) remID); //Object cast to make sure it does not get interpreted as index.
-					
-					Path file = Paths.get("bot.properties");
-					removeAdminFromFile(file, remID);
-					
-					return "Removed " + remID + " sucessful";
-
-				} catch (NumberFormatException e) {
-					return "Could not understand userID!";
-				}
-
+			if (! isElevatedUser((long) message.getUserId(), bc)) {
+				return "I am afraid, I cannot let you do that!";
 			}
+			
+			String[] args = message.getMessage().trim().split(" ");
+			try {
+				Long remID = Long.parseLong(args[1]);
+				if (!bc.getAdmins().contains(remID)) {
+					return "This user does not have elevated privileges!";
+				}
+					
+				bc.getAdmins().remove((Object) remID); //Object cast to make sure it does not get interpreted as index.
+				
+				Path file = Paths.get("bot.properties");
+				removeAdminFromFile(file, (long) remID);
+				
+				return "Removed " + remID + " sucessful";
 
-			return "I am afraid, I cannot let you do that!";
+			} catch (NumberFormatException e) {
+				return "Could not understand userID!";
+			}
+			
 		}).build();
 	}
 
@@ -74,14 +79,8 @@ public class AdminCommands {
 	 *            BotConfig
 	 * @return true if elevated; false if not
 	 */
-	public static boolean isElevatedUser(Integer uID, BotConfig bc) {
-		boolean elevatedUser = false;
-		System.out.println(uID);
-		for (Integer adID : bc.getAdmins()) {
-			System.out.println(adID);
-			elevatedUser = adID.equals(uID) ? true : elevatedUser;
-		}
-		return elevatedUser;
+	public static boolean isElevatedUser(Long uID, BotConfig bc) {
+		return bc.getAdmins().contains(uID);
 	}
 
 	/**
@@ -92,7 +91,7 @@ public class AdminCommands {
 	 * @param newAdmin
 	 *            ID of new admin
 	 */
-	private static void addAdminToFile(Path propertyFile, Integer newAdmin) {
+	private static void addAdminToFile(Path propertyFile, Long newAdmin) {
 		try {
 			Path tempFile = Paths.get(propertyFile.toString() + ".tmp");
 			Files.deleteIfExists(tempFile);
@@ -112,13 +111,11 @@ public class AdminCommands {
 			Files.move(tempFile, propertyFile);
 
 		} catch (IOException e) {
-			System.out.println("------------------------------------------------------------------------");
-			System.out.println("PROBLEM ADDING ADMIN! INVESTIGATION STRONGLY ADVISED!");
-			System.out.println("------------------------------------------------------------------------");
+			Logger.getAnonymousLogger().log(Level.WARNING, "Problem adding " + newAdmin + " to property file!", e);
 		}
 	}
 
-	private static void removeAdminFromFile(Path propertyFile, Integer newAdmin) {
+	private static void removeAdminFromFile(Path propertyFile, Long newAdmin) {
 		try {
 			Path tempFile = Paths.get(propertyFile.toString() + ".tmp");
 			
@@ -129,7 +126,7 @@ public class AdminCommands {
 			
 			String nextLine = null;
 			while((nextLine = br.readLine()) != null){
-				String line = nextLine.toUpperCase().startsWith("ADMINS") ? nextLine.replace(Integer.toString(newAdmin), "").
+				String line = nextLine.toUpperCase().startsWith("ADMINS") ? nextLine.replace(Long.toString(newAdmin), "").
 						//Regex to clean up the line
 						replace(", ,", ",").replaceAll(", $", "").replace("=, ", "=") : nextLine;
 						bw.write(line + "\n");
@@ -142,9 +139,7 @@ public class AdminCommands {
 			Files.move(tempFile, propertyFile);
 			
 		} catch (IOException e){
-			System.out.println("------------------------------------------------------------------------");
-			System.out.println("PROBLEM REMOVING ADMIN! INVESTIGATION STRONGLY ADVISED!");
-			System.out.println("------------------------------------------------------------------------");
+			Logger.getAnonymousLogger().log(Level.WARNING, "Problem removing " + newAdmin + " from property file!", e);
 		}
 	}
 	
