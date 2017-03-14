@@ -111,7 +111,7 @@ public class AdminCommands {
 			Files.move(tempFile, propertyFile);
 
 		} catch (IOException e) {
-			Logger.getAnonymousLogger().log(Level.WARNING, "Problem adding " + newAdmin + " to property file!", e);
+			Logger.getAnonymousLogger().log(Level.SEVERE, "Problem adding " + newAdmin + " to property file!", e);
 		}
 	}
 
@@ -139,7 +139,7 @@ public class AdminCommands {
 			Files.move(tempFile, propertyFile);
 			
 		} catch (IOException e){
-			Logger.getAnonymousLogger().log(Level.WARNING, "Problem removing " + newAdmin + " from property file!", e);
+			Logger.getAnonymousLogger().log(Level.SEVERE, "Problem removing " + newAdmin + " from property file!", e);
 		}
 	}
 	
