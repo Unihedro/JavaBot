@@ -4,8 +4,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,7 +31,7 @@ public class BotConfig implements CredentialsProvider {
     /**
      * List of userids with elevated privileges
      */
-    private final List<Long> admins;
+    private final Set<Long> admins;
 
     /**
      * @param properties
@@ -65,7 +67,7 @@ public class BotConfig implements CredentialsProvider {
         
       //---------------------------------------
         value = properties.getProperty("ADMINS");
-        List<Long> users = new ArrayList<>();
+        Set<Long> users = new HashSet<>();
         for (String v : value.split("\\s*,\\s*")) {
         	try {
         		Long user = Long.valueOf(v);
@@ -123,7 +125,7 @@ public class BotConfig implements CredentialsProvider {
         return javadocs;
     }
 
-    public List<Long> getAdmins() {
+    Set<Long> getAdmins() {
     	return admins;
     }
     

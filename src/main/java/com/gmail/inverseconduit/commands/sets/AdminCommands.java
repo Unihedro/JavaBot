@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.BotConfig;
+import com.gmail.inverseconduit.Permissions;
 import com.gmail.inverseconduit.commands.CommandHandle;
 
 public class AdminCommands {
@@ -19,15 +20,15 @@ public class AdminCommands {
 	public static CommandHandle addAdminCommand(BotConfig bc) {
 		return new CommandHandle.Builder("addAdmin", message -> {
 
-			if (! isElevatedUser((long) message.getUserId(), bc)) {
+			if (! Permissions.isAdmin((long) message.getUserId(), bc)) {
 				return "I am afraid, I cannot let you do that";
 			}
 		
 			String[] args = message.getMessage().trim().split(" ");
 			try {
 				Long newUserId = Long.parseLong(args[1]);
-				if (!bc.getAdmins().contains(newUserId))
-					bc.getAdmins().add(newUserId);
+				if (Permissions.isAdmin(newUserId, bc))
+					Permissions.addAdmin(newUserId, bc);
 				else {
 					return "User already has elevated privileges!";
 				}
@@ -44,18 +45,18 @@ public class AdminCommands {
 	public static CommandHandle removeAdminCommand(BotConfig bc) {
 		return new CommandHandle.Builder("removeAdmin", message -> {
 
-			if (! isElevatedUser((long) message.getUserId(), bc)) {
+			if (! Permissions.isAdmin((long) message.getUserId(), bc)) {
 				return "I am afraid, I cannot let you do that!";
 			}
 			
 			String[] args = message.getMessage().trim().split(" ");
 			try {
 				Long remID = Long.parseLong(args[1]);
-				if (!bc.getAdmins().contains(remID)) {
+				if (Permissions.isAdmin(remID, bc)) {
 					return "This user does not have elevated privileges!";
 				}
 					
-				bc.getAdmins().remove((Object) remID); //Object cast to make sure it does not get interpreted as index.
+				Permissions.removeAdmin(remID, bc);
 				
 				Path file = Paths.get("bot.properties");
 				removeAdminFromFile(file, (long) remID);
@@ -67,20 +68,6 @@ public class AdminCommands {
 			}
 			
 		}).build();
-	}
-
-	/**
-	 * Iterates over the list of admins given by the current BotConfig to check
-	 * if a user is elevated
-	 * 
-	 * @param uID
-	 *            userID to check
-	 * @param bc
-	 *            BotConfig
-	 * @return true if elevated; false if not
-	 */
-	public static boolean isElevatedUser(Long uID, BotConfig bc) {
-		return bc.getAdmins().contains(uID);
 	}
 
 	/**
