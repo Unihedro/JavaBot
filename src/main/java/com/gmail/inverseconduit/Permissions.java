@@ -7,11 +7,11 @@ public class Permissions {
 	}
 	
 	public static void removeAdmin(Long userID, BotConfig bc) {
-		bc.getAdmins().add(userID);
+		bc.getAdmins().remove(userID);
 	}
 	
 	public static void addAdmin(Long userID, BotConfig bc) {
-		bc.getAdmins().remove(userID);
+		bc.getAdmins().add(userID);
 	}
 	
 }
