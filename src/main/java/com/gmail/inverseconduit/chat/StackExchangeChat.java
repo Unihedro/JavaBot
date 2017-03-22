@@ -36,10 +36,11 @@ public class StackExchangeChat implements ChatInterface {
 
     private final Set<ChatWorker>                 subscribers            = new HashSet<>();
 
-    private final Set<Long>                       handledMessages        = new HashSet<>();
+    private final Set<Integer>                       handledMessages        = new HashSet<>();
 
     private final ScheduledThreadPoolExecutor     sender                 = new ScheduledThreadPoolExecutor(1);
 
+    //TODO This is unused.
     private final Random                          rnd;
 
     public StackExchangeChat() {
@@ -273,7 +274,7 @@ public class StackExchangeChat implements ChatInterface {
         JsonMessages assumeHandled = queryMessages(descriptor, fkey);
         if (null == assumeHandled) { return; }
 
-        assumeHandled.getEvents().forEach(message -> handledMessages.add((long) message.getMessage_id()));
+        assumeHandled.getEvents().forEach(message -> handledMessages.add(message.getMessage_id()));
     }
 
     private String fetchMessageJson(final URL roomUrl, final String fkey) {
