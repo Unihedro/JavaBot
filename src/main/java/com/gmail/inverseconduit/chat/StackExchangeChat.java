@@ -13,6 +13,9 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
+import com.gmail.inverseconduit.AppContext;
+import com.gmail.inverseconduit.BotConfig;
+import com.gmail.inverseconduit.Permissions;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.datatype.*;
 import com.gmail.inverseconduit.utils.PrintUtils;
@@ -307,13 +310,15 @@ public class StackExchangeChat implements ChatInterface {
             .filter(e -> e.getEvent_type() == ChatEventType.CHAT_MESSAGE && !handledMessages.contains((long) e.getMessage_id()))
             .map(event -> ChatMessage.fromJsonChatEvent(event, events.getSite()))
             .forEach(message -> {
-                subscribers.forEach(s -> {
-                    try {
-                        s.enqueueMessage(message);
-                    } catch(Exception e) {
-                        LOGGER.warning("Could not enqueue message: " + message + "to subscriber " + s);
-                    }
-                });
+            	if (!Permissions.isBanned((long) message.getUserId(), AppContext.INSTANCE.get(BotConfig.class))) {
+	                subscribers.forEach(s -> {
+	                    try {
+	                        s.enqueueMessage(message);
+	                    } catch(Exception e) {
+	                        LOGGER.warning("Could not enqueue message: " + message + "to subscriber " + s);
+	                    }
+	                });
+            	}
                 handledMessages.add(message.getMessageId());
             });
         //@formatter:on
