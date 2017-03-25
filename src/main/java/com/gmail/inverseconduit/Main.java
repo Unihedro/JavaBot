@@ -30,12 +30,13 @@ public class Main {
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) throws Exception {
-        setupLogging();
-
+        
+    	setupLogging();
+        
         //sandbox this ...
         Policy.setPolicy(ScriptSecurityPolicy.getInstance());
         System.setSecurityManager(ScriptSecurityManager.getInstance());
-
+        
         BotConfig config = loadConfig();
         AppContext.INSTANCE.add(config);
         AppContext.INSTANCE.add(new TimerKeeper());
@@ -90,4 +91,5 @@ public class Main {
         }
         return new BotConfig(properties);
     }
+    
 }

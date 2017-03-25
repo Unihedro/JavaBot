@@ -8,8 +8,10 @@ import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
+import com.gmail.inverseconduit.bot.DefaultBot;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.ChatWorker;
+import com.gmail.inverseconduit.datatype.Room;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 /**
@@ -56,6 +58,7 @@ public class Program {
         LOGGER.log(Level.FINER, "Beginning startup process");
         for (Integer room : config.getRooms()) {
             chatInterface.joinChat(new SeChatDescriptor.DescriptorBuilder(config.getSite()).setRoom(() -> room).build());
+            config.getRoomObjects().put(room, Room.createRoom(room, config.getSite(), config));
         }
         bots.forEach(ChatWorker::start);
         LOGGER.log(Level.FINER, "Startup completed.");
