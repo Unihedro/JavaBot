@@ -126,7 +126,7 @@ public class Room {
 			
 			BufferedWriter bw = new BufferedWriter(new FileWriter(roomFile.toFile()));
 			
-			bw.write(Integer.toString(room.getRoomID()) + "\r\n");
+			bw.write(Integer.toString(room.getRoomID()) + "\n");
 			bw.write(room.getRoomName() + "\n");
 			for (Long roomOwner : room.getRoomOwner()) {
 				bw.write(Long.toString(roomOwner) + "\n");

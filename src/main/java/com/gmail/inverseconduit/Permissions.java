@@ -109,7 +109,7 @@ public class Permissions {
 				bw.write(line + "\n");
 			}
 
-			if (!lineFound) bw.write(role + " " + newEntry);
+			if (!lineFound) bw.write(role + "=" + newEntry);
 			br.close();
 			bw.close();
 
