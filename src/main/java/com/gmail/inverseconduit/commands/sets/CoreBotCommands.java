@@ -62,6 +62,9 @@ public final class CoreBotCommands {
 
         createAboutCommand();
         createTestCommand();
+        
+        createAddAdminCommand();
+        createRemoveAdminCommand();
     }
 
     private void createTellCommand(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
@@ -105,8 +108,8 @@ public final class CoreBotCommands {
     }
 
     private void createSummonCommands(ChatInterface chatInterface) {
-        allCommands.add(ChatCommands.unsummonCommand(chatInterface));
-        allCommands.add(ChatCommands.summonCommand(chatInterface));
+        allCommands.add(ChatCommands.unsummonCommand(chatInterface, BOT_CONFIG));
+        allCommands.add(ChatCommands.summonCommand(chatInterface, BOT_CONFIG));
     }
 
     private void createGroovyCommands() {
@@ -204,4 +207,13 @@ public final class CoreBotCommands {
         }).build();
         allCommands.add(test);
     }
+    
+    private void createAddAdminCommand() {
+    	allCommands.add(AdminCommands.addAdminCommand(BOT_CONFIG));
+    }
+    
+    private void createRemoveAdminCommand() {
+    	allCommands.add(AdminCommands.removeAdminCommand(BOT_CONFIG));
+    }
+    
 }
