@@ -4,8 +4,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +27,11 @@ public class BotConfig implements CredentialsProvider {
     private final Path          javadocs;
 
     private final List<Integer> rooms;
+    
+    /**
+     * List of userids with elevated privileges
+     */
+    private final Set<Long> admins;
 
     /**
      * @param properties
@@ -57,6 +64,21 @@ public class BotConfig implements CredentialsProvider {
         }
         this.rooms = Collections.unmodifiableList(rooms);
         LOGGER.log(Level.CONFIG, "Setting rooms to " + rooms);
+        
+      //---------------------------------------
+        value = properties.getProperty("ADMINS");
+        Set<Long> users = new HashSet<>();
+        for (String v : value.split("\\s*,\\s*")) {
+        	try {
+        		Long user = Long.valueOf(v);
+        		users.add(user);
+        	} catch (NumberFormatException e) {
+        	    LOGGER.log(Level.CONFIG, "Skipping unparsable user ID.");
+                LOGGER.log(Level.FINEST, "", e);
+         	}
+        }
+        this.admins = users;
+        //---------------------------------------
 
         this.site = SESite.fromUrl(properties.getProperty("SITE", "stackoverflow").toLowerCase());
         LOGGER.log(Level.CONFIG, "Setting site to " + site);
@@ -103,6 +125,10 @@ public class BotConfig implements CredentialsProvider {
         return javadocs;
     }
 
+    Set<Long> getAdmins() {
+    	return admins;
+    }
+    
     /**
      * Gets the IDs of the rooms to join.
      * 
