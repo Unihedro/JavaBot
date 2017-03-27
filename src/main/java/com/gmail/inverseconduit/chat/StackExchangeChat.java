@@ -36,7 +36,7 @@ public class StackExchangeChat implements ChatInterface {
 
     private final Set<ChatWorker>                 subscribers            = new HashSet<>();
 
-    private final Set<Integer>                       handledMessages        = new HashSet<>();
+    private final Set<Integer>                    handledMessages        = new HashSet<>();
 
     private final ScheduledThreadPoolExecutor     sender                 = new ScheduledThreadPoolExecutor(1);
 
