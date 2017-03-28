@@ -4,8 +4,7 @@ import com.gmail.inverseconduit.SESite;
 
 public class ChatMessage {
 
-    // FIXME: Why is this a long, when Json has an int?
-    private final long   messageId;
+    private final int   messageId;
 
     private final String username;
 
@@ -19,7 +18,7 @@ public class ChatMessage {
 
     private final String roomName;
 
-    public ChatMessage(SESite site, int roomId, String roomName, String username, int userId, String message, long messageId) {
+    public ChatMessage(SESite site, int roomId, String roomName, String username, int userId, String message, int messageId) {
         this.site = site;
         this.roomId = roomId;
         this.roomName = roomName;
@@ -62,7 +61,7 @@ public class ChatMessage {
         return roomName;
     }
 
-    public long getMessageId() {
+    public int getMessageId() {
         return messageId;
     }
 }
