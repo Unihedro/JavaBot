@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.gmail.inverseconduit.AppContext;
 import com.gmail.inverseconduit.BotConfig;
+import com.gmail.inverseconduit.Permissions;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.chat.ChatWorker;
 import com.gmail.inverseconduit.chat.Subscribable;
@@ -65,6 +66,9 @@ public final class CoreBotCommands {
         
         createAddAdminCommand();
         createRemoveAdminCommand();
+        
+        createBanCommand();
+        createUnbanCommand();
     }
 
     private void createTellCommand(final ChatInterface chatInterface, final Subscribable<CommandHandle> commandOwner) {
@@ -182,6 +186,9 @@ public final class CoreBotCommands {
     private void createShutdownCommand(ChatInterface chatInterface) {
         CommandHandle shutdown =
                 new CommandHandle.Builder("shutdown", message -> {
+                	if (!Permissions.isAdmin((long) message.getUserId(), BOT_CONFIG)) {
+                		return "I am afraid I cannot let you do that!";
+                	}
                     final String bcMessage = message.getMessage().replaceFirst("^" + Pattern.quote(BOT_CONFIG.getTrigger()) + "shutdown", "");
 
                     chatInterface.broadcast(bcMessage.isEmpty()
@@ -214,6 +221,14 @@ public final class CoreBotCommands {
     
     private void createRemoveAdminCommand() {
     	allCommands.add(AdminCommands.removeAdminCommand(BOT_CONFIG));
+    }
+    
+    private void createBanCommand() {
+    	allCommands.add(AdminCommands.banCommand(BOT_CONFIG));
+    }
+    
+    private void createUnbanCommand() {
+    	allCommands.add(AdminCommands.unBanCommand(BOT_CONFIG));
     }
     
 }

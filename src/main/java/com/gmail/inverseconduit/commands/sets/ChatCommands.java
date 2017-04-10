@@ -7,6 +7,7 @@ import com.gmail.inverseconduit.Permissions;
 import com.gmail.inverseconduit.SESite;
 import com.gmail.inverseconduit.chat.ChatInterface;
 import com.gmail.inverseconduit.commands.CommandHandle;
+import com.gmail.inverseconduit.datatype.Room;
 import com.gmail.inverseconduit.datatype.SeChatDescriptor;
 
 public final class ChatCommands {
@@ -18,7 +19,9 @@ public final class ChatCommands {
 			} 
 			SeChatDescriptor descriptor = SeChatDescriptor.buildSeChatDescriptorFrom(message);
 			chatInterface.leaveChat(descriptor);
+			bc.getRoomObjects().remove(message.getRoomId());
 			return "*~bye, bye*";
+
 		}).build();
 	}
 
@@ -27,6 +30,7 @@ public final class ChatCommands {
 			if (!Permissions.isAdmin((long) message.getUserId(), bc)) {
 				return "I am afraid, I cannot let you do that!!";
 			}
+      
 			Logger.getAnonymousLogger().info("Actually invoking summon command");
 			String[] args = message.getMessage().trim().split(" ");
 			final SESite targetSite;
@@ -50,11 +54,13 @@ public final class ChatCommands {
 						new SeChatDescriptor.DescriptorBuilder(targetSite).setRoom(() -> targetRoom).build())) {
 					return "Could not join room.";
 				}
+        
+				bc.getRoomObjects().put(targetRoom, Room.createRoom(targetRoom, targetSite, bc));
+
 				return "Successfully joined room";
 			} catch (NumberFormatException ex) {
 				return "Could not determine roomnumber.";
 			}
-			
 		}).build();
 	}
 

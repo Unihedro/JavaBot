@@ -4,14 +4,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.gmail.inverseconduit.datatype.CredentialsProvider;
+import com.gmail.inverseconduit.datatype.Room;
 
 /**
  * Holds environment settings, such as the bot's login credentials.
@@ -32,7 +35,10 @@ public class BotConfig implements CredentialsProvider {
      * List of userids with elevated privileges
      */
     private final Set<Long> admins;
-
+    
+    private final Set<Long> banned;
+    
+    private final Map<Integer, Room> roomObjects = new HashMap<>();
     /**
      * @param properties
      *        the properties file to pull the settings from
@@ -65,7 +71,6 @@ public class BotConfig implements CredentialsProvider {
         this.rooms = Collections.unmodifiableList(rooms);
         LOGGER.log(Level.CONFIG, "Setting rooms to " + rooms);
         
-      //---------------------------------------
         value = properties.getProperty("ADMINS");
         Set<Long> users = new HashSet<>();
         for (String v : value.split("\\s*,\\s*")) {
@@ -78,8 +83,21 @@ public class BotConfig implements CredentialsProvider {
          	}
         }
         this.admins = users;
-        //---------------------------------------
 
+        value = properties.getProperty("BANNED", "");
+        Set<Long> bannedUsers = new HashSet<>();
+        for (String v : value.split("\\s*,\\s*")) {
+        	try {
+        		Long user = Long.valueOf(v);
+        		users.add(user);
+        	} catch (NumberFormatException e) {
+        	    LOGGER.log(Level.CONFIG, "Skipping unparsable user ID.");
+                LOGGER.log(Level.FINEST, "", e);
+         	}
+        }
+        this.banned = bannedUsers;
+ 
+        
         this.site = SESite.fromUrl(properties.getProperty("SITE", "stackoverflow").toLowerCase());
         LOGGER.log(Level.CONFIG, "Setting site to " + site);
     }
@@ -127,6 +145,14 @@ public class BotConfig implements CredentialsProvider {
 
     Set<Long> getAdmins() {
     	return admins;
+    }
+    
+    Set<Long> getBanned() {
+    	return banned;
+    }
+    
+    public Map<Integer, Room> getRoomObjects(){
+    	return roomObjects;
     }
     
     /**
